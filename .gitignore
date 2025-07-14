@@ -58,3 +58,4 @@ node_modules
 redis_data
 redis.conf
 
+.vercel

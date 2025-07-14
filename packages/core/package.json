@@ -1,22 +1,23 @@
 {
-  "name": "core",
+  "name": "@axiomkit/core",
   "version": "0.0.1",
   "description": "Core Packages of Axiom Kit",
+  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./package.json": "./package.json",
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "devDependencies": {},
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "lint": "eslint src --ext .ts",
-    "test": "vitest"
+    "build": "tsup --dts-resolve",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
   }
 }

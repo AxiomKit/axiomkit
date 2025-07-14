@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "description": "",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "test": "pnpm -r run test",
-    "build:packages": "pnpm -r run build"
+    "build": "pnpm -r run build"
   },
   "keywords": [
     "framework",
