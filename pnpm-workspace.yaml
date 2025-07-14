@@ -1,5 +1,6 @@
 packages:
-  - 'packages/*'
+  - packages/*
+  - examples/*
 
 catalog:
   '@ai-sdk/anthropic': 1.2.3
@@ -12,3 +13,6 @@ catalog:
   ai: 4.3.16
   tsup: 8.3.6
   vitest: 3.2.4
+
+overrides:
+  axiom-kit: 'link:'

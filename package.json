@@ -25,7 +25,8 @@
     "@ai-sdk/openai": "catalog:",
     "@ai-sdk/provider": "catalog:",
     "@ai-sdk/ui-utils": "catalog:",
-    "ai": "^4.3.17"
+    "ai": "^4.3.17",
+    "axiom-kit": "link:"
   },
   "devDependencies": {
     "tsup": "catalog:",
