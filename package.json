@@ -6,10 +6,29 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "pnpm -r run test",
+    "build:packages": "pnpm -r run build"
   },
-  "keywords": [],
+  "keywords": [
+    "framework",
+    "ai",
+    "sdk",
+    "toolkit"
+  ],
   "author": "Axiom Team",
-  "license": "ISC",
-  "packageManager": "pnpm@10.8.1"
+  "license": "MIT",
+  "dependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/groq": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@ai-sdk/provider": "catalog:",
+    "@ai-sdk/ui-utils": "catalog:",
+    "ai": "^4.3.17"
+  },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
 }
