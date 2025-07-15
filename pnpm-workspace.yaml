@@ -13,6 +13,7 @@ catalog:
   ai: 4.3.16
   tsup: 8.3.6
   vitest: 3.2.4
+  uuid: 11.1.0
 
 overrides:
   axiom-kit: 'link:'

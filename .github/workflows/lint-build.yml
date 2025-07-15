@@ -1,4 +1,4 @@
-name: Lint and Build
+name: Lint, Build, and Test (pnpm Monorepo)
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
     branches: [main, dev]
 
 jobs:
-  lint-and-build:
+  lint-build-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      - name: 📦 Setup Node with pnpm
+      - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -28,11 +28,14 @@ jobs:
       - name: 📥 Install dependencies
         run: pnpm install
 
-      - name: 🔍 Lint code
+      - name: 📦 List workspace packages (debug)
+        run: pnpm m ls --depth -1
+
+      - name: 🔍 Lint all packages
         run: pnpm lint
 
-      - name: 🛠 Build project
+      - name: 🛠 Build all packages
         run: pnpm build
 
-      - name: 🧪 Run tests
+      - name: 🧪 Test all packages
         run: pnpm test

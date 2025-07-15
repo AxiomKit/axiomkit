@@ -30,6 +30,9 @@ catalogs:
     typescript:
       specifier: 5.8.3
       version: 5.8.3
+    uuid:
+      specifier: 11.1.0
+      version: 11.1.0
     vitest:
       specifier: 3.2.4
       version: 3.2.4
@@ -65,6 +68,9 @@ importers:
       axiom-kit:
         specifier: 'link:'
         version: 'link:'
+      uuid:
+        specifier: 'catalog:'
+        version: 11.1.0
     devDependencies:
       tsup:
         specifier: 'catalog:'
@@ -1708,6 +1714,10 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   vite-node@3.2.4:
     resolution: {integrity: sha512-EbKSKh+bh1E1IFxeO0pg1n4dvoOTt0UDiXMd/qn++r98+jPO1xtJilvXldeuQ8giIB5IkpjCgMleHMNEsGH6pg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -3275,6 +3285,8 @@ snapshots:
   use-sync-external-store@1.5.0(react@19.1.0):
     dependencies:
       react: 19.1.0
+
+  uuid@11.1.0: {}
 
   vite-node@3.2.4:
     dependencies:
