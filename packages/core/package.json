@@ -13,11 +13,15 @@
     },
     "./package.json": "./package.json"
   },
-  "devDependencies": {},
   "scripts": {
     "build": "tsup --dts-resolve",
     "prepublishOnly": "pnpm run build",
     "test": "vitest",
     "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsup": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -71,3 +71,19 @@
 - **TypeScript** 4.5+
 
 ### Build PNPM Lib
+
+### Rule JSDoc
+Use the following JSDoc tags for comprehensive documentation:
+- /** ... */: Start and end all JSDoc comments.
+- @param {Type} name - Description.: For function parameters.
+    - Type: The TypeScript type (e.g., {string}, {number[]}, {MyInterface}).
+    - name: The parameter name.
+    - Description: A clear explanation of the parameter's purpose.
+    - Use [name] for optional parameters.
+
+- @returns {Type} - Description.: For function return values.
+- @throws {ErrorType} - Description.: For errors thrown by the function.
+- @example: Provide a code example demonstrating how to use the function/class.
+- @deprecated - Reason for deprecation.: Mark deprecated elements.
+- @see {link}: Reference related documentation or resources.
+- @template {T}: For generic types.
