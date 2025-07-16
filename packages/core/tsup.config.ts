@@ -1,9 +1,9 @@
 import { defineConfig } from "tsup";
+
 import { tsupConfig } from "../../tsup.config";
 
 export default defineConfig({
   ...tsupConfig,
+  entry: ["./src/index.ts", "src/extensions/index.ts"],
   dts: true,
-  entry: ["./src/index.ts"],
-  external: ["readline/promises"],
 });

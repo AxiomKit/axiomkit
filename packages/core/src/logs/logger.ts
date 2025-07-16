@@ -1,6 +1,8 @@
-import { LogLevel } from "./types";
+import { LogLevel } from "../types"; // Assuming LogLevel is defined elsewhere
 import type { CorrelationIds, TokenUsage, ModelCallMetrics } from "../tracking";
 import { formatCorrelationIds as formatCorrelationIdsUtil } from "../tracking";
+
+// --- Interfaces ---
 
 export interface LogEntry {
   level: LogLevel;

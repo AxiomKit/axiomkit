@@ -32,6 +32,7 @@ export function createTagParser<T = string>(
   };
 }
 
+// new parser
 export type TextNode = {
   type: "text";
   content: string;
@@ -40,7 +41,7 @@ export type TextNode = {
 };
 
 export type ElementNode<
-  Attributes extends Record<string, string> = Record<string, any>
+  Attributes extends Record<string, string> = Record<string, any>,
 > = {
   type: "element";
   name: string;
@@ -76,6 +77,7 @@ export function parse(
   let workingText = text.trim();
 
   while (workingText.length > 0) {
+    // Find first opening tag
     const tagStart = workingText.indexOf("<");
     if (tagStart === -1) {
       const textNode: TextNode = {
@@ -188,6 +190,7 @@ const alphaSlashRegex = /[a-zA-Z\/]/;
 
 const wrappers = ["'", "`", "(", ")"];
 
+// todo: maybe only allow new tags in new lines or immediatly after closing one
 export function* xmlStreamParser(
   parseTags: Set<string>,
   shouldParse: (tagName: string, isClosingTag: boolean) => boolean
@@ -204,6 +207,7 @@ export function* xmlStreamParser(
 
     while (buffer.length > 0) {
       const tagStart = buffer.indexOf("<");
+      // detect wrapped tags ex:'<tag> and skip it
       if (
         tagStart === 0 &&
         cachedLastContent &&
@@ -232,6 +236,7 @@ export function* xmlStreamParser(
         continue;
       }
 
+      // todo: regex performance
       if (
         tagStart === -1 ||
         (buffer.length > 1 && !alphaSlashRegex.test(buffer[tagStart + 1]))
@@ -246,6 +251,7 @@ export function* xmlStreamParser(
         break;
       }
 
+      // wait for more content to detect wrapper
       if (buffer.length === tagEnd) break;
 
       if (wrappers.includes(buffer[tagEnd + 1])) {
@@ -266,6 +272,7 @@ export function* xmlStreamParser(
         : tagContent.trim().split(" ")[0];
 
       if (parseTags.has(tagName) && shouldParse(tagName, isClosingTag)) {
+        // Emit accumulated text if any
         if (textContent.length > 0) {
           yield { type: "text", content: textContent };
           cachedLastContent = textContent;
@@ -284,6 +291,7 @@ export function* xmlStreamParser(
           }
         }
       } else {
+        // Not a tag we care about, treat as text
         textContent += buffer.slice(0, tagEnd + 1);
       }
 
