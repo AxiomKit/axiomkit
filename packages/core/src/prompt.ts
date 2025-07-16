@@ -1,8 +1,8 @@
 import z, { ZodType } from "zod/v4";
-import type { Node, ElementNode } from "./xml";
-import { parse as parseXML } from "./xml";
+import type { Node, ElementNode } from "./utils/xml";
+import { parse as parseXML } from "./utils/xml";
 import type { TemplateVariables } from "./types";
-import { render } from "./formatters";
+import { render } from "./utils/formatters";
 
 export type Formatter<
   Variables extends Record<string, any> = Record<string, any>,
