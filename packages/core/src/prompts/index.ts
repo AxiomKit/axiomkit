@@ -7,7 +7,7 @@ import {
   render,
   xml,
 } from "../utils/formatters";
-import type { Prompt } from "../prompt";
+
 import type {
   AnyAction,
   AnyContext,

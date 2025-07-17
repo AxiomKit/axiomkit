@@ -47,7 +47,7 @@ import {
 import { StructuredLogger, LogEventType } from "./logs/logging-events";
 import { createRequestContext } from "./tracking";
 
-export function createDreams<TContext extends AnyContext = AnyContext>(
+export function createAxiom<TContext extends AnyContext = AnyContext>(
   config: Config<TContext>
 ): Agent<TContext> {
   let booted = false;

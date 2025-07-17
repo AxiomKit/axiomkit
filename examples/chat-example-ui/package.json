@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ai-sdk/groq": "catalog:",
+    "@axiomkit/core": "workspace:*",
+    "ai": "catalog:",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@axiomkit/core": "workspace:*"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
