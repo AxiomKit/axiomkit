@@ -1,0 +1,36 @@
+{
+  "name": "@axiomkit/sei",
+  "version": "0.0.1",
+  "description": "Native Setting Interaction With Sei",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "vitest": "catalog:"
+  },
+  "scripts": {
+    "test": "vitest",
+    "build": "tsup --dts-resolve",
+    "prepublishOnly": "pnpm run build"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@axiomkit/core": "workspace:*",
+    "ethers": "6.15.0",
+    "bignumber.js": "^9.1.2",
+    "bs58": "^6.0.0",
+    "zod": "catalog:"
+  }
+}

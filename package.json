@@ -25,13 +25,14 @@
     "@ai-sdk/openai": "catalog:",
     "@ai-sdk/provider": "catalog:",
     "@ai-sdk/ui-utils": "catalog:",
-    "ai": "^4.3.17",
+    "ai": "catalog:",
     "uuid": "catalog:",
     "axiom-kit": "link:"
   },
   "devDependencies": {
     "tsup": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@types/node": "24.0.14"
   }
 }

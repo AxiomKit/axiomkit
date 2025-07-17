@@ -1,23 +1,54 @@
 {
   "name": "@axiomkit/core",
-  "version": "0.0.1",
-  "description": "Core Packages of Axiom Kit",
+  "version": "0.3.8",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
   },
-  "devDependencies": {},
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      "./package.json": "./package.json",
+      ".": {
+        "types": "./dist/index.d.ts",
+        "require": "./dist/index.js",
+        "import": "./dist/index.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "tsup --dts-resolve",
-    "prepublishOnly": "pnpm run build",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "build": "tsup --dts-resolve",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "catalog:",
+    "@ai-sdk/ui-utils": "catalog:",
+    "ai": "catalog:",
+    "dotenv": "catalog:",
+    "p-defer": "^4.0.1",
+    "uuid": "catalog:",
+    "zod": "catalog:",
+    "zod-to-json-schema": "catalog:"
+  },
+  "devDependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/groq": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "tsup": "catalog:",
+    "vitest": "catalog:"
   }
 }

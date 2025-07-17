@@ -4,6 +4,6 @@ import { tsupConfig } from "../../tsup.config";
 
 export default defineConfig({
   ...tsupConfig,
-  entry: ["./src/index.ts", "src/extensions/index.ts"],
+  entry: ["./src/index.ts"],
   dts: true,
 });
