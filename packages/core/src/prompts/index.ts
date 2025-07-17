@@ -50,7 +50,6 @@ Follow these steps to process the updates:
 
 2. Plan actions:
    Before formulating a response, consider:
-
    - What data is already available
    - Which actions need to be initiated
    - The order of dependencies between actions
