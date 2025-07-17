@@ -37,7 +37,7 @@ import { exportEpisodesAsTrainingData } from "./memory/utils";
 import { LogLevel } from "./types";
 import { randomUUIDv7, tryAsync } from "./utils";
 import { createContextStreamHandler, handleStream } from "./utils/streaming";
-import { mainPrompt, promptTemplate } from "./prompts";
+import { mainPrompt, promptTemplate } from "./template";
 import { createEngine } from "./configs/engine";
 import type { DeferredPromise } from "p-defer";
 import { configureRequestTracking, getRequestTracker } from "./monitor/monitor";
