@@ -18,8 +18,8 @@ import type { Logger } from "../logs/logger";
 import { wrapStream } from "../utils/streaming";
 import { modelsResponseConfig, reasoningModels } from "../configs";
 import { generateText } from "ai";
-import { type RequestContext } from "../tracking";
-import { getRequestTracker } from "../tracking/tracker";
+import { type RequestContext } from "../monitor";
+import { getRequestTracker } from "../monitor/monitor";
 import { LogEventType, StructuredLogger } from "../logs/logging-events";
 /**
  * Prepares a stream response by handling the stream result and parsing it.
@@ -221,7 +221,7 @@ export const runGenerate = task({
           const tracker = getRequestTracker();
           const config = tracker.getConfig();
           if (config.trackCosts && config.costEstimation) {
-            const { estimateCost } = await import("../tracking");
+            const { estimateCost } = await import("../monitor");
             // Try multiple provider key combinations for better matching
             const providerKeys = [
               `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
@@ -335,7 +335,7 @@ export const runGenerate = task({
                 const tracker = getRequestTracker();
                 const config = tracker.getConfig();
                 if (config.trackCosts && config.costEstimation) {
-                  const { estimateCost } = await import("../tracking");
+                  const { estimateCost } = await import("../monitor");
                   // Try multiple provider key combinations for better matching
                   const providerKeys = [
                     `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
