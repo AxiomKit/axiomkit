@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { context, createAxiom, LogLevel } from "@axiomkit/core";
+import { context, createAxiom } from "@axiomkit/core";
 import { groq } from "@ai-sdk/groq";
 
 function App() {
