@@ -34,7 +34,7 @@ import { createMemory } from "./memory";
 import { createVectorStore } from "./memory/base";
 import { runGenerate } from "./tasks";
 import { exportEpisodesAsTrainingData } from "./memory/utils";
-import { LogLevel } from "./types";
+import { LogLevel } from "./logs";
 import { randomUUIDv7, tryAsync } from "./utils";
 import { createContextStreamHandler, handleStream } from "./utils/streaming";
 import { mainPrompt, promptTemplate } from "./template";
@@ -74,7 +74,6 @@ export function createAxiom<TContext extends AnyContext = AnyContext>(
     Set<(chunk: LogChunk) => void>
   >();
 
-  // todo register everything into registry, remove from agent
   const registry: Registry = {
     contexts: new Map(),
     actions: new Map(),
