@@ -58,3 +58,4 @@ redis_data
 redis.conf
 
 .vercel
+.next
