@@ -27,7 +27,7 @@
     }
   },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest ",
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
@@ -50,6 +50,7 @@
     "@ai-sdk/groq": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "tsup": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@vitest/ui": "catalog:"
   }
 }
