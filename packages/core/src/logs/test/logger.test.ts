@@ -22,7 +22,7 @@ describe("Logger", () => {
       level: LogLevel.DEBUG,
       transports: [mockTransport],
       style: "default",
-      enableColors: false,
+      enableColors: true,
     });
     mockTransport.clear();
   });

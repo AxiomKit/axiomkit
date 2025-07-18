@@ -6,7 +6,7 @@ import { MockLanguageModelV1 } from "ai/test";
 
 const TestContext = context({
   type: "test",
-  schema: z.object({ name: z.string() }) as any, // Cast to any to satisfy type checker
+  schema: z.object({ name: z.string() }) as any,
   setup: (args: any) => ({ greeting: `Hello, ${args.name}!` }),
   maxSteps: 1,
 });

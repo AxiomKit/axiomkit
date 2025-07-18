@@ -118,13 +118,10 @@ export function createAxiom<TContext extends AnyContext = AnyContext>(
 
   container.instance("logger", logger);
 
-  // Create structured logger
   const structuredLogger = new StructuredLogger(logger);
   container.instance("structuredLogger", structuredLogger);
 
-  // Configure request tracking with logger integration
   if (config.requestTrackingConfig) {
-    // Pass the complete config including cost estimation to the global tracker
     configureRequestTracking(config.requestTrackingConfig, logger);
   }
 
