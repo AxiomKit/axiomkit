@@ -26,8 +26,6 @@ import {
   ModelSettingsPanel,
   type ModelConfig,
 } from "@/components/model-settings-panel";
-import { AgentInsightsPanel } from "@/components/agent-insights-panel";
-import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { analytics } from "@/lib/analytics";
 
 interface AxiomKitMetadata {
@@ -122,7 +120,7 @@ export default function AxiomKitDemo() {
   const [showInsights, setShowInsights] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showModelSettings, setShowModelSettings] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
+
   const [currentMetadata, setCurrentMetadata] =
     useState<AxiomKitMetadata | null>(null);
   const [processingStepIndex, setProcessingStepIndex] = useState(0);
@@ -421,14 +419,6 @@ export default function AxiomKitDemo() {
               )}
               {showInsights ? "Hide" : "Show"} Agent Insights
             </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2 bg-transparent"
-              onClick={() => setShowAnalytics(true)}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Analytics Dashboard
-            </Button>
           </div>
         </div>
 
@@ -640,17 +630,6 @@ export default function AxiomKitDemo() {
         </div>
       </div>
 
-      {/* Agent Insights Panel */}
-      {showInsights && !isMobile && (
-        <div className="w-96 bg-card border-l border-border">
-          <AgentInsightsPanel
-            metadata={currentMetadata}
-            isProcessing={isLoading}
-            processingStepIndex={processingStepIndex}
-          />
-        </div>
-      )}
-
       {/* Mobile Insights Overlay */}
       {showInsights && isMobile && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end">
@@ -665,13 +644,6 @@ export default function AxiomKitDemo() {
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            <div className="h-full overflow-hidden">
-              <AgentInsightsPanel
-                metadata={currentMetadata}
-                isProcessing={isLoading}
-                processingStepIndex={processingStepIndex}
-              />
-            </div>
           </div>
         </div>
       )}
@@ -682,12 +654,6 @@ export default function AxiomKitDemo() {
         onModelConfigChange={setModelConfig}
         isOpen={showModelSettings}
         onOpenChange={setShowModelSettings}
-      />
-
-      {/* Analytics Dashboard */}
-      <AnalyticsDashboard
-        isOpen={showAnalytics}
-        onOpenChange={setShowAnalytics}
       />
     </div>
   );
