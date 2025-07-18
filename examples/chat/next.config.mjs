@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -9,6 +10,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+  env: {
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
+  },
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useChat } from "@ai-sdk/react"
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAxiomKitAgent } from "@/context/AxiomkitContext";
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Brain,
   MessageSquare,
@@ -21,47 +21,50 @@ import {
   ChevronRight,
   Sparkles,
   BarChart3,
-} from "lucide-react"
-import { ModelSettingsPanel, type ModelConfig } from "@/components/model-settings-panel"
-import { AgentInsightsPanel } from "@/components/agent-insights-panel"
-import { AnalyticsDashboard } from "@/components/analytics-dashboard"
-import { analytics } from "@/lib/analytics"
+} from "lucide-react";
+import {
+  ModelSettingsPanel,
+  type ModelConfig,
+} from "@/components/model-settings-panel";
+import { AgentInsightsPanel } from "@/components/agent-insights-panel";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
+import { analytics } from "@/lib/analytics";
 
 interface AxiomKitMetadata {
   processingSteps: Array<{
-    id: string
-    step: string
-    module: string
-    description: string
-    timestamp: number
-    duration: number
-    status: "pending" | "active" | "completed" | "error"
-    details?: any
-  }>
+    id: string;
+    step: string;
+    module: string;
+    description: string;
+    timestamp: number;
+    duration: number;
+    status: "pending" | "active" | "completed" | "error";
+    details?: any;
+  }>;
   metrics: {
-    responseTime: string
+    responseTime: string;
     tokens: {
-      input: number
-      output: number
-      total: number
-    }
-    estimatedTaskTime: string
-    provider: string
-    model: string
-    cost?: number
-  }
+      input: number;
+      output: number;
+      total: number;
+    };
+    estimatedTaskTime: string;
+    provider: string;
+    model: string;
+    cost?: number;
+  };
   featureHighlights: Array<{
-    feature: string
-    status: string
-    active: boolean
-    confidence?: number
-  }>
-  internalMonologue: string[]
+    feature: string;
+    status: string;
+    active: boolean;
+    confidence?: number;
+  }>;
+  internalMonologue: string[];
   reasoning: {
-    approach: string
-    keyFactors: string[]
-    confidence: number
-  }
+    approach: string;
+    keyFactors: string[];
+    confidence: number;
+  };
 }
 
 const demoScenarios = [
@@ -91,14 +94,16 @@ const demoScenarios = [
   },
   {
     title: "Ethical Reasoning",
-    prompt: "Analyze the ethical implications of using AI for hiring decisions and provide balanced recommendations",
+    prompt:
+      "Analyze the ethical implications of using AI for hiring decisions and provide balanced recommendations",
     description: "Highlights XAI and Ethical Guardrails in action",
     icon: "⚖️",
     complexity: "Medium",
   },
   {
     title: "Creative Problem Solving",
-    prompt: "Design an innovative solution for reducing food waste in urban restaurants using IoT and AI technologies",
+    prompt:
+      "Design an innovative solution for reducing food waste in urban restaurants using IoT and AI technologies",
     description: "Demonstrates creative reasoning and solution synthesis",
     icon: "💡",
     complexity: "Medium",
@@ -111,17 +116,20 @@ const demoScenarios = [
     icon: "💻",
     complexity: "Low",
   },
-]
+];
 
 export default function AxiomKitDemo() {
-  const [showInsights, setShowInsights] = useState(true)
-  const [showSidebar, setShowSidebar] = useState(true)
-  const [showModelSettings, setShowModelSettings] = useState(false)
-  const [showAnalytics, setShowAnalytics] = useState(false)
-  const [currentMetadata, setCurrentMetadata] = useState<AxiomKitMetadata | null>(null)
-  const [processingStepIndex, setProcessingStepIndex] = useState(0)
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)
-  const [sessionStartTime] = useState(Date.now())
+  const [showInsights, setShowInsights] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showModelSettings, setShowModelSettings] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [currentMetadata, setCurrentMetadata] =
+    useState<AxiomKitMetadata | null>(null);
+  const [processingStepIndex, setProcessingStepIndex] = useState(0);
+  const [sessionId] = useState(
+    () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  );
+  const [sessionStartTime] = useState(Date.now());
   const [modelConfig, setModelConfig] = useState<ModelConfig>({
     provider: "openai",
     model: "gpt-4o",
@@ -130,49 +138,41 @@ export default function AxiomKitDemo() {
     topP: 1.0,
     systemPrompt:
       "You are AxiomKit, an advanced AI framework. Demonstrate sophisticated reasoning and provide helpful, accurate responses.",
-  })
+  });
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load saved model configuration
+  // Use Axiomkit context for chat state
+  const { messages, sendMessage, reset } = useAxiomKitAgent();
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
-    const saved = localStorage.getItem("axiomkit-model-config")
+    const saved = localStorage.getItem("axiomkit-model-config");
     if (saved) {
       try {
-        const config = JSON.parse(saved)
-        setModelConfig(config)
+        const config = JSON.parse(saved);
+        setModelConfig(config);
       } catch (error) {
-        console.error("Failed to load saved model config:", error)
+        console.error("Failed to load saved model config:", error);
       }
     }
-  }, [])
+  }, []);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    body: { modelConfig },
-    onFinish: (message) => {
-      // Track analytics when message is completed
-      if (currentMetadata) {
-        analytics.trackMetric({
-          timestamp: Date.now(),
-          responseTime: Number.parseFloat(currentMetadata.metrics.responseTime) * 1000,
-          tokenUsage: currentMetadata.metrics.tokens,
-          cost: currentMetadata.metrics.cost || 0,
-          provider: currentMetadata.metrics.provider,
-          model: currentMetadata.metrics.model,
-          success: true,
-        })
-      }
-    },
-  })
+  // Remove useChat and related logic
+  // ... existing code ...
 
-  // Track session when component unmounts or page is closed
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (messages.length > 0) {
-        const sessionDuration = Date.now() - sessionStartTime
+        const sessionDuration = Date.now() - sessionStartTime;
         const scenarios = demoScenarios
-          .filter((scenario) => messages.some((m) => m.content.includes(scenario.prompt.substring(0, 50))))
-          .map((s) => s.title)
+          .filter((scenario) =>
+            messages.some((m) =>
+              m.content.includes(scenario.prompt.substring(0, 50))
+            )
+          )
+          .map((s) => s.title);
 
         analytics.trackSession({
           id: sessionId,
@@ -187,43 +187,42 @@ export default function AxiomKitDemo() {
           },
           totalTokens: currentMetadata?.metrics.tokens.total || 0,
           totalCost: currentMetadata?.metrics.cost || 0,
-          avgResponseTime: currentMetadata ? Number.parseFloat(currentMetadata.metrics.responseTime) * 1000 : 0,
+          avgResponseTime: currentMetadata
+            ? Number.parseFloat(currentMetadata.metrics.responseTime) * 1000
+            : 0,
           scenarios,
           userSatisfaction: Math.random() * 2 + 3, // Simulated satisfaction score
-        })
+        });
       }
-    }
+    };
 
-    window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-      handleBeforeUnload()
-    }
-  }, [messages, sessionId, sessionStartTime, modelConfig, currentMetadata])
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      handleBeforeUnload();
+    };
+  }, [messages, sessionId, sessionStartTime, modelConfig, currentMetadata]);
 
-  // Auto-scroll to bottom of messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  // Simulate real-time processing steps
   useEffect(() => {
     if (isLoading && currentMetadata) {
       const interval = setInterval(() => {
         setProcessingStepIndex((prev) => {
           if (prev < currentMetadata.processingSteps.length - 1) {
-            return prev + 1
+            return prev + 1;
           }
-          clearInterval(interval)
-          return prev
-        })
-      }, 400)
+          clearInterval(interval);
+          return prev;
+        });
+      }, 400);
 
-      return () => clearInterval(interval)
+      return () => clearInterval(interval);
     }
-  }, [isLoading, currentMetadata])
+  }, [isLoading, currentMetadata]);
 
-  // Generate new metadata when a message is sent
   useEffect(() => {
     if (isLoading) {
       const mockMetadata: AxiomKitMetadata = {
@@ -232,7 +231,8 @@ export default function AxiomKitDemo() {
             id: "input-received",
             step: "Input Received",
             module: "Core Engine",
-            description: "Processing user input and initializing request pipeline",
+            description:
+              "Processing user input and initializing request pipeline",
             timestamp: Date.now(),
             duration: 75,
             status: "completed",
@@ -242,7 +242,8 @@ export default function AxiomKitDemo() {
             id: "memory-curator",
             step: "Memory Curator Activated",
             module: "Memory Curator",
-            description: "Retrieved 3 relevant memories, prioritized contextual information",
+            description:
+              "Retrieved 3 relevant memories, prioritized contextual information",
             timestamp: Date.now() + 100,
             duration: 150,
             status: "completed",
@@ -256,7 +257,8 @@ export default function AxiomKitDemo() {
             id: "htn-planner",
             step: "HTN Planner Engaged",
             module: "HTN Planner",
-            description: "Decomposed query into executable sub-tasks and planning hierarchy",
+            description:
+              "Decomposed query into executable sub-tasks and planning hierarchy",
             timestamp: Date.now() + 300,
             duration: 200,
             status: "completed",
@@ -270,7 +272,9 @@ export default function AxiomKitDemo() {
             id: "llm-inference",
             step: "LLM Inference",
             module: "Language Model",
-            description: `Processing with ${modelConfig.provider.toUpperCase()} ${modelConfig.model}`,
+            description: `Processing with ${modelConfig.provider.toUpperCase()} ${
+              modelConfig.model
+            }`,
             timestamp: Date.now() + 600,
             duration: 800,
             status: "completed",
@@ -285,7 +289,8 @@ export default function AxiomKitDemo() {
             id: "response-generation",
             step: "Response Generation",
             module: "Response Engine",
-            description: "Formatting, optimizing, and streaming response to client",
+            description:
+              "Formatting, optimizing, and streaming response to client",
             timestamp: Date.now() + 1400,
             duration: 75,
             status: "completed",
@@ -342,20 +347,32 @@ export default function AxiomKitDemo() {
           ],
           confidence: 0.87,
         },
-      }
-      mockMetadata.metrics.tokens.total = mockMetadata.metrics.tokens.input + mockMetadata.metrics.tokens.output
-      setCurrentMetadata(mockMetadata)
-      setProcessingStepIndex(0)
+      };
+      mockMetadata.metrics.tokens.total =
+        mockMetadata.metrics.tokens.input + mockMetadata.metrics.tokens.output;
+      setCurrentMetadata(mockMetadata);
+      setProcessingStepIndex(0);
     }
-  }, [isLoading, input, modelConfig])
+  }, [isLoading, input, modelConfig]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    setIsLoading(true);
+    await sendMessage(input);
+    setInput("");
+    setIsLoading(false);
+  };
 
   const handleScenarioClick = (prompt: string) => {
-    handleInputChange({ target: { value: prompt } } as any)
-  }
+    setInput(prompt);
+  };
 
-  // Responsive breakpoints
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768
-  const isTablet = typeof window !== "undefined" && window.innerWidth < 1024
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   return (
     <div className="flex h-screen bg-background">
@@ -375,11 +392,17 @@ export default function AxiomKitDemo() {
               </div>
               <div>
                 <h1 className="text-xl font-bold">AxiomKit</h1>
-                <p className="text-sm text-muted-foreground">AI Framework Demo</p>
+                <p className="text-sm text-muted-foreground">
+                  AI Framework Demo
+                </p>
               </div>
             </div>
             {isMobile && (
-              <Button variant="ghost" size="sm" onClick={() => setShowSidebar(false)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSidebar(false)}
+              >
                 <X className="w-4 h-4" />
               </Button>
             )}
@@ -391,7 +414,11 @@ export default function AxiomKitDemo() {
               className="w-full justify-start gap-2 bg-transparent"
               onClick={() => setShowInsights(!showInsights)}
             >
-              {showInsights ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showInsights ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
               {showInsights ? "Hide" : "Show"} Agent Insights
             </Button>
             <Button
@@ -411,34 +438,41 @@ export default function AxiomKitDemo() {
               <h3 className="text-sm font-semibold mb-4">Demo Scenarios</h3>
               <div className="space-y-3">
                 {demoScenarios.map((scenario, index) => (
-                  <Card key={index} className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50">
+                  <Card
+                    key={index}
+                    className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{scenario.icon}</span>
-                          <h4 className="text-sm font-medium">{scenario.title}</h4>
+                          <h4 className="text-sm font-medium">
+                            {scenario.title}
+                          </h4>
                         </div>
                         <Badge
                           variant={
                             scenario.complexity === "High"
                               ? "destructive"
                               : scenario.complexity === "Medium"
-                                ? "default"
-                                : "secondary"
+                              ? "default"
+                              : "secondary"
                           }
                           className="text-xs"
                         >
                           {scenario.complexity}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-3">{scenario.description}</p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {scenario.description}
+                      </p>
                       <Button
                         size="sm"
                         variant="outline"
                         className="w-full text-xs gap-2 bg-transparent"
                         onClick={() => {
-                          handleScenarioClick(scenario.prompt)
-                          if (isMobile) setShowSidebar(false)
+                          handleScenarioClick(scenario.prompt);
+                          if (isMobile) setShowSidebar(false);
                         }}
                       >
                         <Sparkles className="w-3 h-3" />
@@ -459,7 +493,11 @@ export default function AxiomKitDemo() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {!showSidebar && (
-                <Button variant="ghost" size="sm" onClick={() => setShowSidebar(true)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSidebar(true)}
+                >
                   <Menu className="w-4 h-4" />
                 </Button>
               )}
@@ -471,11 +509,22 @@ export default function AxiomKitDemo() {
                 <Zap className="w-3 h-3" />
                 {modelConfig.provider.toUpperCase()} {modelConfig.model}
               </Badge>
-              <Badge variant={isLoading ? "default" : "secondary"} className="gap-1">
-                {isLoading ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+              <Badge
+                variant={isLoading ? "default" : "secondary"}
+                className="gap-1"
+              >
+                {isLoading ? (
+                  <Pause className="w-3 h-3" />
+                ) : (
+                  <Play className="w-3 h-3" />
+                )}
                 {isLoading ? "Processing" : "Ready"}
               </Badge>
-              <Button variant="outline" size="sm" onClick={() => setShowModelSettings(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowModelSettings(true)}
+              >
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline ml-2">Settings</span>
               </Button>
@@ -489,10 +538,13 @@ export default function AxiomKitDemo() {
               {messages.length === 0 && (
                 <div className="text-center py-12">
                   <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Welcome to AxiomKit</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Welcome to AxiomKit
+                  </h3>
                   <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                    Experience advanced AI reasoning with full transparency into the decision-making process. Try one of
-                    the demo scenarios or ask any question.
+                    Experience advanced AI reasoning with full transparency into
+                    the decision-making process. Try one of the demo scenarios
+                    or ask any question.
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {demoScenarios.slice(0, 3).map((scenario, index) => (
@@ -513,28 +565,28 @@ export default function AxiomKitDemo() {
               )}
 
               {messages.map((message, index) => (
-                <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={index}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
                   <div
                     className={`max-w-3xl ${
-                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-card border border-border"
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border"
                     } rounded-lg p-4 shadow-sm`}
                   >
                     <div className="flex items-start gap-3">
-                      {message.role === "assistant" && (
+                      {message.role === "agent" && (
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                           <Brain className="w-4 h-4 text-white" />
                         </div>
                       )}
                       <div className="flex-1">
                         <div className="prose prose-sm max-w-none dark:prose-invert">
-                          {message.parts.map((part, i) => {
-                            switch (part.type) {
-                              case "text":
-                                return <div key={`${message.id}-${i}`}>{part.text}</div>
-                              default:
-                                return null
-                            }
-                          })}
+                          {message.content}
                         </div>
                       </div>
                     </div>
@@ -605,7 +657,11 @@ export default function AxiomKitDemo() {
           <div className="w-full h-2/3 bg-card border-t border-border rounded-t-lg">
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h3 className="font-semibold">Agent Insights</h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowInsights(false)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowInsights(false)}
+              >
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -629,7 +685,10 @@ export default function AxiomKitDemo() {
       />
 
       {/* Analytics Dashboard */}
-      <AnalyticsDashboard isOpen={showAnalytics} onOpenChange={setShowAnalytics} />
+      <AnalyticsDashboard
+        isOpen={showAnalytics}
+        onOpenChange={setShowAnalytics}
+      />
     </div>
-  )
+  );
 }

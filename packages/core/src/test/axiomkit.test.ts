@@ -4,7 +4,6 @@ import { context } from "../context";
 import { createAxiom } from "../axiom";
 import { MockLanguageModelV1 } from "ai/test";
 
-// Minimal context definition
 const TestContext = context({
   type: "test",
   schema: z.object({ name: z.string() }) as any, // Cast to any to satisfy type checker
@@ -26,7 +25,6 @@ describe("AxiomKit Agent Creation Flow", () => {
     // Create the agent
     const agent = createAxiom({
       model,
-      contexts: [TestContext],
       context: TestContext,
     });
 
