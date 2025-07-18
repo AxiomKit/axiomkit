@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/core",
-  "version": "0.3.8",
+  "version": "0.0.2",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -31,6 +31,7 @@
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "prebuild": "[ -f src/test/axiomkit.test.ts ] && pnpm test || echo 'No test file found, skipping tests.'",
     "build": "tsup --dts-resolve",
     "prepublishOnly": "pnpm run build"
   },

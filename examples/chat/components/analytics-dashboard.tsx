@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -24,7 +30,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts"
+} from "recharts";
 import {
   BarChart3,
   TrendingUp,
@@ -42,64 +48,77 @@ import {
   Network,
   RefreshCw,
   Download,
-} from "lucide-react"
-import { analytics, type UsageAnalytics } from "@/lib/analytics"
+} from "lucide-react";
+import { analytics, type UsageAnalytics } from "@/lib/analytics";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884D8",
+  "#82CA9D",
+];
 
 interface AnalyticsDashboardProps {
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardProps) {
-  const [analyticsData, setAnalyticsData] = useState<UsageAnalytics | null>(null)
-  const [timeRange, setTimeRange] = useState("24h")
-  const [refreshing, setRefreshing] = useState(false)
+export function AnalyticsDashboard({
+  isOpen,
+  onOpenChange,
+}: AnalyticsDashboardProps) {
+  const [analyticsData, setAnalyticsData] = useState<UsageAnalytics | null>(
+    null
+  );
+  const [timeRange, setTimeRange] = useState("24h");
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      loadAnalytics()
+      loadAnalytics();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const loadAnalytics = async () => {
-    setRefreshing(true)
+    setRefreshing(true);
     // Simulate loading delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const data = analytics.getAnalytics()
-    setAnalyticsData(data)
-    setRefreshing(false)
-  }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const data = analytics.getAnalytics();
+    setAnalyticsData(data);
+    setRefreshing(false);
+  };
 
   const handleRefresh = () => {
-    loadAnalytics()
-  }
+    loadAnalytics();
+  };
 
   const handleGenerateMockData = () => {
-    analytics.generateMockData()
-    loadAnalytics()
-  }
+    analytics.generateMockData();
+    loadAnalytics();
+  };
 
   const exportData = () => {
     if (analyticsData) {
-      const dataStr = JSON.stringify(analyticsData, null, 2)
-      const dataBlob = new Blob([dataStr], { type: "application/json" })
-      const url = URL.createObjectURL(dataBlob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = `axiomkit-analytics-${new Date().toISOString().split("T")[0]}.json`
-      link.click()
-      URL.revokeObjectURL(url)
+      const dataStr = JSON.stringify(analyticsData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `axiomkit-analytics-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      link.click();
+      URL.revokeObjectURL(url);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-7xl h-[90vh] bg-card border border-border rounded-lg shadow-lg flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -107,7 +126,9 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
             </div>
             <div>
               <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-              <p className="text-sm text-muted-foreground">AxiomKit Usage & Performance Monitoring</p>
+              <p className="text-sm text-muted-foreground">
+                AxiomKit Usage & Performance Monitoring
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -122,18 +143,33 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                 <SelectItem value="30d">Last 30 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={handleGenerateMockData}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateMockData}
+            >
               Generate Mock Data
             </Button>
             <Button variant="outline" size="sm" onClick={exportData}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+            >
               Close
             </Button>
           </div>
@@ -161,15 +197,21 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                                <p className="text-3xl font-bold">{analyticsData.totalUsers.toLocaleString()}</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Total Users
+                                </p>
+                                <p className="text-3xl font-bold">
+                                  {analyticsData.totalUsers.toLocaleString()}
+                                </p>
                               </div>
                               <Users className="w-8 h-8 text-blue-500" />
                             </div>
                             <div className="mt-4 flex items-center text-sm">
                               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                               <span className="text-green-500">+12.5%</span>
-                              <span className="text-muted-foreground ml-1">vs last period</span>
+                              <span className="text-muted-foreground ml-1">
+                                vs last period
+                              </span>
                             </div>
                           </CardContent>
                         </Card>
@@ -178,15 +220,21 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Sessions</p>
-                                <p className="text-3xl font-bold">{analyticsData.totalSessions.toLocaleString()}</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Total Sessions
+                                </p>
+                                <p className="text-3xl font-bold">
+                                  {analyticsData.totalSessions.toLocaleString()}
+                                </p>
                               </div>
                               <MessageSquare className="w-8 h-8 text-green-500" />
                             </div>
                             <div className="mt-4 flex items-center text-sm">
                               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                               <span className="text-green-500">+8.2%</span>
-                              <span className="text-muted-foreground ml-1">vs last period</span>
+                              <span className="text-muted-foreground ml-1">
+                                vs last period
+                              </span>
                             </div>
                           </CardContent>
                         </Card>
@@ -195,15 +243,21 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Messages</p>
-                                <p className="text-3xl font-bold">{analyticsData.totalMessages.toLocaleString()}</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Total Messages
+                                </p>
+                                <p className="text-3xl font-bold">
+                                  {analyticsData.totalMessages.toLocaleString()}
+                                </p>
                               </div>
                               <Activity className="w-8 h-8 text-purple-500" />
                             </div>
                             <div className="mt-4 flex items-center text-sm">
                               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                               <span className="text-green-500">+15.7%</span>
-                              <span className="text-muted-foreground ml-1">vs last period</span>
+                              <span className="text-muted-foreground ml-1">
+                                vs last period
+                              </span>
                             </div>
                           </CardContent>
                         </Card>
@@ -212,15 +266,21 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Cost</p>
-                                <p className="text-3xl font-bold">${analyticsData.totalCost.toFixed(2)}</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Total Cost
+                                </p>
+                                <p className="text-3xl font-bold">
+                                  ${analyticsData.totalCost.toFixed(2)}
+                                </p>
                               </div>
                               <DollarSign className="w-8 h-8 text-yellow-500" />
                             </div>
                             <div className="mt-4 flex items-center text-sm">
                               <TrendingUp className="w-4 h-4 text-red-500 mr-1" />
                               <span className="text-red-500">+5.3%</span>
-                              <span className="text-muted-foreground ml-1">vs last period</span>
+                              <span className="text-muted-foreground ml-1">
+                                vs last period
+                              </span>
                             </div>
                           </CardContent>
                         </Card>
@@ -241,14 +301,21 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                               <XAxis
                                 dataKey="timestamp"
                                 tickFormatter={(value) =>
-                                  new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                  new Date(value).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
                                 }
                               />
                               <YAxis />
                               <Tooltip
-                                labelFormatter={(value) => new Date(value).toLocaleString()}
+                                labelFormatter={(value) =>
+                                  new Date(value).toLocaleString()
+                                }
                                 formatter={(value, name) => [
-                                  typeof value === "number" ? value.toLocaleString() : value,
+                                  typeof value === "number"
+                                    ? value.toLocaleString()
+                                    : value,
                                   name,
                                 ]}
                               />
@@ -285,23 +352,40 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-4">
-                              {analyticsData.popularScenarios.slice(0, 6).map((scenario, index) => (
-                                <div key={scenario.name} className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
-                                      {index + 1}
-                                    </Badge>
-                                    <span className="text-sm font-medium">{scenario.name}</span>
+                              {analyticsData.popularScenarios
+                                .slice(0, 6)
+                                .map((scenario, index) => (
+                                  <div
+                                    key={scenario.name}
+                                    className="flex items-center justify-between"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <Badge
+                                        variant="outline"
+                                        className="w-6 h-6 p-0 flex items-center justify-center"
+                                      >
+                                        {index + 1}
+                                      </Badge>
+                                      <span className="text-sm font-medium">
+                                        {scenario.name}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm text-muted-foreground">
+                                        {scenario.count}
+                                      </span>
+                                      <Progress
+                                        value={
+                                          (scenario.count /
+                                            analyticsData.popularScenarios[0]
+                                              .count) *
+                                          100
+                                        }
+                                        className="w-16 h-2"
+                                      />
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">{scenario.count}</span>
-                                    <Progress
-                                      value={(scenario.count / analyticsData.popularScenarios[0].count) * 100}
-                                      className="w-16 h-2"
-                                    />
-                                  </div>
-                                </div>
-                              ))}
+                                ))}
                             </div>
                           </CardContent>
                         </Card>
@@ -322,14 +406,21 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                                   cx="50%"
                                   cy="50%"
                                   labelLine={false}
-                                  label={({ provider, usage }) => `${provider}: ${usage}`}
+                                  label={({ provider, usage }) =>
+                                    `${provider}: ${usage}`
+                                  }
                                   outerRadius={80}
                                   fill="#8884d8"
                                   dataKey="usage"
                                 >
-                                  {analyticsData.providerUsage.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                  ))}
+                                  {analyticsData.providerUsage.map(
+                                    (entry, index) => (
+                                      <Cell
+                                        key={`cell-${index}`}
+                                        fill={COLORS[index % COLORS.length]}
+                                      />
+                                    )
+                                  )}
                                 </Pie>
                                 <Tooltip />
                               </PieChart>
@@ -350,10 +441,15 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Avg Response Time</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Avg Response Time
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {(
-                                    analyticsData.metrics.reduce((sum, m) => sum + m.responseTime, 0) /
+                                    analyticsData.metrics.reduce(
+                                      (sum, m) => sum + m.responseTime,
+                                      0
+                                    ) /
                                     analyticsData.metrics.length /
                                     1000
                                   ).toFixed(2)}
@@ -369,10 +465,14 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Success Rate
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {(
-                                    (analyticsData.metrics.filter((m) => m.success).length /
+                                    (analyticsData.metrics.filter(
+                                      (m) => m.success
+                                    ).length /
                                       analyticsData.metrics.length) *
                                     100
                                   ).toFixed(1)}
@@ -388,10 +488,14 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Error Rate
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {(
-                                    (analyticsData.metrics.filter((m) => !m.success).length /
+                                    (analyticsData.metrics.filter(
+                                      (m) => !m.success
+                                    ).length /
                                       analyticsData.metrics.length) *
                                     100
                                   ).toFixed(1)}
@@ -416,15 +520,28 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                               <XAxis
                                 dataKey="timestamp"
                                 tickFormatter={(value) =>
-                                  new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                  new Date(value).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
                                 }
                               />
                               <YAxis />
                               <Tooltip
-                                labelFormatter={(value) => new Date(value).toLocaleString()}
-                                formatter={(value) => [`${Number(value).toFixed(2)}ms`, "Avg Response Time"]}
+                                labelFormatter={(value) =>
+                                  new Date(value).toLocaleString()
+                                }
+                                formatter={(value) => [
+                                  `${Number(value).toFixed(2)}ms`,
+                                  "Avg Response Time",
+                                ]}
                               />
-                              <Line type="monotone" dataKey="avgResponseTime" stroke="#8884d8" strokeWidth={2} />
+                              <Line
+                                type="monotone"
+                                dataKey="avgResponseTime"
+                                stroke="#8884d8"
+                                strokeWidth={2}
+                              />
                             </LineChart>
                           </ResponsiveContainer>
                         </CardContent>
@@ -443,7 +560,11 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                               <YAxis />
                               <Tooltip />
                               <Legend />
-                              <Bar dataKey="usage" fill="#8884d8" name="Usage Count" />
+                              <Bar
+                                dataKey="usage"
+                                fill="#8884d8"
+                                name="Usage Count"
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </CardContent>
@@ -467,23 +588,31 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                                 data={[
                                   {
                                     range: "0-5min",
-                                    count: analyticsData.sessions.filter((s) => s.duration < 300000).length,
+                                    count: analyticsData.sessions.filter(
+                                      (s) => s.duration < 300000
+                                    ).length,
                                   },
                                   {
                                     range: "5-15min",
                                     count: analyticsData.sessions.filter(
-                                      (s) => s.duration >= 300000 && s.duration < 900000,
+                                      (s) =>
+                                        s.duration >= 300000 &&
+                                        s.duration < 900000
                                     ).length,
                                   },
                                   {
                                     range: "15-30min",
                                     count: analyticsData.sessions.filter(
-                                      (s) => s.duration >= 900000 && s.duration < 1800000,
+                                      (s) =>
+                                        s.duration >= 900000 &&
+                                        s.duration < 1800000
                                     ).length,
                                   },
                                   {
                                     range: "30min+",
-                                    count: analyticsData.sessions.filter((s) => s.duration >= 1800000).length,
+                                    count: analyticsData.sessions.filter(
+                                      (s) => s.duration >= 1800000
+                                    ).length,
                                   },
                                 ]}
                               >
@@ -507,23 +636,31 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                                 data={[
                                   {
                                     range: "1-5",
-                                    count: analyticsData.sessions.filter((s) => s.messageCount <= 5).length,
+                                    count: analyticsData.sessions.filter(
+                                      (s) => s.messageCount <= 5
+                                    ).length,
                                   },
                                   {
                                     range: "6-10",
                                     count: analyticsData.sessions.filter(
-                                      (s) => s.messageCount > 5 && s.messageCount <= 10,
+                                      (s) =>
+                                        s.messageCount > 5 &&
+                                        s.messageCount <= 10
                                     ).length,
                                   },
                                   {
                                     range: "11-20",
                                     count: analyticsData.sessions.filter(
-                                      (s) => s.messageCount > 10 && s.messageCount <= 20,
+                                      (s) =>
+                                        s.messageCount > 10 &&
+                                        s.messageCount <= 20
                                     ).length,
                                   },
                                   {
                                     range: "20+",
-                                    count: analyticsData.sessions.filter((s) => s.messageCount > 20).length,
+                                    count: analyticsData.sessions.filter(
+                                      (s) => s.messageCount > 20
+                                    ).length,
                                   },
                                 ]}
                               >
@@ -547,19 +684,34 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <div className="grid grid-cols-5 gap-4 mb-6">
                             {[5, 4, 3, 2, 1].map((rating) => {
                               const count = analyticsData.sessions.filter(
-                                (s) => s.userSatisfaction && Math.floor(s.userSatisfaction) === rating,
-                              ).length
+                                (s) =>
+                                  s.userSatisfaction &&
+                                  Math.floor(s.userSatisfaction) === rating
+                              ).length;
                               const percentage =
-                                (count / analyticsData.sessions.filter((s) => s.userSatisfaction).length) * 100
+                                (count /
+                                  analyticsData.sessions.filter(
+                                    (s) => s.userSatisfaction
+                                  ).length) *
+                                100;
 
                               return (
                                 <div key={rating} className="text-center">
-                                  <div className="text-2xl font-bold">{count}</div>
-                                  <div className="text-sm text-muted-foreground">{rating} Stars</div>
-                                  <Progress value={percentage} className="mt-2" />
-                                  <div className="text-xs text-muted-foreground mt-1">{percentage.toFixed(1)}%</div>
+                                  <div className="text-2xl font-bold">
+                                    {count}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {rating} Stars
+                                  </div>
+                                  <Progress
+                                    value={percentage}
+                                    className="mt-2"
+                                  />
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {percentage.toFixed(1)}%
+                                  </div>
                                 </div>
-                              )
+                              );
                             })}
                           </div>
                           <div className="text-center">
@@ -567,11 +719,18 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                               {(
                                 analyticsData.sessions
                                   .filter((s) => s.userSatisfaction)
-                                  .reduce((sum, s) => sum + (s.userSatisfaction || 0), 0) /
-                                analyticsData.sessions.filter((s) => s.userSatisfaction).length
+                                  .reduce(
+                                    (sum, s) => sum + (s.userSatisfaction || 0),
+                                    0
+                                  ) /
+                                analyticsData.sessions.filter(
+                                  (s) => s.userSatisfaction
+                                ).length
                               ).toFixed(1)}
                             </div>
-                            <div className="text-sm text-muted-foreground">Average Rating</div>
+                            <div className="text-sm text-muted-foreground">
+                              Average Rating
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -588,8 +747,12 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Spend</p>
-                                <p className="text-2xl font-bold">${analyticsData.totalCost.toFixed(2)}</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Total Spend
+                                </p>
+                                <p className="text-2xl font-bold">
+                                  ${analyticsData.totalCost.toFixed(2)}
+                                </p>
                               </div>
                               <DollarSign className="w-6 h-6 text-green-500" />
                             </div>
@@ -600,9 +763,15 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Avg Cost per Session</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Avg Cost per Session
+                                </p>
                                 <p className="text-2xl font-bold">
-                                  ${(analyticsData.totalCost / analyticsData.totalSessions).toFixed(4)}
+                                  $
+                                  {(
+                                    analyticsData.totalCost /
+                                    analyticsData.totalSessions
+                                  ).toFixed(4)}
                                 </p>
                               </div>
                               <Activity className="w-6 h-6 text-blue-500" />
@@ -614,12 +783,17 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Cost per 1K Tokens</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Cost per 1K Tokens
+                                </p>
                                 <p className="text-2xl font-bold">
                                   $
                                   {(
                                     (analyticsData.totalCost /
-                                      analyticsData.sessions.reduce((sum, s) => sum + s.totalTokens, 0)) *
+                                      analyticsData.sessions.reduce(
+                                        (sum, s) => sum + s.totalTokens,
+                                        0
+                                      )) *
                                     1000
                                   ).toFixed(4)}
                                 </p>
@@ -642,15 +816,28 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                               <XAxis
                                 dataKey="timestamp"
                                 tickFormatter={(value) =>
-                                  new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                  new Date(value).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
                                 }
                               />
                               <YAxis />
                               <Tooltip
-                                labelFormatter={(value) => new Date(value).toLocaleString()}
-                                formatter={(value) => [`$${Number(value).toFixed(4)}`, "Cost"]}
+                                labelFormatter={(value) =>
+                                  new Date(value).toLocaleString()
+                                }
+                                formatter={(value) => [
+                                  `$${Number(value).toFixed(4)}`,
+                                  "Cost",
+                                ]}
                               />
-                              <Area type="monotone" dataKey="cost" stroke="#82ca9d" fill="#82ca9d" />
+                              <Area
+                                type="monotone"
+                                dataKey="cost"
+                                stroke="#82ca9d"
+                                fill="#82ca9d"
+                              />
                             </AreaChart>
                           </ResponsiveContainer>
                         </CardContent>
@@ -663,29 +850,45 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-4">
-                            {analyticsData.providerUsage.map((provider, index) => (
-                              <div
-                                key={provider.provider}
-                                className="flex items-center justify-between p-4 border rounded-lg"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className="w-4 h-4 rounded-full"
-                                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                                  />
-                                  <div>
-                                    <p className="font-medium capitalize">{provider.provider}</p>
-                                    <p className="text-sm text-muted-foreground">{provider.usage} requests</p>
+                            {analyticsData.providerUsage.map(
+                              (provider, index) => (
+                                <div
+                                  key={provider.provider}
+                                  className="flex items-center justify-between p-4 border rounded-lg"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className="w-4 h-4 rounded-full"
+                                      style={{
+                                        backgroundColor:
+                                          COLORS[index % COLORS.length],
+                                      }}
+                                    />
+                                    <div>
+                                      <p className="font-medium capitalize">
+                                        {provider.provider}
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {provider.usage} requests
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold">
+                                      ${provider.cost.toFixed(4)}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {(
+                                        (provider.cost /
+                                          analyticsData.totalCost) *
+                                        100
+                                      ).toFixed(1)}
+                                      %
+                                    </p>
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="font-bold">${provider.cost.toFixed(4)}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {((provider.cost / analyticsData.totalCost) * 100).toFixed(1)}%
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
+                              )
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -702,7 +905,9 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">CPU Usage</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  CPU Usage
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {analyticsData.systemHealth.length > 0
                                     ? analyticsData.systemHealth[
@@ -721,7 +926,9 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Memory Usage</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Memory Usage
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {analyticsData.systemHealth.length > 0
                                     ? analyticsData.systemHealth[
@@ -740,11 +947,14 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Active Connections</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Active Connections
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {analyticsData.systemHealth.length > 0
-                                    ? analyticsData.systemHealth[analyticsData.systemHealth.length - 1]
-                                        .activeConnections
+                                    ? analyticsData.systemHealth[
+                                        analyticsData.systemHealth.length - 1
+                                      ].activeConnections
                                     : "0"}
                                 </p>
                               </div>
@@ -757,10 +967,14 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Queue Length</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Queue Length
+                                </p>
                                 <p className="text-2xl font-bold">
                                   {analyticsData.systemHealth.length > 0
-                                    ? analyticsData.systemHealth[analyticsData.systemHealth.length - 1].queueLength
+                                    ? analyticsData.systemHealth[
+                                        analyticsData.systemHealth.length - 1
+                                      ].queueLength
                                     : "0"}
                                 </p>
                               </div>
@@ -778,22 +992,42 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           </CardHeader>
                           <CardContent>
                             <ResponsiveContainer width="100%" height={250}>
-                              <LineChart data={analyticsData.systemHealth.slice(-20)}>
+                              <LineChart
+                                data={analyticsData.systemHealth.slice(-20)}
+                              >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis
                                   dataKey="timestamp"
                                   tickFormatter={(value) =>
-                                    new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                    new Date(value).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
                                   }
                                 />
                                 <YAxis />
                                 <Tooltip
-                                  labelFormatter={(value) => new Date(value).toLocaleString()}
-                                  formatter={(value, name) => [`${Number(value).toFixed(1)}%`, name]}
+                                  labelFormatter={(value) =>
+                                    new Date(value).toLocaleString()
+                                  }
+                                  formatter={(value, name) => [
+                                    `${Number(value).toFixed(1)}%`,
+                                    name,
+                                  ]}
                                 />
                                 <Legend />
-                                <Line type="monotone" dataKey="cpuUsage" stroke="#8884d8" name="CPU Usage" />
-                                <Line type="monotone" dataKey="memoryUsage" stroke="#82ca9d" name="Memory Usage" />
+                                <Line
+                                  type="monotone"
+                                  dataKey="cpuUsage"
+                                  stroke="#8884d8"
+                                  name="CPU Usage"
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey="memoryUsage"
+                                  stroke="#82ca9d"
+                                  name="Memory Usage"
+                                />
                               </LineChart>
                             </ResponsiveContainer>
                           </CardContent>
@@ -805,16 +1039,25 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                           </CardHeader>
                           <CardContent>
                             <ResponsiveContainer width="100%" height={250}>
-                              <AreaChart data={analyticsData.systemHealth.slice(-20)}>
+                              <AreaChart
+                                data={analyticsData.systemHealth.slice(-20)}
+                              >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis
                                   dataKey="timestamp"
                                   tickFormatter={(value) =>
-                                    new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                                    new Date(value).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
                                   }
                                 />
                                 <YAxis />
-                                <Tooltip labelFormatter={(value) => new Date(value).toLocaleString()} />
+                                <Tooltip
+                                  labelFormatter={(value) =>
+                                    new Date(value).toLocaleString()
+                                  }
+                                />
                                 <Area
                                   type="monotone"
                                   dataKey="activeConnections"
@@ -836,12 +1079,36 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                         <CardContent>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {[
-                              { name: "API Gateway", status: "Healthy", uptime: "99.9%" },
-                              { name: "Load Balancer", status: "Healthy", uptime: "99.8%" },
-                              { name: "Database", status: "Healthy", uptime: "99.9%" },
-                              { name: "Cache Layer", status: "Healthy", uptime: "99.7%" },
-                              { name: "Message Queue", status: "Healthy", uptime: "99.9%" },
-                              { name: "Monitoring", status: "Healthy", uptime: "100%" },
+                              {
+                                name: "API Gateway",
+                                status: "Healthy",
+                                uptime: "99.9%",
+                              },
+                              {
+                                name: "Load Balancer",
+                                status: "Healthy",
+                                uptime: "99.8%",
+                              },
+                              {
+                                name: "Database",
+                                status: "Healthy",
+                                uptime: "99.9%",
+                              },
+                              {
+                                name: "Cache Layer",
+                                status: "Healthy",
+                                uptime: "99.7%",
+                              },
+                              {
+                                name: "Message Queue",
+                                status: "Healthy",
+                                uptime: "99.9%",
+                              },
+                              {
+                                name: "Monitoring",
+                                status: "Healthy",
+                                uptime: "100%",
+                              },
                             ].map((service, index) => (
                               <div
                                 key={service.name}
@@ -850,11 +1117,18 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
                                 <div className="flex items-center gap-3">
                                   <CheckCircle className="w-5 h-5 text-green-500" />
                                   <div>
-                                    <p className="font-medium">{service.name}</p>
-                                    <p className="text-sm text-muted-foreground">Uptime: {service.uptime}</p>
+                                    <p className="font-medium">
+                                      {service.name}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Uptime: {service.uptime}
+                                    </p>
                                   </div>
                                 </div>
-                                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-green-100 text-green-800"
+                                >
                                   {service.status}
                                 </Badge>
                               </div>
@@ -871,13 +1145,17 @@ export function AnalyticsDashboard({ isOpen, onOpenChange }: AnalyticsDashboardP
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Loading Analytics...</h3>
-                <p className="text-muted-foreground">Gathering usage data and performance metrics</p>
+                <h3 className="text-xl font-semibold mb-2">
+                  Loading Analytics...
+                </h3>
+                <p className="text-muted-foreground">
+                  Gathering usage data and performance metrics
+                </p>
               </div>
             </div>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }
