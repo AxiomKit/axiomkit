@@ -7,7 +7,7 @@ import React, {
   useEffect,
 } from "react";
 import {
-  createAxiom,
+  createAgent,
   context as axContext,
   LogLevel, // LogLevel is not used in the provided snippet, can be removed if not needed elsewhere
   input,
@@ -36,7 +36,6 @@ interface ChatAgentMemory {
   lastSeen: string | null;
 }
 
-// Define the AxiomKit context for the chat agent
 const ChatAgentContextDef = axContext<
   ChatAgentMemory,
   typeof ChatAgentContextArgsSchema
@@ -69,7 +68,7 @@ type UserMessageInputType = z.infer<typeof UserMessageInputSchema>;
 
 // Define the context value for the React Provider
 interface AxiomKitAgentContextValue {
-  agent: ReturnType<typeof createAxiom>; // Type the agent correctly
+  agent: ReturnType<typeof createAgent>; // Type the agent correctly
   messages: ChatMessage[];
   sendMessage: (message: string) => Promise<void>;
   reset: () => void;
@@ -88,7 +87,7 @@ export function AxiomKitAgentProvider({
 }) {
   // Initialize the Axiom agent once
   const [agent] = useState(() =>
-    createAxiom({
+    createAgent({
       contexts: [ChatAgentContextDef],
       model: groq("qwen/qwen3-32b"),
       inputs: {
@@ -152,7 +151,6 @@ export function AxiomKitAgentProvider({
             "data" in logEntry &&
             logEntry.data
           ) {
-            // If the data is a string, try to extract the output content
             if (typeof logEntry.data === "string") {
               const extracted = extractOutputContent(logEntry.data);
               if (extracted) {

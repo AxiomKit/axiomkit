@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
 import { context } from "../context";
-import { createAxiom } from "../axiom";
+import { createAgent } from "../agent";
 import { MockLanguageModelV1 } from "ai/test";
 
 const TestContext = context({
@@ -23,7 +23,7 @@ describe("AxiomKit Agent Creation Flow", () => {
     });
 
     // Create the agent
-    const agent = createAxiom({
+    const agent = createAgent({
       model,
       context: TestContext,
     });

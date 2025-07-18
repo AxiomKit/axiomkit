@@ -55,7 +55,7 @@ export const generateEpisodicMemory = async (
         .describe(
           "Outcome and retrospective. What did you do well? What could you do better next time? I ..."
         ),
-    }),
+    }) as any,
     prompt: `
     You are creating an episodic memory for an AI agent to help it recall and learn from past experiences.
     
