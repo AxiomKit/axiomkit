@@ -15,16 +15,6 @@ import type {
   Output,
   WorkingMemory,
 } from "../types";
-/*
-
-## Instructions
-- If asked for something - never do a summary unless you are asked to do a summary. Always respond with the exact information requested.
-- You must use the available actions and outputs to respond to the context.
-- You must reason about the context, think, and planned actions.
-- IMPORTANT: If you state that you will perform an action, you MUST issue the corresponding action call. Do not say you will do something without actually issuing the action call.
-- IMPORTANT: Never end your response with a plan to do something without actually doing it. Always follow through with action calls.
-- When you determine that no further actions or outputs are needed and the flow should end, use the <finalize/> tag to indicate completion.
-*/
 
 export const templateSections = {
   intro: `\
@@ -50,7 +40,6 @@ Follow these steps to process the updates:
 
 2. Plan actions:
    Before formulating a response, consider:
-
    - What data is already available
    - Which actions need to be initiated
    - The order of dependencies between actions

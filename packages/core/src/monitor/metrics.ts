@@ -3,7 +3,7 @@ import type {
   TokenUsage,
   RequestQueryCriteria,
   MetricsQueryCriteria,
-} from "../tracking";
+} from ".";
 
 /**
  * Analytics utilities for request tracking data

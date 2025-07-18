@@ -1,7 +1,7 @@
-export * from "../tracking";
+export * from "../monitor";
 export * from "./storage";
-export * from "./tracker";
-export * from "./analytics";
+export * from "./monitor";
+export * from "./metrics";
 
 import { v7 as randomUUIDv7 } from "uuid";
 

@@ -6,8 +6,8 @@ import type {
   MetricsQueryCriteria,
   AggregatedMetrics,
   TokenUsage,
-} from "../tracking";
-import { aggregateTokenUsage } from "../tracking";
+} from "../monitor";
+import { aggregateTokenUsage } from "../monitor";
 import type { Logger } from "../logs/logger";
 
 /**
