@@ -9,8 +9,10 @@
   "scripts": {
     "test": "pnpm -r run test",
     "build": "pnpm -r run build",
-    "publish": "node scripts/publish-package.js",
-    "publish:dry-run": "node scripts/publish-package.js --dry-run"
+    "publish": "node ./scripts/publish-package.js",
+    "publish:dry-run": "node ./scripts/publish-package.js --dry-run",
+    "version-packages": "changeset version",
+    "publish-packages": "changeset publish"
   },
   "keywords": [
     "framework",
