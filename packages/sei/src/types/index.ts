@@ -1,16 +1,8 @@
 export * from "./precompilers";
-import type {
-  Account,
-  Address,
-  Chain,
-  Hash,
-  HttpTransport,
-  PublicClient,
-  WalletClient,
-} from "viem";
+import type { Address, Hash } from "viem";
 import * as viemChains from "viem/chains";
 
-const _SupportedChainList = Object.keys([
+export const _SupportedChainList = Object.keys([
   viemChains.seiDevnet,
   viemChains.seiTestnet,
   viemChains.sei,

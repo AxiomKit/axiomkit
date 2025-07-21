@@ -2,11 +2,16 @@ import { ethers } from "ethers";
 import type { IChain } from "@axiomkit/core";
 import * as viemChains from "viem/chains";
 
+export const seiChains: Record<string, viemChains.Chain> = {
+  mainnet: viemChains.sei,
+  testnet: viemChains.seiTestnet,
+  devnet: viemChains.seiDevnet,
+};
+export type SeiChainName = keyof typeof seiChains;
 export interface SeiChainConfig {
-  chainName: string;
+  chainName: SeiChainName;
   rpcUrl: string;
   privateKey: string;
-  chainId?: number;
 }
 
 export class SeiChain implements IChain {
@@ -22,7 +27,7 @@ export class SeiChain implements IChain {
     this.chainId = config.chainName;
 
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl, {
-      chainId: config.chainId,
+      chainId: seiChains["mainet"].id,
       name: config.chainName,
     });
     this.signer = new ethers.Wallet(config.privateKey, this.provider);

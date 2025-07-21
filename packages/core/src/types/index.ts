@@ -1012,9 +1012,6 @@ export type ExpertConfig = Omit<Expert, "type">;
 export type Subscription = () => void;
 
 export interface IChain {
-  /**
-   * A unique identifier for the chain (e.g., "starknet", "ethereum", "solana", etc.)
-   */
   chainId: string;
 
   /**
