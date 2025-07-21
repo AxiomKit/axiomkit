@@ -5,6 +5,7 @@ import { AxiomKitAgentProvider } from "@/context/AxiomkitContext";
 export const metadata: Metadata = {
   title: "Axiomkit | Chat Example",
   description: "Axiomkit Lightweight Typescript framework",
+  generator: "axiomkit",
 };
 
 export default function RootLayout({
