@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import type { IChain } from "@axiomkit/core";
+import * as viemChains from "viem/chains";
 
 export interface SeiChainConfig {
   chainName: string;
