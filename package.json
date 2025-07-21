@@ -9,10 +9,7 @@
   "scripts": {
     "test": "pnpm -r run test",
     "build": "pnpm -r run build",
-    "publish": "node ./scripts/publish-package.js",
-    "publish:dry-run": "node ./scripts/publish-package.js --dry-run",
-    "version-packages": "changeset version",
-    "publish-packages": "changeset publish"
+    "publish:package": "node scripts/publish-package.js"
   },
   "keywords": [
     "framework",
@@ -40,5 +37,8 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "yaml": "^2.8.0"
+  },
+  "publishConfig": {
+    "git-checks": false
   }
 }
