@@ -17,7 +17,9 @@ export class SeiChain implements IChain {
   private signer: ethers.Wallet;
 
   constructor(private config: SeiChainConfig) {
+    console.log("What Problem", config.chainName);
     this.chainId = config.chainName;
+
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl, {
       chainId: config.chainId,
       name: config.chainName,
@@ -27,7 +29,6 @@ export class SeiChain implements IChain {
 
   public async read(call: unknown): Promise<any> {
     try {
-      // In a real implementation, you might use a Zod schema or TS check here:
       const {
         contractAddress,
         abi,
