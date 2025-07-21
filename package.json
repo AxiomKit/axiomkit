@@ -1,6 +1,6 @@
 {
   "name": "axiom-kit",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "workspaces": [
     "packages/*",
@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "test": "pnpm -r run test",
-    "build": "pnpm -r run build"
+    "build": "pnpm -r run build",
+    "publish:package": "node scripts/publish-package.js"
   },
   "keywords": [
     "framework",
@@ -26,13 +27,17 @@
     "@ai-sdk/provider": "catalog:",
     "@ai-sdk/ui-utils": "catalog:",
     "ai": "catalog:",
-    "uuid": "catalog:",
-    "axiom-kit": "link:"
+    "uuid": "catalog:"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@types/node": "24.0.14",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "@types/node": "24.0.14"
+    "yaml": "^2.8.0"
+  },
+  "publishConfig": {
+    "git-checks": false
   }
 }

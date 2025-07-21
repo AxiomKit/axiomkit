@@ -159,12 +159,6 @@ export function extension<
   };
 }
 
-/**
- * Validates environment variables against a Zod schema
- * @param schema The Zod schema to validate against
- * @param env The environment object to validate (defaults to process.env)
- * @returns The validated environment variables
- */
 export function validateEnv<T extends z.ZodTypeAny>(
   schema: T,
   env = process.env

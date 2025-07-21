@@ -5,9 +5,6 @@ export * from "./metrics";
 
 import { v7 as randomUUIDv7 } from "uuid";
 
-/**
- * Token usage information from model calls
- */
 export interface TokenUsage {
   /** Input tokens consumed */
   inputTokens: number;

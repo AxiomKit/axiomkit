@@ -1,10 +1,7 @@
-import type { MemoryStore, VectorStore, WorkingMemory } from "../types";
+import type { MemoryStore, VectorStore } from "../types";
 import type { LanguageModelV1 } from "ai";
-/**
- * Base memory implementation providing storage and vector capabilities
- */
+
 export type BaseMemory = {
-  /** Store for conversation memory data */
   store: MemoryStore;
   /** Store for vector embeddings and similarity search */
   vector: VectorStore;

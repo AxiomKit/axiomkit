@@ -4,7 +4,7 @@ import type { Container } from "../container";
 import type { ServiceProvider } from "../serviceProvider";
 import type { BaseMemory } from "../memory";
 import type { TaskRunner } from "../task";
-import type { Logger } from "../logs/logger";
+import type { Logger, LogLevel } from "../logs/logger";
 import type { RequestContext, RequestTrackingConfig } from "../monitor";
 import type { RequestTracker } from "../monitor/monitor";
 
@@ -1010,15 +1010,6 @@ export type ExpertConfig = Omit<Expert, "type">;
 
 /** Function type for subscription cleanup */
 export type Subscription = () => void;
-
-/** Enum defining available log levels */
-export enum LogLevel {
-  ERROR = 0,
-  WARN = 1,
-  INFO = 2,
-  DEBUG = 3,
-  TRACE = 4,
-}
 
 export interface IChain {
   /**

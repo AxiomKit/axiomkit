@@ -34,17 +34,17 @@ import { createMemory } from "./memory";
 import { createVectorStore } from "./memory/base";
 import { runGenerate } from "./tasks";
 import { exportEpisodesAsTrainingData } from "./memory/utils";
-import { LogLevel } from "./types";
+import { LogLevel } from "./logs";
 import { randomUUIDv7, tryAsync } from "./utils";
 import { createContextStreamHandler, handleStream } from "./utils/streaming";
 import { mainPrompt, promptTemplate } from "./template";
-import { createEngine } from "./configs/engine";
+import { createEngine } from "./configs";
 import type { DeferredPromise } from "p-defer";
 import { configureRequestTracking, getRequestTracker } from "./monitor/monitor";
 import { StructuredLogger, LogEventType } from "./logs/logging-events";
 import { createRequestContext } from "./monitor";
 
-export function createAxiom<TContext extends AnyContext = AnyContext>(
+export function createAgent<TContext extends AnyContext = AnyContext>(
   config: Config<TContext>
 ): Agent<TContext> {
   let booted = false;
@@ -74,7 +74,6 @@ export function createAxiom<TContext extends AnyContext = AnyContext>(
     Set<(chunk: LogChunk) => void>
   >();
 
-  // todo register everything into registry, remove from agent
   const registry: Registry = {
     contexts: new Map(),
     actions: new Map(),
@@ -119,13 +118,10 @@ export function createAxiom<TContext extends AnyContext = AnyContext>(
 
   container.instance("logger", logger);
 
-  // Create structured logger
   const structuredLogger = new StructuredLogger(logger);
   container.instance("structuredLogger", structuredLogger);
 
-  // Configure request tracking with logger integration
   if (config.requestTrackingConfig) {
-    // Pass the complete config including cost estimation to the global tracker
     configureRequestTracking(config.requestTrackingConfig, logger);
   }
 

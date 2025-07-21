@@ -1,6 +1,5 @@
-import { LogLevel } from "../types";
 import type { StructuredLogData } from "./logger";
-import { Logger } from "./logger";
+import { Logger, LogLevel } from "./logger";
 import type { RequestContext, TokenUsage, ModelCallMetrics } from "../monitor";
 import { getCorrelationIds } from "../monitor";
 
