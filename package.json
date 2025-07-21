@@ -26,13 +26,14 @@
     "@ai-sdk/provider": "catalog:",
     "@ai-sdk/ui-utils": "catalog:",
     "ai": "catalog:",
-    "uuid": "catalog:",
-    "axiom-kit": "link:"
+    "axiom-kit": "link:",
+    "uuid": "catalog:"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@types/node": "24.0.14",
     "tsup": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:",
-    "@types/node": "24.0.14"
+    "vitest": "catalog:"
   }
 }
