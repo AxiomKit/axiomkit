@@ -33,7 +33,7 @@
     "test:run": "vitest run",
     "prebuild": "[ -f src/test/axiomkit.test.ts ] && pnpm test || echo 'No test file found, skipping tests.'",
     "build": "tsup --dts-resolve",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "node ../../scripts/replace-catalog-deps.js && pnpm build"
   },
   "dependencies": {
     "@ai-sdk/provider": "catalog:",

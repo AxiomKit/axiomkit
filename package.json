@@ -34,6 +34,7 @@
     "@types/node": "24.0.14",
     "tsup": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yaml": "^2.8.0"
   }
 }
