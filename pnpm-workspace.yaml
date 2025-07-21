@@ -13,10 +13,14 @@ catalog:
   ai: 4.3.16
   tsup: 8.3.6
   vitest: 3.2.4
+  '@vitest/ui': 3.2.4
   uuid: 11.1.0
   zod: 3.25.23
   zod-to-json-schema: 3.24.3
   dotenv: 16.4.7
+
+
+
 
 overrides:
   axiom-kit: 'link:'

@@ -1,8 +1,16 @@
-import { LogLevel } from "../types"; // Assuming LogLevel is defined elsewhere
-import type { CorrelationIds, TokenUsage, ModelCallMetrics } from "../tracking";
-import { formatCorrelationIds as formatCorrelationIdsUtil } from "../tracking";
+import type { CorrelationIds, TokenUsage, ModelCallMetrics } from "../monitor";
+import { formatCorrelationIds as formatCorrelationIdsUtil } from "../monitor";
 
 // --- Interfaces ---
+
+/** Enum defining available log levels */
+export enum LogLevel {
+  ERROR = 0,
+  WARN = 1,
+  INFO = 2,
+  DEBUG = 3,
+  TRACE = 4,
+}
 
 export interface LogEntry {
   level: LogLevel;
@@ -614,7 +622,6 @@ export class Logger {
 
     const formattedMessage = this.config.formatter.format(entry); // Format the core message
 
-    // Send to all transports (passing both formatted string and raw entry)
     this.config.transports.forEach((transport) => {
       try {
         transport.log(formattedMessage, entry);
@@ -627,7 +634,6 @@ export class Logger {
     });
   }
 
-  // Method to gracefully close transports
   async close(): Promise<void> {
     for (const transport of this.config.transports) {
       if (typeof transport.close === "function") {

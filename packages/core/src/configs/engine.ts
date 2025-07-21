@@ -48,19 +48,6 @@ type CallOptions = Partial<{
   queueKey: string;
 }>;
 
-// type Router<TLog extends AnyRef = AnyRef> = {
-//   [K in TLog["ref"]]: K extends "action_call"
-//     ? (
-//         log: ActionCall,
-//         options?: Partial<{
-//           templateResolvers: Record<string, TemplateResolver>;
-//         }>
-//       ) => MaybePromise<ActionResult>
-//     : TLog extends { ref: K }
-//       ? (log: TLog) => MaybePromise<void>
-//       : never;
-// };
-
 interface Router {
   input(ref: InputRef): Promise<void>;
   output(ref: OutputRef): Promise<OutputRef[]>;

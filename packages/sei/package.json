@@ -19,7 +19,6 @@
     "vitest": "catalog:"
   },
   "scripts": {
-    "test": "vitest",
     "build": "tsup --dts-resolve",
     "prepublishOnly": "pnpm run build"
   },

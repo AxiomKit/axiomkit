@@ -23,13 +23,12 @@ import type {
   Output,
   OutputCtxRef,
   OutputRef,
-  Resolver,
   TemplateResolver,
   WorkingMemory,
 } from "./types";
 import { randomUUIDv7 } from "./utils";
 import { parse } from "./utils/xml";
-import { jsonPath } from "./jsonpath";
+import { jsonPath } from "./utils/jsonpath";
 import { jsonSchema } from "ai";
 
 export class NotFoundError extends Error {
