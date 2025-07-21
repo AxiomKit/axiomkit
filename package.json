@@ -27,7 +27,6 @@
     "@ai-sdk/provider": "catalog:",
     "@ai-sdk/ui-utils": "catalog:",
     "ai": "catalog:",
-    "axiom-kit": "link:",
     "uuid": "catalog:"
   },
   "devDependencies": {
