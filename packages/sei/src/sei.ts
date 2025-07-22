@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
-import type { IChain } from "@axiomkit/core";
+
 import * as viemChains from "viem/chains";
+import { WalletProvider } from "./providers/wallet";
 
 export const seiChains: Record<string, viemChains.Chain> = {
   mainnet: viemChains.sei,
@@ -9,28 +10,29 @@ export const seiChains: Record<string, viemChains.Chain> = {
 };
 export type SeiChainName = keyof typeof seiChains;
 export interface SeiChainConfig {
-  chainName: SeiChainName;
+  chain: viemChains.Chain;
   rpcUrl: string;
   privateKey: string;
 }
 
-export class SeiChain implements IChain {
-  public chainId: string;
+export class SeiChain {
+  public chain: viemChains.Chain;
   private provider: ethers.JsonRpcProvider;
+  // private walletProvider: WalletProvider;
   /**
    * Wallet instance for signing transactions
    */
   private signer: ethers.Wallet;
 
   constructor(private config: SeiChainConfig) {
-    console.log("What Problem", config.chainName);
-    this.chainId = config.chainName;
+    this.chain = config.chain;
 
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl, {
-      chainId: seiChains["mainet"].id,
-      name: config.chainName,
+      chainId: config.chain.id,
+      name: config.chain.name,
     });
     this.signer = new ethers.Wallet(config.privateKey, this.provider);
+    // this.walletProvider=new WalletProvider(config.privateKey,config.chain)
   }
 
   public async read(call: unknown): Promise<any> {
@@ -49,6 +51,7 @@ export class SeiChain implements IChain {
 
       const contract = new ethers.Contract(contractAddress, abi, this.provider);
 
+      console.log("What Wrong With call data", call);
       return await contract[functionName](...args);
     } catch (error) {
       return error instanceof Error

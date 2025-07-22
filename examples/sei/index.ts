@@ -18,10 +18,9 @@ const env = validateEnv(
 );
 
 const seiChain = new SeiChain({
-  chainName: "atlantic-2",
   rpcUrl: env.SEI_RPC_URL,
   privateKey: env.SEI_PRIVATE_KEY,
-  chainId: viemChains.seiTestnet.id,
+  chain: viemChains.seiTestnet,
 });
 
 type SeiMemory = {
@@ -60,8 +59,9 @@ const seiAgentContext = context({
   schema: {
     wallet: z.string(),
   },
-  key: ({ wallet }) => wallet,
+  key: ({ wallet }: { wallet: string }) => wallet,
   create({ args }): SeiMemory {
+    console.log("Current Sei Memory");
     return {
       wallet: args.wallet,
       transactions: [],
@@ -80,14 +80,15 @@ const seiAgentContext = context({
   })
   .setActions([
     action({
-      name: "sei.getBalance",
-      description: "Get the Sei balance of a wallet address",
+      name: "getBalance",
+      description: "Get the balance of a wallet address",
       schema: {
         address: z
           .string()
           .describe("The sei wallet address to check balance for"),
       },
       async handler({ address }, { memory }) {
+        console.log("get my", address);
         const balance = await seiChain.read({
           functionName: "getBalance",
           address,
@@ -99,7 +100,6 @@ const seiAgentContext = context({
 
         const seiBalance = balance;
 
-        // Update memory if checking own wallet
         if (address === memory.wallet) {
           memory.balance = balance;
         }
@@ -107,25 +107,6 @@ const seiAgentContext = context({
         return actionResponse(
           `Balance for ${address}: ${seiBalance} SEI (${balance} lamports)`
         );
-      },
-    }),
-
-    action({
-      name: "sei.getBlockHeight",
-      description: "Get the current block height of the Sei blockchain",
-      schema: {},
-      async handler(_, { memory }) {
-        const blockHeight = await seiChain.read({
-          type: "getBlockHeight",
-        });
-
-        if (blockHeight instanceof Error) {
-          return actionResponse(
-            `Error getting block height: ${blockHeight.message}`
-          );
-        }
-
-        return actionResponse(`Current Sei block height: ${blockHeight}`);
       },
     }),
   ]);
@@ -151,29 +132,29 @@ const seiExtension = extension({
           rl.question("> ", async (text: string) => {
             if (text.trim()) {
               console.log(`User: ${text}`);
-              const logs = await agent.send({
-                context: seiAgentContext,
-                args: { wallet: `0x28f3A278E3B7000dAE30375cF6d007f9c90927A5` },
-                input: { type: "cli", data: { text } },
-                handlers: {
-                  onLogStream(log, done) {
-                    if (done) {
-                      if (log.ref === "output") {
-                        const content = log.content || log.data;
+              // const logs = await agent.send({
+              //   context: seiAgentContext,
+              //   args: { wallet },
+              //   input: { type: "cli", data: { text } },
+              //   handlers: {
+              //     onLogStream(log, done) {
+              //       if (done) {
+              //         if (log.ref === "output") {
+              //           const content = log.content || log.data;
 
-                        if (content && !content.includes("attributes_schema")) {
-                          console.log(`Assistant :${context}`);
-                        }
-                      } else if (log.ref === "thought") {
-                        // console.log(chalk.gray(`Thinking: ${log.content}`));
-                      }
-                    }
-                  },
-                  onThinking(thought) {
-                    // console.log(chalk.gray(`Thinking: ${thought.content}`));
-                  },
-                },
-              });
+              //           if (content && !content.includes("attributes_schema")) {
+              //             console.log(`Assistant :${context}`);
+              //           }
+              //         } else if (log.ref === "thought") {
+              //           // console.log(chalk.gray(`Thinking: ${log.content}`));
+              //         }
+              //       }
+              //     },
+              //     onThinking(thought) {
+              //       console.log(chalk.gray(`Thinking: ${thought.content}`));
+              //     },
+              //   },
+              // });
             }
             prompt();
           });
