@@ -20,14 +20,14 @@ import {
   Zap,
   ChevronRight,
   Sparkles,
-  BarChart3,
 } from "lucide-react";
 import {
   ModelSettingsPanel,
   type ModelConfig,
 } from "@/components/model-settings-panel";
 import { analytics } from "@/lib/analytics";
-
+import Logo from "@/public/logo.png";
+import Image from "next/image";
 interface AxiomKitMetadata {
   processingSteps: Array<{
     id: string;
@@ -385,8 +385,14 @@ export default function AxiomKitDemo() {
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Image
+                  alt="Logo"
+                  className="w-auto h-6"
+                  src={Logo.src}
+                  height={24}
+                  width={24}
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold">AxiomKit</h1>
@@ -527,7 +533,13 @@ export default function AxiomKitDemo() {
             <div className="p-6 space-y-6">
               {messages.length === 0 && (
                 <div className="text-center py-12">
-                  <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <Image
+                    alt="Logo"
+                    className="w-16 h-16 text-muted-foreground mx-auto mb-4"
+                    src={Logo.src}
+                    height={24}
+                    width={24}
+                  />
                   <h3 className="text-xl font-semibold mb-2">
                     Welcome to AxiomKit
                   </h3>
