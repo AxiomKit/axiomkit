@@ -324,34 +324,6 @@ export function createEnvVariables(
       break;
   }
 
-  // Extension-specific configurations - only for selected extensions
-  // if (selectedExtensions.includes("twitter")) {
-  //   envVariables.push("# Twitter Configuration");
-  //   // Add both authentication methods
-  //   envVariables.push("# Method 1: Username/Password");
-  //   envVariables.push("TWITTER_USERNAME=your_twitter_username");
-  //   envVariables.push("TWITTER_PASSWORD=your_twitter_password");
-  //   envVariables.push("TWITTER_EMAIL=your_twitter_email");
-
-  //   envVariables.push("# Method 2: API Keys");
-  //   envVariables.push("TWITTER_CONSUMER_KEY=your_consumer_key");
-  //   envVariables.push("TWITTER_CONSUMER_SECRET=your_consumer_secret");
-  //   envVariables.push("TWITTER_ACCESS_TOKEN=your_access_token");
-  //   envVariables.push("TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret\n");
-  // }
-
-  // if (selectedExtensions.includes("discord")) {
-  //   envVariables.push("# Discord Configuration");
-  //   envVariables.push(
-  //     "# Discord Bot Token (https://discord.com/developers/applications)"
-  //   );
-  //   envVariables.push(
-  //     "# Required Gateway Intents: Server Members, Message Content, Presence"
-  //   );
-  //   envVariables.push("DISCORD_TOKEN=your_discord_token");
-  //   envVariables.push("DISCORD_BOT_NAME=your_bot_name\n");
-  // }
-
   if (selectedExtensions.includes("telegram")) {
     envVariables.push("# Telegram Configuration");
     envVariables.push(

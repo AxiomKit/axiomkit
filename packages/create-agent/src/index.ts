@@ -14,6 +14,11 @@ import {
   validateModel,
   getLatestDependencies,
 } from "./utils.js";
+import {
+  BASEDEPS_AXIOMKIT,
+  MODEL_CONFIG,
+  MODEL_DEPS_AXIOMKIT,
+} from "./config.js";
 
 // Define __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -77,7 +82,6 @@ export async function main(
   const cwd = process.cwd();
   const targetPath = path.resolve(cwd, targetDir);
 
-  // Validate project directory name
   if (targetDir !== ".") {
     const validation = validateProjectName(path.basename(targetPath));
     if (!validation.isValid) {
@@ -97,7 +101,6 @@ export async function main(
   log(`Target directory: ${targetPath}`);
   log(`Model provider: ${options.model || "not specified - will prompt"}`);
 
-  // Check if target directory exists and is not empty
   if (fs.existsSync(targetPath)) {
     const files = await fs.readdir(targetPath);
     if (files.length > 0) {
@@ -130,7 +133,7 @@ export async function main(
   }
 
   console.log();
-  console.log(chalk.bold("🚀 Creating a new Axiomkit agent..."));
+  console.log(chalk.bold("🚀 Initializing new AxiomKit agent..."));
   console.log();
 
   // Determine selected extensions
@@ -237,7 +240,7 @@ export async function main(
 
   if (!selectedModel) {
     console.error(
-      chalk.red("❌ No model provider selected. Operation cancelled.")
+      chalk.red("❌ Model provider not selected. Operation cancelled.")
     );
     return;
   }
@@ -262,33 +265,14 @@ export async function main(
         error instanceof Error ? error.message : String(error)
       }`
     );
-    // Fallback to basic dependencies if something goes wrong
-    const baseDeps = {
-      "@axiomkit/core": "^0.0.7",
-      ai: "^4.1.25",
-      chalk: "^5.4.1",
-      typescript: "^5.3.3",
-      zod: "^3.24.1",
-      "@openrouter/ai-sdk-provider": "^0.2.1",
-    };
 
     const modelDep: Record<string, string> = {};
-    switch (selectedModel) {
-      case "groq":
-        modelDep["@ai-sdk/groq"] = "^1.1.7";
-        break;
-      case "openai":
-        modelDep["@ai-sdk/openai"] = "^1.1.14";
-        break;
-      case "anthropic":
-        modelDep["@ai-sdk/anthropic"] = "^1.1.6";
-        break;
-      case "google":
-        modelDep["@ai-sdk/google"] = "^1.1.16";
-        break;
-    }
+    const selected = MODEL_DEPS_AXIOMKIT[selectedModel];
 
-    dependencies = { ...baseDeps, ...modelDep };
+    if (selected) {
+      modelDep[selected.pkg] = selected.version;
+    }
+    dependencies = { ...BASEDEPS_AXIOMKIT, ...modelDep };
   }
 
   spinner.start("Creating package.json");
@@ -365,14 +349,11 @@ export async function main(
     )} extension(s)`
   );
 
-  // Read template content - either from test parameter or from file
   let templateContent: string;
 
   if (testTemplateContent) {
-    // Use the provided test template content
     templateContent = testTemplateContent;
   } else {
-    // Get the template file path
     const templateFile = path.join(
       __dirname,
       "..",
@@ -406,44 +387,7 @@ export async function main(
     }
   }
 
-  // Define model-specific replacements
-  const modelConfig = {
-    groq: {
-      MODEL_NAME: "Groq",
-      MODEL_IMPORT_FUNCTION: "createGroq",
-      MODEL_IMPORT_PATH: "@ai-sdk/groq",
-      ENV_VAR_KEY: "GROQ_API_KEY",
-      MODEL_VARIABLE: "groq",
-      MODEL_VERSION: "deepseek-r1-distill-llama-70b",
-    },
-    openai: {
-      MODEL_NAME: "OpenAI",
-      MODEL_IMPORT_FUNCTION: "createOpenAI",
-      MODEL_IMPORT_PATH: "@ai-sdk/openai",
-      ENV_VAR_KEY: "OPENAI_API_KEY",
-      MODEL_VARIABLE: "openai",
-      MODEL_VERSION: "gpt-4o",
-    },
-    anthropic: {
-      MODEL_NAME: "Anthropic",
-      MODEL_IMPORT_FUNCTION: "createAnthropic",
-      MODEL_IMPORT_PATH: "@ai-sdk/anthropic",
-      ENV_VAR_KEY: "ANTHROPIC_API_KEY",
-      MODEL_VARIABLE: "anthropic",
-      MODEL_VERSION: "claude-3-opus-20240229",
-    },
-    google: {
-      MODEL_NAME: "Google",
-      MODEL_IMPORT_FUNCTION: "createGoogle",
-      MODEL_IMPORT_PATH: "@ai-sdk/google",
-      ENV_VAR_KEY: "GOOGLE_API_KEY",
-      MODEL_VARIABLE: "google",
-      MODEL_VERSION: "gemini-1.5-pro",
-    },
-  };
-
-  // Replace placeholders with model-specific values
-  const config = modelConfig[selectedModel as keyof typeof modelConfig];
+  const config = MODEL_CONFIG[selectedModel as keyof typeof MODEL_CONFIG];
 
   // Prepare extension imports and extension list for template generation
   const extensionImports: string[] = [];
