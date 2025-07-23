@@ -1011,21 +1011,6 @@ export type ExpertConfig = Omit<Expert, "type">;
 /** Function type for subscription cleanup */
 export type Subscription = () => void;
 
-export interface IChain {
-  chainId: string;
-
-  /**
-   * Read (call) a contract or perform a query on this chain.
-   * The `call` parameter can be chain-specific data.
-   */
-  read(call: unknown): Promise<any>;
-
-  /**
-   * Write (execute a transaction) on this chain, typically requiring signatures, etc.
-   */
-  write(call: unknown): Promise<any>;
-}
-/** Type representing instructions that can be either a single string or array of strings */
 export type Instruction = string | string[];
 
 /** Type representing any Context with generic type parameters */

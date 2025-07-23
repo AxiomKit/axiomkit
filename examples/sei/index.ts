@@ -8,6 +8,8 @@ import {
   validateEnv,
 } from "@axiomkit/core";
 import { SeiChain } from "sei/dist";
+import { formatEther, parseEther } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";
 import * as z from "zod/v4";
 const env = validateEnv(
@@ -18,10 +20,9 @@ const env = validateEnv(
 );
 
 const seiChain = new SeiChain({
-  chainName: "atlantic-2",
   rpcUrl: env.SEI_RPC_URL,
-  privateKey: env.SEI_PRIVATE_KEY,
-  chainId: viemChains.seiTestnet.id,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+  chain: viemChains.seiTestnet,
 });
 
 type SeiMemory = {
@@ -30,6 +31,9 @@ type SeiMemory = {
   lastTransaction: string | null;
   balance: number;
 };
+
+const account = privateKeyToAccount(env.SEI_PRIVATE_KEY as `0x${string}`);
+const initialWalletAddress = account.address;
 
 const template = ({
   wallet,
@@ -60,8 +64,9 @@ const seiAgentContext = context({
   schema: {
     wallet: z.string(),
   },
-  key: ({ wallet }) => wallet,
+  key: ({ wallet }: { wallet: string }) => wallet,
   create({ args }): SeiMemory {
+    console.log("Current Sei Memory");
     return {
       wallet: args.wallet,
       transactions: [],
@@ -80,52 +85,37 @@ const seiAgentContext = context({
   })
   .setActions([
     action({
-      name: "sei.getBalance",
-      description: "Get the Sei balance of a wallet address",
+      name: "getBalance",
+      description:
+        "Get the balance of a wallet address. If no address is provided, it will check the balance of the current active wallet.",
       schema: {
         address: z
           .string()
-          .describe("The sei wallet address to check balance for"),
+          .optional() // Make address optional
+          .describe(
+            "The sei wallet address to check balance for. Optional, defaults to the current active wallet."
+          ),
       },
       async handler({ address }, { memory }) {
-        const balance = await seiChain.read({
-          functionName: "getBalance",
-          address,
+        const targetAddress = address || memory.wallet;
+        console.log("What Current Address", targetAddress);
+        const balance = await seiChain.client.getBalance({
+          address: targetAddress as `0x${string}`,
+          blockTag: `safe`,
         });
-
-        if (balance instanceof Error) {
-          return actionResponse(`Error getting balance: ${balance.message}`);
-        }
-
-        const seiBalance = balance;
-
-        // Update memory if checking own wallet
-        if (address === memory.wallet) {
-          memory.balance = balance;
-        }
-
-        return actionResponse(
-          `Balance for ${address}: ${seiBalance} SEI (${balance} lamports)`
-        );
-      },
-    }),
-
-    action({
-      name: "sei.getBlockHeight",
-      description: "Get the current block height of the Sei blockchain",
-      schema: {},
-      async handler(_, { memory }) {
-        const blockHeight = await seiChain.read({
-          type: "getBlockHeight",
-        });
-
-        if (blockHeight instanceof Error) {
+        if (!targetAddress) {
           return actionResponse(
-            `Error getting block height: ${blockHeight.message}`
+            "Error: No wallet address provided and no primary wallet set in memory. Please provide an address or ensure your primary wallet is configured."
           );
         }
 
-        return actionResponse(`Current Sei block height: ${blockHeight}`);
+        const seiBalance = Number(formatEther(balance));
+        if (targetAddress.toLowerCase() === memory.wallet.toLowerCase()) {
+          memory.balance = seiBalance; // Update memory if it's the current wallet
+        }
+        return actionResponse(
+          `Balance for ${address}: ${seiBalance} SEI lamports)`
+        );
       },
     }),
   ]);
@@ -153,24 +143,23 @@ const seiExtension = extension({
               console.log(`User: ${text}`);
               const logs = await agent.send({
                 context: seiAgentContext,
-                args: { wallet: `0x28f3A278E3B7000dAE30375cF6d007f9c90927A5` },
+                // Pass the initialWalletAddress to the context creation args
+                args: { wallet: initialWalletAddress },
                 input: { type: "cli", data: { text } },
                 handlers: {
                   onLogStream(log, done) {
                     if (done) {
                       if (log.ref === "output") {
                         const content = log.content || log.data;
-
                         if (content && !content.includes("attributes_schema")) {
-                          console.log(`Assistant :${context}`);
+                          console.log(`Assistant: ${content}`);
                         }
                       } else if (log.ref === "thought") {
-                        // console.log(chalk.gray(`Thinking: ${log.content}`));
                       }
                     }
                   },
                   onThinking(thought) {
-                    // console.log(chalk.gray(`Thinking: ${thought.content}`));
+                    console.log(`Thinking: ${thought.content}`);
                   },
                 },
               });

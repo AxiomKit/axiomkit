@@ -1,0 +1,18 @@
+{
+    "name": "bot-examples",
+    "module": "index.ts",
+    "type": "module",
+    "private": true,
+    "dependencies": {
+        "@ai-sdk/anthropic": "catalog:",
+        "@ai-sdk/groq": "catalog:",
+        "@ai-sdk/openai": "catalog:",
+        "@axiomkit/core": "workspace:*",
+        "@axiomkit/sei": "workspace:*",
+        "viem": "^2.33.0",
+        "zod": "catalog:"
+    },
+    "peerDependencies": {
+        "typescript": "catalog:"
+    }
+}
