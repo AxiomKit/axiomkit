@@ -40,7 +40,7 @@ export async function getLatestDependencies(
 
   // Base dependencies that are always included
   const baseDependencies = {
-    "@axiomkit/core": "^0.0.6",
+    "@axiomkit/core": "^0.0.7",
     ai: "^4.1.25",
     typescript: "^5.3.3",
     zod: "^3.24.1",

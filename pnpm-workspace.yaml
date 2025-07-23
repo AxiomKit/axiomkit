@@ -22,4 +22,4 @@ catalog:
   '@vitest/ui': 3.2.4 
 
 overrides:
-  axiom-kit: 'link:'
+  axiomkit: 'link:'

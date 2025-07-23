@@ -278,7 +278,7 @@ export async function main(
     );
     // Fallback to basic dependencies if something goes wrong
     const baseDeps = {
-      "@axiomkit/core": "^0.0.6",
+      "@axiomkit/core": "^0.0.7",
       ai: "^4.1.25",
       chalk: "^5.4.1",
       typescript: "^5.3.3",

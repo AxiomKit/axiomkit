@@ -4,7 +4,7 @@
  */
 import { {{MODEL_IMPORT_FUNCTION}} } from "{{MODEL_IMPORT_PATH}}";
 import {
-    createDreams,
+    createAgent,
     context,
     render,
     action,
@@ -56,7 +56,7 @@ const goalContexts = context({
     },
 });
 
-createDreams({
+createAgent({
     model: {{MODEL_VARIABLE}}("{{MODEL_VERSION}}"),
     extensions: [cliExtension],
     context: goalContexts,
