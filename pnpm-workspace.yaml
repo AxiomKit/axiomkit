@@ -18,7 +18,7 @@ catalog:
   zod: 3.25.23
   zod-to-json-schema: 3.24.3
   dotenv: 16.4.7
-
+  '@types/bun': latest
 
 overrides:
   axiom-kit: 'link:'
