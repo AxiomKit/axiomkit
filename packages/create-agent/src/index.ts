@@ -23,47 +23,39 @@ const __dirname = path.dirname(__filename);
 const program = new Command()
   .name("create-agent")
   .description(
-    "🤖 Bootstrap a new Axiomkit AI agent with extensions and model providers"
+    "🤖 Initialize a new AxiomKit AI agent with configurable extensions and model providers"
   )
-  .version("0.0.1")
+  .version("0.0.2")
   .argument(
     "[directory]",
-    "Directory to create the agent in (defaults to current directory)"
+    "📁 Target directory for agent (defaults to current)"
   )
-  .option(
-    "--twitter",
-    "Include Twitter/X extension for social media interactions"
-  )
-  .option("--discord", "Include Discord extension for bot functionality")
-  .option("--cli", "Include CLI extension for command-line interface")
-  .option("--telegram", "Include Telegram extension for messaging")
-  .option("--all", "Include all available extensions")
+  .option("--cli", "🔧 Add CLI extension for command-line interface support")
+  .option("--telegram", "💬 Add Telegram extension for messaging integration")
+  .option("--all", "📦 Add all available extensions")
   .option(
     "--model <model>",
-    "Specify the model provider (openai, groq, anthropic, google)"
+    "🧠 Set model provider (options: openai, groq, anthropic, google)"
   )
-  .option("--skip-install", "Skip dependency installation")
-  .option("--verbose", "Show detailed output during creation")
+  .option("--skip-install", "Skip installing dependencies")
+  .option("--verbose", ":🔍 Show detailed output during creation")
   .addHelpText(
     "after",
     `
 Examples:
   $ create-agent my-bot                    Create agent in ./my-bot (will prompt for model)
-  $ create-agent --twitter --discord      Create agent with Twitter and Discord
-  $ create-agent --model openai --all     Create agent with OpenAI and all extensions
-  $ create-agent . --cli                  Create agent in current directory with CLI only
+  $ create-agent --telegram                Create agent with Twitter 
+  $ create-agent --model openai --all      Create agent with OpenAI and all extensions
+  $ create-agent . --cli                   Create agent in current directory with CLI only
 
 Available Extensions:
   cli       Command-line interface for terminal interactions
-  twitter   Twitter/X integration for social media automation
-  discord   Discord bot for server management and chat
   telegram  Telegram bot for messaging and notifications
 
 Supported Models:
   groq      Groq's fast inference (free tier available)
-  openai    OpenAI GPT models (requires API key)
-  anthropic Claude models (requires API key)
   google    Google Gemini models (requires API key)
+  openai    OpenAI GPT models (requires API key)
 
 Environment Setup:
   After creation, copy .env.example to .env and configure your API keys.
@@ -71,13 +63,11 @@ Environment Setup:
 `
   );
 
-// Export the main function for testing purposes
 export async function main(
   testArgs?: string[],
   testOpts?: Record<string, any>,
-  testTemplateContent?: string // Add template content parameter for testing
+  testTemplateContent?: string
 ) {
-  // Parse arguments and options only if not in test mode
   if (!testArgs && !testOpts) {
     program.parse(process.argv);
   }
@@ -201,11 +191,7 @@ export async function main(
 
   log(`Selected extensions: ${selectedExtensions.join(", ")}`);
 
-  // Determine the model to use
-  const validModels = ["openai", "groq", "anthropic", "google"];
   let selectedModel = options.model;
-
-  // If model was explicitly provided via command line, validate it
   if (selectedModel) {
     const modelValidation = validateModel(selectedModel);
     if (!modelValidation.isValid) {
