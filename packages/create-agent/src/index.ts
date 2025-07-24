@@ -13,12 +13,8 @@ import {
   validateProjectName,
   validateModel,
   getLatestDependencies,
-} from "./utils.js";
-import {
-  BASEDEPS_AXIOMKIT,
-  MODEL_CONFIG,
-  MODEL_DEPS_AXIOMKIT,
-} from "./config.js";
+} from "./utils";
+import { BASEDEPS_AXIOMKIT, MODEL_CONFIG, MODEL_DEPS_AXIOMKIT } from "./config";
 
 // Define __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
