@@ -8,7 +8,7 @@ import {
   validateEnv,
 } from "@axiomkit/core";
 import { SeiChain } from "sei/dist";
-import { formatEther, parseEther } from "viem";
+import { formatEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";
 import * as z from "zod/v4";
