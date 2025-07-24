@@ -19,6 +19,7 @@
     "vitest": "catalog:"
   },
   "scripts": {
+    "test": "vitest --passWithNoTests",
     "build": "tsup --dts-resolve",
     "prepublishOnly": "pnpm run build"
   },

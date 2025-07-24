@@ -340,62 +340,40 @@ export async function main(
 
   // Create .gitignore
   spinner.start("⚙️  Creating .gitignore configuration");
-  // Define the content for .gitignore as a multi-line string
+
   const gitIgnoreContent = `
-  # ------------------------------------
-  # Node.js and Package Manager Artifacts
-  # ------------------------------------
-  # Logs
-  logs/
-  *.log
-  npm-debug.log*
-  yarn-debug.log*
-  pnpm-debug.log*
-  lerna-debug.log*
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-  # Dependency directories
-  node_modules/
-  jspm_packages/
+# Dependency directories
+node_modules/
+jspm_packages/
 
-  # TypeScript cache and build artifacts
-  *.tsbuildinfo
-  /build/
-  /dist/
-  /tmp/
-  /out/
+# TypeScript cache and build artifacts
+*.tsbuildinfo
+/build/
+/dist/
+/tmp/
+/out/
 
-  # npm package manager cache
-  .npm/
+# npm package manager cache
+.npm/
 
-  # ------------------------------------
-  # Environment Variables
-  # ------------------------------------
-  .env
-  .env.local
-  .env.development.local
-  .env.test.local
-  .env.production.local
+# ------------------------------------
+# Environment Variables
+# ------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
 
-  # ------------------------------------
-  # OS and Editor Specific Files
-  # ------------------------------------
-  # macOS
-  .DS_Store
-
-  # Windows
-  Thumbs.db
-
-  # IDEs and Editors
-  .vscode/           # VS Code
-  .idea/             # IntelliJ / WebStorm
-  *.sublime-project  # Sublime Text
-  *.sublime-workspace
-  .history/          # VS Code Local History plugin
-
-  # ------------------------------------
-  # Other Ignored Files
-
-  `;
+`;
 
   try {
     await fs.writeFile(

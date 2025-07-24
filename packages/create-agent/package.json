@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/create-agent",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "CLI to bootstrap Axiomkit agents",
   "license": "MIT",
   "type": "module",
@@ -19,8 +19,7 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "start": "node dist/index.js test-agent",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest ",
     "test:coverage": "vitest run --coverage",
     "prepublishOnly": "pnpm run build"
   },

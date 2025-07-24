@@ -314,8 +314,8 @@ createAgent({
     // Verify directory creation
     expect(fs.mkdir).toHaveBeenCalled();
 
-    // Verify file creation - now expecting 4 files (package.json, tsconfig.json, index.ts, .env.example, README.md)
-    expect(fs.writeFile).toHaveBeenCalledTimes(5);
+    // Verify file creation - now expecting54 files (package.json, tsconfig.json, index.ts, .env.example, README.md , .gitignore)
+    expect(fs.writeFile).toHaveBeenCalledTimes(6);
 
     // Check that each expected file was created
     const writeFileCalls = vi.mocked(fs.writeFile).mock.calls;
