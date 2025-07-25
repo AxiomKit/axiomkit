@@ -227,14 +227,6 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
       };
     },
 
-    // async getAgentContext() {
-    //   return agent.context
-    //     ? await agent.getContext({
-    //         context: agent.context,
-    //         args: contexts.get("agent:context")!.args,
-    //       })
-    //     : undefined;
-    // },
     async getAgentContext() {
       const agentContext = contexts.get("agent:context");
       if (agent.context && agentContext) {
