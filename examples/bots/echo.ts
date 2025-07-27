@@ -1,8 +1,20 @@
 import { createAgent } from "@axiomkit/core";
-import { echoCliExtension } from "./extension";
+import { createCliExtension } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-// Create the agent with the echo CLI extension
+// Pre-configured extensions for common use cases
+export const echoCliExtension = createCliExtension({
+  name: "echo",
+  instructions: [
+    "You are a simple echo bot.",
+    "Your ONLY job is to repeat EXACTLY what the user says back to them.",
+    "Do NOT add any additional words, greetings, or explanations.",
+    "Just echo the user's message verbatim.",
+    "If user says 'hi', you say 'hi'.",
+    "Nothing more, nothing less.",
+  ],
+});
+
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
   extensions: [echoCliExtension],
