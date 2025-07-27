@@ -1,5 +1,5 @@
 import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "./extension";
+import { createCliExtension } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
 // Create a custom CLI extension with specific instructions

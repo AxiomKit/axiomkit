@@ -1,22 +1,23 @@
-import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "./extension";
+import { createAgent, output } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
+import z from "zod/v4";
 
-// Create a translator CLI extension
 const translatorCliExtension = createCliExtension({
   name: "translator",
   instructions: [
     "You are a professional translator.",
-    "Translate user input between different languages.",
-    "If the user doesn't specify a target language, ask them which language they want to translate to.",
-    "Provide accurate and natural translations.",
-    "If the user asks to translate to a specific language, respond with ONLY the translation.",
-    "Support common languages like English, Spanish, French, German, Chinese, Japanese, Korean, etc.",
+    "Your task is to translate user input accurately and concisely.",
+    "When a user provides text and a target language, you must respond with ONLY the translated text.",
+    "Do not add any extra words, explanations, greetings, or apologies. Your response should be the translation itself and nothing more.",
+    "Do not use any formatting like HTML or Markdown.",
+    "If the target language is unclear, ask the user for clarification.",
+    "Example: If the user says 'translate good morning to Vietnamese', your complete and exact response is 'Chào buổi sáng'.",
   ],
 });
 
 const agent = createAgent({
-  model: groq("gemma2-9b-it"),
+  model: groq("deepseek-r1-distill-llama-70b"),
   extensions: [translatorCliExtension],
 });
 

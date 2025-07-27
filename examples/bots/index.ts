@@ -2,7 +2,7 @@
 import { groq } from "@ai-sdk/groq";
 import { context, createAgent, validateEnv } from "@axiomkit/core";
 import * as z from "zod/v4";
-import { cliExtension } from "./extension";
+import { cliExtension } from "@axiomkit/cli";
 // Validation install .env
 const env = validateEnv(
   z.object({
