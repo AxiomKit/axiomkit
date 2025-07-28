@@ -6,29 +6,20 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import {
-  createAgent,
-  context as axContext,
-  LogLevel, // LogLevel is not used in the provided snippet, can be removed if not needed elsewhere
-  input,
-} from "@axiomkit/core";
+import { createAgent, context } from "@axiomkit/core";
 import { z } from "zod";
 import { createGroq } from "@ai-sdk/groq";
 
-// Initialize Groq model
 const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Define the ChatMessage interface for type safety
 interface ChatMessage {
   role: "user" | "agent";
   content: string;
 }
 
-// Context arguments schema (for context args, not memory)
 const ChatAgentContextArgsSchema = z.object({ userId: z.string() });
-type ChatAgentContextArgs = z.infer<typeof ChatAgentContextArgsSchema>;
 
 // Memory type for the chat context
 interface ChatAgentMemory {
@@ -36,10 +27,7 @@ interface ChatAgentMemory {
   lastSeen: string | null;
 }
 
-const ChatAgentContextDef = axContext<
-  ChatAgentMemory,
-  typeof ChatAgentContextArgsSchema
->({
+const ChatAgentContextDef = context({
   type: "chat",
   schema: ChatAgentContextArgsSchema as any,
   key: (args: any) => args.userId,
@@ -85,7 +73,6 @@ export function AxiomKitAgentProvider({
 }: {
   children: React.ReactNode;
 }) {
-  // Initialize the Axiom agent once
   const [agent] = useState(() =>
     createAgent({
       contexts: [ChatAgentContextDef],
