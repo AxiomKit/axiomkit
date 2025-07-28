@@ -19,6 +19,7 @@
     "vitest": "catalog:"
   },
   "scripts": {
+    "test": "vitest --passWithNoTests",
     "build": "tsup --dts-resolve",
     "prepublishOnly": "pnpm run build"
   },
@@ -31,6 +32,7 @@
     "bs58": "^6.0.0",
     "ethers": "6.15.0",
     "viem": "^2.33.0",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "chalk": "catalog:"
   }
 }

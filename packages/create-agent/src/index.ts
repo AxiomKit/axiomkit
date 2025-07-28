@@ -13,7 +13,8 @@ import {
   validateProjectName,
   validateModel,
   getLatestDependencies,
-} from "./utils.js";
+} from "./utils";
+import { BASEDEPS_AXIOMKIT, MODEL_CONFIG, MODEL_DEPS_AXIOMKIT } from "./config";
 
 // Define __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -23,47 +24,39 @@ const __dirname = path.dirname(__filename);
 const program = new Command()
   .name("create-agent")
   .description(
-    "🤖 Bootstrap a new Axiomkit AI agent with extensions and model providers"
+    "🤖 Initialize a new AxiomKit AI agent with configurable extensions and model providers"
   )
-  .version("0.0.1")
+  .version("0.0.2")
   .argument(
     "[directory]",
-    "Directory to create the agent in (defaults to current directory)"
+    "📁 Target directory for agent (defaults to current)"
   )
-  .option(
-    "--twitter",
-    "Include Twitter/X extension for social media interactions"
-  )
-  .option("--discord", "Include Discord extension for bot functionality")
-  .option("--cli", "Include CLI extension for command-line interface")
-  .option("--telegram", "Include Telegram extension for messaging")
-  .option("--all", "Include all available extensions")
+  .option("--cli", "🔧 Add CLI extension for command-line interface support")
+  .option("--telegram", "💬 Add Telegram extension for messaging integration")
+  .option("--all", "📦 Add all available extensions")
   .option(
     "--model <model>",
-    "Specify the model provider (openai, groq, anthropic, google)"
+    "🧠 Set model provider (options: openai, groq, anthropic, google)"
   )
-  .option("--skip-install", "Skip dependency installation")
-  .option("--verbose", "Show detailed output during creation")
+  .option("--skip-install", "Skip installing dependencies")
+  .option("--verbose", ":🔍 Show detailed output during creation")
   .addHelpText(
     "after",
     `
 Examples:
   $ create-agent my-bot                    Create agent in ./my-bot (will prompt for model)
-  $ create-agent --twitter --discord      Create agent with Twitter and Discord
-  $ create-agent --model openai --all     Create agent with OpenAI and all extensions
-  $ create-agent . --cli                  Create agent in current directory with CLI only
+  $ create-agent --telegram                Create agent with Twitter 
+  $ create-agent --model openai --all      Create agent with OpenAI and all extensions
+  $ create-agent . --cli                   Create agent in current directory with CLI only
 
 Available Extensions:
   cli       Command-line interface for terminal interactions
-  twitter   Twitter/X integration for social media automation
-  discord   Discord bot for server management and chat
   telegram  Telegram bot for messaging and notifications
 
 Supported Models:
   groq      Groq's fast inference (free tier available)
-  openai    OpenAI GPT models (requires API key)
-  anthropic Claude models (requires API key)
   google    Google Gemini models (requires API key)
+  openai    OpenAI GPT models (requires API key)
 
 Environment Setup:
   After creation, copy .env.example to .env and configure your API keys.
@@ -71,13 +64,11 @@ Environment Setup:
 `
   );
 
-// Export the main function for testing purposes
 export async function main(
   testArgs?: string[],
   testOpts?: Record<string, any>,
-  testTemplateContent?: string // Add template content parameter for testing
+  testTemplateContent?: string
 ) {
-  // Parse arguments and options only if not in test mode
   if (!testArgs && !testOpts) {
     program.parse(process.argv);
   }
@@ -87,7 +78,6 @@ export async function main(
   const cwd = process.cwd();
   const targetPath = path.resolve(cwd, targetDir);
 
-  // Validate project directory name
   if (targetDir !== ".") {
     const validation = validateProjectName(path.basename(targetPath));
     if (!validation.isValid) {
@@ -107,7 +97,6 @@ export async function main(
   log(`Target directory: ${targetPath}`);
   log(`Model provider: ${options.model || "not specified - will prompt"}`);
 
-  // Check if target directory exists and is not empty
   if (fs.existsSync(targetPath)) {
     const files = await fs.readdir(targetPath);
     if (files.length > 0) {
@@ -140,7 +129,7 @@ export async function main(
   }
 
   console.log();
-  console.log(chalk.bold("🚀 Creating a new Axiomkit agent..."));
+  console.log(chalk.bold("🚀 Initializing new AxiomKit agent..."));
   console.log();
 
   // Determine selected extensions
@@ -168,16 +157,6 @@ export async function main(
             description: "Command-line interface for terminal interactions",
           },
           {
-            title: "Twitter/X",
-            value: "twitter",
-            description: "Social media automation and interactions",
-          },
-          {
-            title: "Discord",
-            value: "discord",
-            description: "Discord bot for server management",
-          },
-          {
             title: "Telegram",
             value: "telegram",
             description: "Telegram bot for messaging",
@@ -201,11 +180,7 @@ export async function main(
 
   log(`Selected extensions: ${selectedExtensions.join(", ")}`);
 
-  // Determine the model to use
-  const validModels = ["openai", "groq", "anthropic", "google"];
   let selectedModel = options.model;
-
-  // If model was explicitly provided via command line, validate it
   if (selectedModel) {
     const modelValidation = validateModel(selectedModel);
     if (!modelValidation.isValid) {
@@ -251,7 +226,7 @@ export async function main(
 
   if (!selectedModel) {
     console.error(
-      chalk.red("❌ No model provider selected. Operation cancelled.")
+      chalk.red("❌ Model provider not selected. Operation cancelled.")
     );
     return;
   }
@@ -276,33 +251,14 @@ export async function main(
         error instanceof Error ? error.message : String(error)
       }`
     );
-    // Fallback to basic dependencies if something goes wrong
-    const baseDeps = {
-      "@axiomkit/core": "^0.0.7",
-      ai: "^4.1.25",
-      chalk: "^5.4.1",
-      typescript: "^5.3.3",
-      zod: "^3.24.1",
-      "@openrouter/ai-sdk-provider": "^0.2.1",
-    };
 
     const modelDep: Record<string, string> = {};
-    switch (selectedModel) {
-      case "groq":
-        modelDep["@ai-sdk/groq"] = "^1.1.7";
-        break;
-      case "openai":
-        modelDep["@ai-sdk/openai"] = "^1.1.14";
-        break;
-      case "anthropic":
-        modelDep["@ai-sdk/anthropic"] = "^1.1.6";
-        break;
-      case "google":
-        modelDep["@ai-sdk/google"] = "^1.1.16";
-        break;
-    }
+    const selected = MODEL_DEPS_AXIOMKIT[selectedModel];
 
-    dependencies = { ...baseDeps, ...modelDep };
+    if (selected) {
+      modelDep[selected.pkg] = selected.version;
+    }
+    dependencies = { ...BASEDEPS_AXIOMKIT, ...modelDep };
   }
 
   spinner.start("Creating package.json");
@@ -372,6 +328,59 @@ export async function main(
     return;
   }
 
+  // Create .gitignore
+  spinner.start("⚙️  Creating .gitignore configuration");
+
+  const gitIgnoreContent = `
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache and build artifacts
+*.tsbuildinfo
+/build/
+/dist/
+/tmp/
+/out/
+
+# npm package manager cache
+.npm/
+
+# ------------------------------------
+# Environment Variables
+# ------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+
+`;
+
+  try {
+    await fs.writeFile(
+      path.join(targetPath, ".gitignore"),
+      gitIgnoreContent.trim()
+    );
+    spinner.succeed(chalk.green("✅ Created Git Ignore configuration"));
+  } catch (error) {
+    spinner.fail(chalk.red("❌ Failed to create .gitignore"));
+    console.error(
+      chalk.red(
+        `Error: ${error instanceof Error ? error.message : String(error)}`
+      )
+    );
+    return;
+  }
+
   // Copy template file based on selected model
   spinner.start(
     `🤖 Creating agent with ${chalk.cyan(selectedModel)} model and ${chalk.cyan(
@@ -379,14 +388,11 @@ export async function main(
     )} extension(s)`
   );
 
-  // Read template content - either from test parameter or from file
   let templateContent: string;
 
   if (testTemplateContent) {
-    // Use the provided test template content
     templateContent = testTemplateContent;
   } else {
-    // Get the template file path
     const templateFile = path.join(
       __dirname,
       "..",
@@ -420,44 +426,7 @@ export async function main(
     }
   }
 
-  // Define model-specific replacements
-  const modelConfig = {
-    groq: {
-      MODEL_NAME: "Groq",
-      MODEL_IMPORT_FUNCTION: "createGroq",
-      MODEL_IMPORT_PATH: "@ai-sdk/groq",
-      ENV_VAR_KEY: "GROQ_API_KEY",
-      MODEL_VARIABLE: "groq",
-      MODEL_VERSION: "deepseek-r1-distill-llama-70b",
-    },
-    openai: {
-      MODEL_NAME: "OpenAI",
-      MODEL_IMPORT_FUNCTION: "createOpenAI",
-      MODEL_IMPORT_PATH: "@ai-sdk/openai",
-      ENV_VAR_KEY: "OPENAI_API_KEY",
-      MODEL_VARIABLE: "openai",
-      MODEL_VERSION: "gpt-4o",
-    },
-    anthropic: {
-      MODEL_NAME: "Anthropic",
-      MODEL_IMPORT_FUNCTION: "createAnthropic",
-      MODEL_IMPORT_PATH: "@ai-sdk/anthropic",
-      ENV_VAR_KEY: "ANTHROPIC_API_KEY",
-      MODEL_VARIABLE: "anthropic",
-      MODEL_VERSION: "claude-3-opus-20240229",
-    },
-    google: {
-      MODEL_NAME: "Google",
-      MODEL_IMPORT_FUNCTION: "createGoogle",
-      MODEL_IMPORT_PATH: "@ai-sdk/google",
-      ENV_VAR_KEY: "GOOGLE_API_KEY",
-      MODEL_VARIABLE: "google",
-      MODEL_VERSION: "gemini-1.5-pro",
-    },
-  };
-
-  // Replace placeholders with model-specific values
-  const config = modelConfig[selectedModel as keyof typeof modelConfig];
+  const config = MODEL_CONFIG[selectedModel as keyof typeof MODEL_CONFIG];
 
   // Prepare extension imports and extension list for template generation
   const extensionImports: string[] = [];
