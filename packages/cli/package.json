@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/cli",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --passWithNoTests",
     "build": "tsup --dts-resolve",
     "prepublishOnly": "pnpm run build"
   },

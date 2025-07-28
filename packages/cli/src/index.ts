@@ -2,6 +2,8 @@ import * as readline from "readline/promises";
 import { service, context, input, extension, output } from "@axiomkit/core";
 import * as z from "zod/v4";
 
+import type { Instruction } from "@axiomkit/core";
+
 export const readlineService = service({
   register(container) {
     container.singleton("readline", () =>
@@ -13,55 +15,96 @@ export const readlineService = service({
   },
 });
 
-export const cli = context({
-  type: "cli",
-  key: ({ user }) => user.toString(),
-  maxSteps: 100,
-  schema: { user: z.string() },
-  inputs: {
-    "cli:message": input({
-      async subscribe(send, { container }) {
-        const rl = container.resolve<readline.Interface>("readline");
+/**
+ * Configuration for creating a CLI context.
+ */
+export interface CliContextConfig {
+  name?: string;
+  instructions?: Instruction;
+  maxSteps?: number;
+  schema?: z.ZodObject<z.ZodRawShape>;
+}
 
-        const controller = new AbortController();
+// Flexible CLI context that can be customized
+export const createCliContext = (config: CliContextConfig = {}) => {
+  const {
+    name = "cli",
+    instructions = "You are a helpful assistant.",
+    maxSteps = 5,
+    schema = z.object({ user: z.string() }),
+  } = config;
 
-        while (!controller.signal.aborted) {
-          const question = await rl.question("> ");
-          if (question === "exit") {
-            break;
+  return context({
+    type: name,
+    key: (args: unknown) => {
+      const a = args as { user?: unknown };
+      return a && typeof a.user === "string" ? a.user : "default";
+    },
+    maxSteps,
+    schema: schema,
+    instructions: Array.isArray(instructions) ? instructions : [instructions],
+
+    inputs: {
+      "cli:message": input({
+        async subscribe(send, { container }) {
+          const rl = container.resolve<readline.Interface>("readline");
+          const controller = new AbortController();
+
+          while (!controller.signal.aborted) {
+            const question = await rl.question("> ");
+            if (question === "exit") {
+              break;
+            }
+            console.log("User:", question);
+            send(createCliContext(config), { user: "admin" }, question);
           }
-          console.log("User:", question);
-          send(cli, { user: "admin" }, question);
-        }
 
-        return () => {
-          controller.abort();
-        };
-      },
-    }),
-  },
-  outputs: {
-    "cli:message": output({
-      description: "Send messages to the user",
-      instructions: "Use plain text",
-      schema: z.string(),
-      handler(data) {
-        console.log("Agent:", { data });
-        return {
-          data,
-        };
-      },
-      examples: [
-        `<output type="cli:message">Hi, How can I assist you today?</output>`,
-      ],
-    }),
-  },
+          return () => {
+            controller.abort();
+          };
+        },
+      }),
+    },
+
+    outputs: {
+      "cli:message": output({
+        description: "Send messages to the user",
+        instructions:
+          "Respond to the user's message according to your instructions",
+        schema: z.string(),
+        handler(data) {
+          console.log("Agent:", data);
+          return { data };
+        },
+      }),
+    },
+  });
+};
+
+/**
+ * Create a flexible CLI extension for any context config.
+ */
+export const createCliExtension = (contextConfig?: CliContextConfig) => {
+  const cliContext = createCliContext(contextConfig || {});
+
+  return extension({
+    name: "cli",
+    contexts: {
+      cli: cliContext,
+    },
+    services: [readlineService],
+  });
+};
+
+export const assistantCliExtension = createCliExtension({
+  name: "assistant",
+  instructions: [
+    "You are a helpful and friendly assistant.",
+    "You help users with their questions and tasks.",
+    "Be concise but thorough in your responses.",
+    "Always be polite and professional.",
+  ],
 });
 
-export const cliExtension = extension({
-  name: "cli",
-  contexts: {
-    cli,
-  },
-  services: [readlineService],
-});
+// Default CLI extension
+export const cliExtension = createCliExtension();
