@@ -157,16 +157,6 @@ export async function main(
             description: "Command-line interface for terminal interactions",
           },
           {
-            title: "Twitter/X",
-            value: "twitter",
-            description: "Social media automation and interactions",
-          },
-          {
-            title: "Discord",
-            value: "discord",
-            description: "Discord bot for server management",
-          },
-          {
             title: "Telegram",
             value: "telegram",
             description: "Telegram bot for messaging",

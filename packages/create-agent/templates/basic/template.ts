@@ -1,3 +1,4 @@
+import { createCliExtension, cliExtension } from './../../../cli/src/index';
 /**
  * {{MODEL_NAME}} template for a Axiomkit agent
  * This template includes context for goals and tasks, and actions for managing them
@@ -10,7 +11,7 @@ import {
     action,
     validateEnv,
 } from "@axiomkit/core";
-import { cliExtension } from "@axiomkit/cli";
+import { createCliExtension } from "@axiomkit/cli";
 import { string, z } from "zod/v4";
 
 // Initialize {{MODEL_NAME}} client
@@ -28,6 +29,11 @@ const {{MODEL_VARIABLE}} = {{MODEL_IMPORT_FUNCTION}}({
 const template = `
 Goal: {{goal}} 
 `;
+
+const cliExtension=createCliExtension({
+    name: "task",
+    instructions:template,
+})
 
 type GoalMemory = {
     goal: string;

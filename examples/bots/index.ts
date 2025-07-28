@@ -4,7 +4,7 @@ import { context, createAgent, validateEnv } from "@axiomkit/core";
 import * as z from "zod/v4";
 import { cliExtension } from "@axiomkit/cli";
 // Validation install .env
-const env = validateEnv(
+validateEnv(
   z.object({
     GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
   })
