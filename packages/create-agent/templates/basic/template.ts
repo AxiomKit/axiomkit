@@ -153,7 +153,7 @@ export const todoContext = context({
 
     return render(`Your current tasks:\n${list}`);
   },
-  maxSteps: 2,
+  maxSteps: 3,
 });
 
 
