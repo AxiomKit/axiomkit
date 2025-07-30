@@ -1,6 +1,11 @@
+
+# Axiomkit
+<img src="https://files.catbox.moe/aslpwo.png" alt="Axiomkit " width="100" />
 ⚠️ Alpha Software: This framework is under active development. APIs may
 change between versions.
+---
 
+</div>
 ## Overview
 
 **AxiomKit** is a full-stack TypeScript framework for building truly autonomous AI
@@ -99,16 +104,16 @@ const agent = createAgent({
 agent.start();
 ```
 
-## 🔧 Installation
-
-```bash
+## 🔧 Manual Installation
 # Install the core package
+```bash
 npm install @axiomkit/core
-
+```
 # Install with extensions
+```bash
 npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei
-
-# Or use the CLI to bootstrap a new project
+```
+```bash
 npx @axiomkit/create-agent my-agent
 ```
 
