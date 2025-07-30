@@ -9,6 +9,7 @@
         "@ai-sdk/openai": "catalog:",
         "@axiomkit/core": "workspace:*",
         "@axiomkit/cli": "workspace:*",
+        "@axiomkit/mongodb": "workspace:*",
         "@axiomkit/sei": "workspace:*",
         "viem": "^2.33.0",
         "zod": "catalog:",
