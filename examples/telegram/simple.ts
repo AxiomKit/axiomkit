@@ -4,6 +4,8 @@ import { telegram } from "@axiomkit/telegram";
 
 import * as z from "zod/v4";
 
+// Simple Chat
+
 const env = validateEnv(
   z.object({
     TELEGRAM_TOKEN: z.string().min(1, "TELEGRAM_TOKEN is required"),

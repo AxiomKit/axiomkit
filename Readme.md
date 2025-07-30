@@ -1,11 +1,11 @@
-
+<div align="center">
 # Axiomkit
 <img src="https://files.catbox.moe/aslpwo.png" alt="Axiomkit " width="100" />
+</div>
+---
 ⚠️ Alpha Software: This framework is under active development. APIs may
 change between versions.
----
 
-</div>
 ## Overview
 
 **AxiomKit** is a full-stack TypeScript framework for building truly autonomous AI

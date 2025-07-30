@@ -2,6 +2,7 @@
   "name": "telegram",
   "module": "index.ts",
   "type": "module",
+  "description": "Example Telegram Bot built by Axiom",
   "private": true,
   "dependencies": {
     "@ai-sdk/groq": "catalog:",
