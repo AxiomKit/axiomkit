@@ -8,7 +8,7 @@ import {
   validateEnv,
 } from "@axiomkit/core";
 import { SeiChain } from "sei/dist";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";
 import * as z from "zod/v4";
@@ -118,6 +118,52 @@ const seiAgentContext = context({
         );
       },
     }),
+
+    action({
+      name: "transferToken",
+      description: "Transfer tokens from one Sei wallet to another.",
+      schema: {
+        to: z.string().describe("The Sei wallet address transfer to."),
+        amount: z
+          .number()
+          .min(0.000001, "Amount must be greater than 0")
+          .describe("The amount of SEI to transfer."),
+      },
+      async handler({ to, amount }, { memory }) {
+        try {
+          const addressTo = to as `0x${string}`;
+          console.log("Address to transfer to:", addressTo);
+          console.log("Amount to transfer:", amount);
+          if (!addressTo) {
+            return actionResponse(
+              "Error: No recipient address provided. Please provide a valid Sei wallet address."
+            );
+          }
+          const balance = await seiChain.client.getBalance({
+            address: memory.wallet as `0x${string}`,
+            blockTag: `safe`,
+          });
+          const seiBalance = Number(formatEther(balance));
+          if (seiBalance < amount) {
+            return actionResponse(
+              `Error: Insufficient balance. Current balance is ${seiBalance} SEI.`
+            );
+          }
+          const wallet = seiChain.getWalletClient();
+          const transaction = await wallet.sendTransaction({
+            to: addressTo as `0x${string}`,
+            value: parseEther(amount.toString()),
+          });
+          console.log("Transaction sent:", transaction);
+        } catch (error) {
+          return actionResponse(
+            `Error: Failed to transfer tokens. ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`
+          );
+        }
+      },
+    }),
   ]);
 
 const seiExtension = extension({
@@ -194,6 +240,7 @@ console.log(`Wallet: `);
 console.log("\nAvailable commands:");
 console.log("  - Check balance: 'What is my Sei balance?'");
 console.log("  - Get block height: 'What is the current block height?'");
+console.log("  - Transfer tokens: 'Transfer 1 SEI to 0xRecipientAddress'");
 
 // Handle graceful shutdown
 process.on("SIGINT", async () => {
