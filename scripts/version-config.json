@@ -1,0 +1,58 @@
+{
+  "packages": {
+    "@axiomkit/core": {
+      "version": "2.0.2",
+      "autoUpdate": true
+    },
+    "@axiomkit/cli": {
+      "version": "0.0.10",
+      "autoUpdate": true
+    },
+    "@axiomkit/telegram": {
+      "version": "0.0.7",
+      "autoUpdate": true
+    },
+    "@axiomkit/mongodb": {
+      "version": "0.0.2",
+      "autoUpdate": true
+    },
+    "@axiomkit/sei": {
+      "version": "0.0.6",
+      "autoUpdate": true
+    },
+    "@axiomkit/create-agent": {
+      "version": "0.1.4",
+      "autoUpdate": true
+    },
+    "@axiomkit/supabase": {
+      "version": "0.1.0",
+      "autoUpdate": true
+    }
+  },
+  "globalVersion": "0.0.6",
+  "autoSyncVersions": true,
+  "versionStrategy": "independent",
+  "catalogManagement": {
+    "enabled": true,
+    "updateCatalogOnPublish": true,
+    "catalogDependencies": [
+      "@ai-sdk/anthropic",
+      "@ai-sdk/groq",
+      "@ai-sdk/openai",
+      "@ai-sdk/google",
+      "@ai-sdk/provider",
+      "@ai-sdk/ui-utils",
+      "ai",
+      "uuid",
+      "zod",
+      "zod-to-json-schema",
+      "dotenv",
+      "@types/bun",
+      "typescript",
+      "tsup",
+      "vitest",
+      "chalk",
+      "@vitest/ui"
+    ]
+  }
+}

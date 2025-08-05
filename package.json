@@ -9,7 +9,20 @@
   "scripts": {
     "test": "pnpm -r run test",
     "build:packages": "pnpm --filter=./packages/** build",
-    "publish:package": "node scripts/publish-package.js"
+    "version:status": "node scripts/version-manager.js status",
+    "version:catalog": "node scripts/version-manager.js catalog",
+    "version:update": "node scripts/version-manager.js update",
+    "version:update-all": "node scripts/version-manager.js update-all",
+    "version:sync": "node scripts/version-manager.js sync",
+    "version:bump": "node scripts/version-manager.js bump",
+    "version:catalog:update": "node scripts/version-manager.js catalog:update",
+    "version:catalog:auto": "node scripts/version-manager.js catalog:auto",
+    "version:detect": "node scripts/version-manager.js detect",
+    "version:sync-catalog": "node scripts/version-manager.js sync-catalog",
+    "version:sync-config": "node scripts/version-manager.js sync-config",
+    "version:init": "node scripts/version-manager.js init",
+    "publish:enhanced": "node scripts/enhanced-publish.js",
+    "publish:batch": "node scripts/batch-publish.js"
   },
   "keywords": [
     "framework",
