@@ -20,7 +20,9 @@
     },
     "dependencies": {
         "@axiomkit/core": "workspace:*",
-        "zod": "catalog:"
+        "zod": "catalog:",
+        "ai": "catalog:",
+        "@supabase/supabase-js": "^2.53.0"
     },
     "devDependencies": {
         "@types/bun": "catalog:",

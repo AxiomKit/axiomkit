@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - examples/*
+  - app/*
 
 catalog:
   '@ai-sdk/anthropic': 1.2.3
