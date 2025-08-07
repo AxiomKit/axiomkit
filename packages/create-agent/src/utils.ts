@@ -21,13 +21,13 @@ async function fetchLatestVersion(packageName: string): Promise<string | null> {
 }
 
 /**
- * Gets the latest versions for all dependencies with fallbacks
+ * Gets the configured versions for all dependencies from config.ts
  * @param selectedExtensions Array of selected extensions to determine which packages to include
  * @param selectedModel The selected model provider to determine which AI SDK to include
  * @param verbose Whether to show detailed logging
- * @returns Object with package names and their latest versions
+ * @returns Object with package names and their configured versions
  */
-export async function getLatestDependencies(
+export async function getConfiguredDependencies(
   selectedExtensions: string[],
   selectedModel: string,
   verbose: boolean = false
@@ -38,34 +38,18 @@ export async function getLatestDependencies(
     }
   };
 
-  // Base dependencies that are always included
-  const baseDependencies = {
-    "@axiomkit/core": "^0.0.7",
-    ai: "^4.1.25",
-    typescript: "^5.3.3",
-    zod: "^3.24.1",
-  };
+  // Import the configured dependencies from config.ts
+  const { BASEDEPS_AXIOMKIT, MODEL_DEPS_AXIOMKIT } = await import("./config.js");
 
-  // Model-specific dependencies - only include the selected one
+  // Base dependencies from config
+  const baseDependencies = { ...BASEDEPS_AXIOMKIT };
+
+  // Model-specific dependencies from config - only include the selected one
   const modelDependencies: Record<string, string> = {};
-
-  switch (selectedModel) {
-    case "groq":
-      modelDependencies["@ai-sdk/groq"] = "^1.1.7";
-      break;
-    case "openai":
-      modelDependencies["@ai-sdk/openai"] = "^1.1.14";
-      break;
-    case "anthropic":
-      modelDependencies["@ai-sdk/anthropic"] = "^1.1.6";
-      break;
-    case "google":
-      modelDependencies["@ai-sdk/google"] = "^1.1.16";
-      break;
+  const selected = MODEL_DEPS_AXIOMKIT[selectedModel];
+  if (selected) {
+    modelDependencies[selected.pkg] = selected.version;
   }
-
-  // Always include OpenRouter as it's a fallback/alternative provider
-  modelDependencies["@openrouter/ai-sdk-provider"] = "^0.2.1";
 
   // Extension-specific dependencies
   const extensionDependencies: Record<string, string> = {};
@@ -90,53 +74,22 @@ export async function getLatestDependencies(
     ...modelDependencies,
     ...extensionDependencies,
   };
-  const packageNames = Object.keys(allDependencies);
 
   log(
-    `Fetching latest versions for ${packageNames.length} packages (${selectedModel} model + ${selectedExtensions.length} extensions)...`
+    `Using configured versions for ${Object.keys(allDependencies).length} packages (${selectedModel} model + ${selectedExtensions.length} extensions)...`
   );
 
-  // Fetch latest versions in parallel
-  const versionPromises = packageNames.map(async (packageName) => {
-    const latestVersion = await fetchLatestVersion(packageName);
-    const fallbackVersion =
-      allDependencies[packageName as keyof typeof allDependencies];
-    return {
-      packageName,
-      version: latestVersion || fallbackVersion, // Fallback to hardcoded
-      fromRegistry: latestVersion !== null,
-    };
+  // Use configured versions directly without fetching from registry
+  const finalDependencies: Record<string, string> = {};
+
+  Object.entries(allDependencies).forEach(([packageName, version]) => {
+    finalDependencies[packageName] = version;
+    log(`Using configured version for ${packageName}: ${version}`);
   });
 
-  try {
-    const results = await Promise.all(versionPromises);
-    const finalDependencies: Record<string, string> = {};
+  log(`✅ Using configured versions from config.ts for all packages`);
 
-    let fetchedCount = 0;
-    let fallbackCount = 0;
-
-    results.forEach(({ packageName, version, fromRegistry }) => {
-      finalDependencies[packageName] = version;
-      if (fromRegistry) {
-        fetchedCount++;
-      } else {
-        fallbackCount++;
-        log(`Using fallback version for ${packageName}: ${version}`);
-      }
-    });
-
-    if (fetchedCount > 0) {
-      log(`✅ Fetched latest versions for ${fetchedCount} packages`);
-    }
-    if (fallbackCount > 0) {
-      log(`⚠️  Used fallback versions for ${fallbackCount} packages`);
-    }
-
-    return finalDependencies;
-  } catch (error) {
-    log(`❌ Error fetching versions, using all fallback versions`);
-    return allDependencies;
-  }
+  return finalDependencies;
 }
 
 /**

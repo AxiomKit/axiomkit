@@ -1,6 +1,6 @@
 {
-  "name": "@axiomkit/cli",
-  "version": "0.0.10",
+  "name": "@axiomkit/discord",
+  "version": "0.0.6",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -13,21 +13,22 @@
       "import": "./dist/index.js"
     }
   },
-  "scripts": {
-    "test": "vitest --passWithNoTests",
-    "build": "tsup --dts-resolve",
-    "prepublishOnly": "pnpm run build"
-  },
-  "dependencies": {
-    "@axiomkit/core": "workspace:*",
-    "zod": "catalog:"
-  },
   "devDependencies": {
-    "@types/bun": "catalog:",
+    "@types/bun": "latest",
     "tsup": "catalog:",
     "vitest": "catalog:"
   },
+  "scripts": {
+    "test": "vitest",
+    "build": "tsup --dts-resolve",
+    "prepublishOnly": "pnpm run build"
+  },
   "peerDependencies": {
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@axiomkit/core": "workspace:*",
+    "discord.js": "^14.18.0",
+    "zod": "catalog:"
   }
 }

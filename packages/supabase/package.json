@@ -1,0 +1,35 @@
+{
+    "name": "@axiomkit/supabase",
+    "version": "0.0.1",
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "test": "vitest --passWithNoTests",
+        "build": "tsup --dts-resolve",
+        "prepublishOnly": "pnpm run build"
+    },
+    "dependencies": {
+        "@axiomkit/core": "workspace:*",
+        "zod": "catalog:",
+        "ai": "catalog:",
+        "@supabase/supabase-js": "^2.53.0"
+    },
+    "devDependencies": {
+        "@types/bun": "catalog:",
+        "tsup": "catalog:",
+        "vitest": "catalog:"
+    },
+    "peerDependencies": {
+        "typescript": "catalog:"
+    }
+}
