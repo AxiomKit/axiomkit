@@ -12,7 +12,7 @@ import { groq } from "@ai-sdk/groq";
 const env = validateEnv(
   z.object({
     GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
-    DISCORD_TOKEN: z.string().min(1, "DISCORD_TOKEN is required"),
+    DISCORD_BOT_TOKEN: z.string().min(1, "DISCORD_BOT_TOKEN is required"),
     DISCORD_BOT_NAME: z.string().min(1, "DISCORD_BOT_NAME is required"),
   })
 );

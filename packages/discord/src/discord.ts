@@ -11,7 +11,7 @@ import { Events, type Message } from "discord.js";
 import { DiscordClient } from "./io";
 
 const envSchema = z.object({
-  DISCORD_TOKEN: z.string(),
+  DISCORD_BOT_TOKEN: z.string(),
   DISCORD_BOT_NAME: z.string(),
   PROCESS_ATTACHMENTS: z.string().optional().default("false"),
 });
@@ -24,7 +24,7 @@ const discordService = service({
       "discord",
       () =>
         new DiscordClient({
-          discord_token: env.DISCORD_TOKEN,
+          discord_token: env.DISCORD_BOT_TOKEN,
           discord_bot_name: env.DISCORD_BOT_NAME,
         })
     );
