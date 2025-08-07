@@ -1,0 +1,16 @@
+{
+  "name": "social",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "catalog:"
+  },
+  "dependencies": {
+    "@ai-sdk/groq": "catalog:",
+    "@axiomkit/core": "workspace:*",
+    "@axiomkit/discord": "workspace:*",
+    "zod": "catalog:",
+    "@tavily/core": "0.5.10"
+  }
+}

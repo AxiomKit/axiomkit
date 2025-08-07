@@ -1,8 +1,6 @@
 import type { CorrelationIds, TokenUsage, ModelCallMetrics } from "../monitor";
 import { formatCorrelationIds as formatCorrelationIdsUtil } from "../monitor";
 
-// --- Interfaces ---
-
 /** Enum defining available log levels */
 export enum LogLevel {
   ERROR = 0,

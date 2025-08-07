@@ -1,6 +1,7 @@
 packages:
   - packages/*
-  - examples/*
+  - app/examples/*
+  - app/*
 
 catalog:
   '@ai-sdk/anthropic': 1.2.3
@@ -14,12 +15,13 @@ catalog:
   zod: 3.25.23
   zod-to-json-schema: 3.24.3
   dotenv: 16.4.7
-  '@types/bun': latest  #Setting Enviroment
+  '@types/bun': latest  
   typescript: 5.8.3
   tsup: 8.5.0
   vitest: 3.2.4
   chalk: 5.3.0
-  '@vitest/ui': 3.2.4 
+  '@vitest/ui': 3.2.4
+
 
 overrides:
   axiomkit: 'link:'

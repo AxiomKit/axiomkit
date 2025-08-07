@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/core",
-  "version": "0.0.9",
+  "version": "2.0.4",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

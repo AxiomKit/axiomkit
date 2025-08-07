@@ -12,7 +12,7 @@ import {
   createReadme,
   validateProjectName,
   validateModel,
-  getLatestDependencies,
+  getConfiguredDependencies,
 } from "./utils";
 import { BASEDEPS_AXIOMKIT, MODEL_CONFIG, MODEL_DEPS_AXIOMKIT } from "./config";
 
@@ -234,20 +234,20 @@ export async function main(
   log(`Selected model: ${selectedModel}`);
 
   // Create package.json
-  const spinner = ora("📦 Fetching latest dependency versions").start();
+  const spinner = ora("📦 Loading configured dependency versions").start();
 
   let dependencies: Record<string, string>;
   try {
-    dependencies = await getLatestDependencies(
+    dependencies = await getConfiguredDependencies(
       selectedExtensions,
       selectedModel,
       options.verbose
     );
-    spinner.succeed(chalk.green("✅ Fetched latest dependency versions"));
+    spinner.succeed(chalk.green("✅ Loaded configured dependency versions"));
   } catch (error) {
     spinner.fail(chalk.yellow("⚠️  Using fallback dependency versions"));
     log(
-      `Error fetching dependencies: ${
+      `Error loading dependencies: ${
         error instanceof Error ? error.message : String(error)
       }`
     );
