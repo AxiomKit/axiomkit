@@ -1,6 +1,6 @@
 export const BASEDEPS_AXIOMKIT = {
   "@axiomkit/core": "^0.0.9",
-  ai: "^4.1.25",
+  ai: "^4.3.29",
   chalk: "^5.4.1",
   typescript: "^5.3.3",
   zod: "^3.24.1",
