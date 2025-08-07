@@ -1,3 +1,4 @@
+import { Logger } from "@axiomkit/core";
 import {
   ChannelType,
   Client,
@@ -9,7 +10,7 @@ import {
   Message,
   type Channel,
 } from "discord.js";
-import { Logger, LogLevel } from "@axiomkit/core";
+import { LogLevel } from "@axiomkit/core";
 import * as z from "zod/v4";
 
 export interface DiscordCredentials {
@@ -60,10 +61,7 @@ export class DiscordClient {
   private messageListener?: (...args: any[]) => void;
   public credentials: DiscordCredentials;
 
-  constructor(
-    credentials: DiscordCredentials,
-    logLevel: LogLevel = LogLevel.INFO
-  ) {
+  constructor(credentials: DiscordCredentials, logLevel = LogLevel.INFO) {
     this.credentials = credentials;
     this.client = new Client({
       intents: [
@@ -94,10 +92,6 @@ export class DiscordClient {
     });
   }
 
-  /**
-   *  Optionally start listening to Discord messages.
-   *  The onData callback typically feeds data into Orchestrator or similar.
-   */
   public startMessageStream(onData: (data: any | any[]) => void) {
     this.logger.info("DiscordClient", "Starting message stream...");
 
