@@ -4,7 +4,8 @@
   "description": "",
   "workspaces": [
     "packages/*",
-    "app/*"
+    "app/*",
+    "app/examples/*"
   ],
   "scripts": {
     "test": "pnpm -r run test",
