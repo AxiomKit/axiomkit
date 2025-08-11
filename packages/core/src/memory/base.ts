@@ -1,11 +1,11 @@
 import type { MemoryStore, VectorStore } from "../types";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModelV2 } from "@ai-sdk/provider";
 
 export type BaseMemory = {
   store: MemoryStore;
   /** Store for vector embeddings and similarity search */
   vector: VectorStore;
-  vectorModel?: LanguageModelV1;
+  vectorModel?: LanguageModelV2;
   generateMemories?: boolean;
 };
 
@@ -19,7 +19,7 @@ export type BaseMemory = {
 export function createMemory(
   store: MemoryStore,
   vector: VectorStore,
-  vectorModel?: LanguageModelV1
+  vectorModel?: LanguageModelV2
 ): BaseMemory {
   return { store, vector, vectorModel };
 }

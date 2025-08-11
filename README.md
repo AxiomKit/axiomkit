@@ -1,10 +1,9 @@
 <div align="center">
-# Axiomkit
+Axiomkit
 <img src="https://files.catbox.moe/aslpwo.png" alt="Axiomkit " width="100" />
 </div>
----
-⚠️ Alpha Software: This framework is under active development. APIs may
-change between versions.
+
+⚠️ **Alpha Software:** This framework is under active development. APIs may change between versions.
 
 ## Overview
 

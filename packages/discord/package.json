@@ -1,10 +1,13 @@
 {
   "name": "@axiomkit/discord",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {

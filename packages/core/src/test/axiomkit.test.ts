@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { z } from "zod";
 import { context } from "../context";
 import { createAgent } from "../agent";
-import { MockLanguageModelV1 } from "ai/test";
+import { MockLanguageModelV2 } from "ai/test";
 
 const TestContext = context({
   type: "test",
@@ -13,12 +13,22 @@ const TestContext = context({
 
 describe("AxiomKit Agent Creation Flow", () => {
   it("should create, start, and access context of an AI agent Axiomkit", async () => {
-    const model = new MockLanguageModelV1({
-      doGenerate: async () => ({
-        rawCall: { rawPrompt: null, rawSettings: {} },
+    const model = new MockLanguageModelV2({
+      doGenerate: async (options) => ({
+        content: [{ type: "text", text: "Test response" }],
         finishReason: "stop",
-        usage: { promptTokens: 1, completionTokens: 1 },
-        text: "Test response",
+        usage: {
+          promptTokens: 1,
+          completionTokens: 1,
+          inputTokens: 1,
+          outputTokens: 1,
+          totalTokens: 2,
+        },
+        warnings: [],
+        rawCall: { rawPrompt: null, rawSettings: {} },
+        providerMetadata: {},
+        request: {},
+        response: {},
       }),
     });
 

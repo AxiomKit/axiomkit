@@ -1,7 +1,6 @@
 import {
   streamText,
   type CoreMessage,
-  type LanguageModelV1,
   type StreamTextResult,
   type ToolSet,
 } from "ai";
@@ -21,6 +20,7 @@ import { generateText } from "ai";
 import { type RequestContext } from "../monitor";
 import { getRequestTracker } from "../monitor/monitor";
 import { LogEventType, StructuredLogger } from "../logs/logging-events";
+import { type LanguageModelV2 } from "../types";
 /**
  * Prepares a stream response by handling the stream result and parsing it.
  *
@@ -37,7 +37,7 @@ function prepareStreamResponse({
   stream,
   isReasoningModel,
 }: {
-  model: LanguageModelV1;
+  model: LanguageModelV2;
   stream: StreamTextResult<ToolSet, never>;
   isReasoningModel: boolean;
 }) {
@@ -62,7 +62,7 @@ type GenerateOptions = {
   workingMemory: WorkingMemory;
   logger: Logger;
   structuredLogger?: StructuredLogger;
-  model: LanguageModelV1;
+  model: LanguageModelV2;
   streaming: boolean;
   onError: (error: unknown) => void;
   requestContext?: RequestContext;
@@ -187,21 +187,23 @@ export const runGenerate = task({
             model.modelId,
             model.provider || "unknown",
             {
-              tokenUsage: response.usage
-                ? {
-                    inputTokens: response.usage.promptTokens,
-                    outputTokens: response.usage.completionTokens,
-                    totalTokens: response.usage.totalTokens,
-                    reasoningTokens: (response.usage as any).reasoningTokens,
-                  }
-                : undefined,
+              tokenUsage:
+                response.usage.inputTokens &&
+                response.usage.outputTokens &&
+                response.usage.totalTokens
+                  ? {
+                      inputTokens: response.usage.inputTokens,
+                      outputTokens: response.usage.outputTokens,
+                      totalTokens: response.usage.totalTokens,
+                      reasoningTokens: (response.usage as any).reasoningTokens,
+                    }
+                  : undefined,
               metrics: {
                 modelId: model.modelId,
                 provider: model.provider || "unknown",
                 totalTime: endTime - startTime,
-                tokensPerSecond: response.usage
-                  ? response.usage.completionTokens /
-                    ((endTime - startTime) / 1000)
+                tokensPerSecond: response.usage.outputTokens
+                  ? response.usage.outputTokens / ((endTime - startTime) / 1000)
                   : undefined,
               },
             }
@@ -210,54 +212,60 @@ export const runGenerate = task({
 
         // Log structured model call complete event
         if (structuredLogger && actionTrackingContext && response.usage) {
-          const tokenUsage = {
-            inputTokens: response.usage.promptTokens,
-            outputTokens: response.usage.completionTokens,
-            totalTokens: response.usage.totalTokens,
-            reasoningTokens: (response.usage as any).reasoningTokens,
-          };
+          // Only create tokenUsage if all required fields are present
+          if (
+            response.usage.inputTokens !== undefined &&
+            response.usage.outputTokens !== undefined &&
+            response.usage.totalTokens !== undefined
+          ) {
+            const tokenUsage = {
+              inputTokens: response.usage.inputTokens,
+              outputTokens: response.usage.outputTokens,
+              totalTokens: response.usage.totalTokens,
+              reasoningTokens: (response.usage as any).reasoningTokens,
+            };
 
-          // Add cost estimation if tracking is enabled
-          const tracker = getRequestTracker();
-          const config = tracker.getConfig();
-          if (config.trackCosts && config.costEstimation) {
-            const { estimateCost } = await import("../monitor");
-            // Try multiple provider key combinations for better matching
-            const providerKeys = [
-              `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
-              model.provider || "unknown", // e.g., "openrouter.chat"
-              model.modelId.split("/")[0], // e.g., "google"
-            ];
+            // Add cost estimation if tracking is enabled
+            const tracker = getRequestTracker();
+            const config = tracker.getConfig();
+            if (config.trackCosts && config.costEstimation) {
+              const { estimateCost } = await import("../monitor");
+              // Try multiple provider key combinations for better matching
+              const providerKeys = [
+                `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
+                model.provider || "unknown", // e.g., "openrouter.chat"
+                model.modelId.split("/")[0], // e.g., "google"
+              ];
 
-            let cost = 0;
-            for (const providerKey of providerKeys) {
-              cost = estimateCost(
-                tokenUsage,
-                providerKey,
-                config.costEstimation
-              );
-              if (cost > 0) break; // Found a matching cost configuration
+              let cost = 0;
+              for (const providerKey of providerKeys) {
+                cost = estimateCost(
+                  tokenUsage,
+                  providerKey,
+                  config.costEstimation
+                );
+                if (cost > 0) break; // Found a matching cost configuration
+              }
+              (tokenUsage as any).estimatedCost = cost;
             }
-            (tokenUsage as any).estimatedCost = cost;
-          }
 
-          structuredLogger.logEvent({
-            eventType: LogEventType.MODEL_CALL_COMPLETE,
-            timestamp: endTime,
-            requestContext: actionTrackingContext,
-            provider: model.provider || "unknown",
-            modelId: model.modelId,
-            callType: "generate",
-            tokenUsage,
-            metrics: {
-              modelId: model.modelId,
+            structuredLogger.logEvent({
+              eventType: LogEventType.MODEL_CALL_COMPLETE,
+              timestamp: endTime,
+              requestContext: actionTrackingContext,
               provider: model.provider || "unknown",
-              totalTime: endTime - startTime,
-              tokensPerSecond:
-                response.usage.completionTokens /
-                ((endTime - startTime) / 1000),
-            },
-          });
+              modelId: model.modelId,
+              callType: "generate",
+              tokenUsage,
+              metrics: {
+                modelId: model.modelId,
+                provider: model.provider || "unknown",
+                totalTime: endTime - startTime,
+                tokensPerSecond:
+                  response.usage.outputTokens / ((endTime - startTime) / 1000),
+              },
+            });
+          }
         }
 
         let getTextResponse = async () => response.text;
@@ -303,20 +311,24 @@ export const runGenerate = task({
                 model.modelId,
                 model.provider || "unknown",
                 {
-                  tokenUsage: usage
-                    ? {
-                        inputTokens: usage.promptTokens,
-                        outputTokens: usage.completionTokens,
-                        totalTokens: usage.totalTokens,
-                        reasoningTokens: (usage as any).reasoningTokens,
-                      }
-                    : undefined,
+                  tokenUsage:
+                    usage &&
+                    usage.inputTokens !== undefined &&
+                    usage.outputTokens !== undefined &&
+                    usage.totalTokens !== undefined
+                      ? {
+                          inputTokens: usage.inputTokens,
+                          outputTokens: usage.outputTokens,
+                          totalTokens: usage.totalTokens,
+                          reasoningTokens: (usage as any).reasoningTokens,
+                        }
+                      : undefined,
                   metrics: {
                     modelId: model.modelId,
                     provider: model.provider || "unknown",
                     totalTime: endTime - startTime,
-                    tokensPerSecond: usage
-                      ? usage.completionTokens / ((endTime - startTime) / 1000)
+                    tokensPerSecond: usage?.outputTokens
+                      ? usage.outputTokens / ((endTime - startTime) / 1000)
                       : undefined,
                   },
                 }
@@ -324,53 +336,60 @@ export const runGenerate = task({
 
               // Log structured model call complete event for streaming
               if (structuredLogger && actionTrackingContext && usage) {
-                const tokenUsage = {
-                  inputTokens: usage.promptTokens,
-                  outputTokens: usage.completionTokens,
-                  totalTokens: usage.totalTokens,
-                  reasoningTokens: (usage as any).reasoningTokens,
-                };
+                // Only create tokenUsage if all required fields are present
+                if (
+                  usage.inputTokens !== undefined &&
+                  usage.outputTokens !== undefined &&
+                  usage.totalTokens !== undefined
+                ) {
+                  const tokenUsage = {
+                    inputTokens: usage.inputTokens,
+                    outputTokens: usage.outputTokens,
+                    totalTokens: usage.totalTokens,
+                    reasoningTokens: (usage as any).reasoningTokens,
+                  };
 
-                // Add cost estimation if tracking is enabled
-                const tracker = getRequestTracker();
-                const config = tracker.getConfig();
-                if (config.trackCosts && config.costEstimation) {
-                  const { estimateCost } = await import("../monitor");
-                  // Try multiple provider key combinations for better matching
-                  const providerKeys = [
-                    `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
-                    model.provider || "unknown", // e.g., "openrouter.chat"
-                    model.modelId.split("/")[0], // e.g., "google"
-                  ];
+                  // Add cost estimation if tracking is enabled
+                  const tracker = getRequestTracker();
+                  const config = tracker.getConfig();
+                  if (config.trackCosts && config.costEstimation) {
+                    const { estimateCost } = await import("../monitor");
+                    // Try multiple provider key combinations for better matching
+                    const providerKeys = [
+                      `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
+                      model.provider || "unknown", // e.g., "openrouter.chat"
+                      model.modelId.split("/")[0], // e.g., "google"
+                    ];
 
-                  let cost = 0;
-                  for (const providerKey of providerKeys) {
-                    cost = estimateCost(
-                      tokenUsage,
-                      providerKey,
-                      config.costEstimation
-                    );
-                    if (cost > 0) break; // Found a matching cost configuration
+                    let cost = 0;
+                    for (const providerKey of providerKeys) {
+                      cost = estimateCost(
+                        tokenUsage,
+                        providerKey,
+                        config.costEstimation
+                      );
+                      if (cost > 0) break; // Found a matching cost configuration
+                    }
+                    (tokenUsage as any).estimatedCost = cost;
                   }
-                  (tokenUsage as any).estimatedCost = cost;
-                }
 
-                structuredLogger.logEvent({
-                  eventType: LogEventType.MODEL_CALL_COMPLETE,
-                  timestamp: endTime,
-                  requestContext: actionTrackingContext,
-                  provider: model.provider || "unknown",
-                  modelId: model.modelId,
-                  callType: "stream",
-                  tokenUsage,
-                  metrics: {
-                    modelId: model.modelId,
+                  structuredLogger.logEvent({
+                    eventType: LogEventType.MODEL_CALL_COMPLETE,
+                    timestamp: endTime,
+                    requestContext: actionTrackingContext,
                     provider: model.provider || "unknown",
-                    totalTime: endTime - startTime,
-                    tokensPerSecond:
-                      usage.completionTokens / ((endTime - startTime) / 1000),
-                  },
-                });
+                    modelId: model.modelId,
+                    callType: "stream",
+                    tokenUsage,
+                    metrics: {
+                      modelId: model.modelId,
+                      provider: model.provider || "unknown",
+                      totalTime: endTime - startTime,
+                      tokensPerSecond:
+                        usage.outputTokens / ((endTime - startTime) / 1000),
+                    },
+                  });
+                }
               }
 
               // Complete action tracking for successful streaming

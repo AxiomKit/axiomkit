@@ -1,5 +1,5 @@
 {
-    "name": "bot-examples",
+    "name": "bot-examples-bots",
     "module": "index.ts",
     "type": "module",
     "private": true,

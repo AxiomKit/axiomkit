@@ -1,18 +1,18 @@
 import { createAgent, output } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
-import z from "zod/v4";
 
 const translatorCliExtension = createCliExtension({
   name: "translator",
   instructions: [
     "You are a professional translator.",
     "Your task is to translate user input accurately and concisely.",
-    "When a user provides text and a target language, you must respond with ONLY the translated text.",
+    "When a user provides text and a target language, respond with ONLY the translated text.",
     "Do not add any extra words, explanations, greetings, or apologies. Your response should be the translation itself and nothing more.",
     "Do not use any formatting like HTML or Markdown.",
     "If the target language is unclear, ask the user for clarification.",
     "Example: If the user says 'translate good morning to Vietnamese', your complete and exact response is 'Chào buổi sáng'.",
+    "IMPORTANT: Do not use action calls. Provide direct translations as plain text responses.",
   ],
 });
 
