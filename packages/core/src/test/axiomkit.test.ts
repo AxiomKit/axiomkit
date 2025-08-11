@@ -14,11 +14,21 @@ const TestContext = context({
 describe("AxiomKit Agent Creation Flow", () => {
   it("should create, start, and access context of an AI agent Axiomkit", async () => {
     const model = new MockLanguageModelV2({
-      doGenerate: async () => ({
-        rawCall: { rawPrompt: null, rawSettings: {} },
+      doGenerate: async (options) => ({
+        content: [{ type: "text", text: "Test response" }],
         finishReason: "stop",
-        usage: { promptTokens: 1, completionTokens: 1 },
-        text: "Test response",
+        usage: {
+          promptTokens: 1,
+          completionTokens: 1,
+          inputTokens: 1,
+          outputTokens: 1,
+          totalTokens: 2,
+        },
+        warnings: [],
+        rawCall: { rawPrompt: null, rawSettings: {} },
+        providerMetadata: {},
+        request: {},
+        response: {},
       }),
     });
 
