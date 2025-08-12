@@ -1,0 +1,41 @@
+{
+  "name": "mcp-example",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Example demonstrating MCP (Model Context Protocol) integration with AxiomKit",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx index.ts",
+    "server": "tsx server.ts",
+    "client": "tsx client.ts",
+    "agent": "tsx agent-example.ts",
+    "sse-server": "tsx sse-server.ts",
+    "sse-client": "tsx sse-client.ts",
+    "test": "tsx test.ts",
+    "claude-test": "tsx claude-test.ts",
+    "test-standalone": "node test-standalone.js",
+    "build": "tsc",
+    "dev": "tsx --watch index.ts",
+    "demo": "tsx demo.ts",
+    "chat": "tsx interactive-chat.ts",
+    "weather-server": "tsx weather-server.ts",
+    "mcp-examples": "tsx mcp-agent-examples.ts",
+    "test-mcp": "tsx test-mcp.ts",
+    "simple-test": "tsx simple-test.ts",
+    "working-demo": "tsx working-demo.ts",
+    "claude-test": "tsx claude-test.ts"
+  },
+  "dependencies": {
+    "@axiomkit/core": "workspace:*",
+    "@axiomkit/mcp": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.17.2",
+    "zod": "^3.22.4",
+    "tsx": "^4.6.2",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/express": "^4.17.21",
+    "typescript": "^5.3.0"
+  }
+}

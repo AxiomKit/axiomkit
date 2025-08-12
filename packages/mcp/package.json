@@ -32,7 +32,7 @@
     },
     "dependencies": {
         "@axiomkit/core": "workspace:*",
-        "discord.js": "^14.18.0",
+        "@modelcontextprotocol/sdk": "^1.17.2",
         "zod": "catalog:"
     }
 }
