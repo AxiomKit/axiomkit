@@ -1,11 +1,14 @@
 {
-    "name": "@axiomkit/mongodb",
-    "version": "0.0.2",
+    "name": "@axiomkit/mcp",
+    "version": "0.0.7",
     "type": "module",
-    "description": "Axiomkit Mongodb Memory",
+    "description": "AxiomKit MCP Integration",
     "main": "./dist/index.js",
     "module": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
     "exports": {
         "./package.json": "./package.json",
         ".": {
@@ -13,6 +16,11 @@
             "require": "./dist/index.js",
             "import": "./dist/index.js"
         }
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "tsup": "catalog:",
+        "vitest": "catalog:"
     },
     "scripts": {
         "test": "vitest --passWithNoTests",
@@ -24,14 +32,7 @@
     },
     "dependencies": {
         "@axiomkit/core": "workspace:*",
-        "crypto-js": "^4.2.0",
-        "mongodb": "^6.18.0",
+        "@modelcontextprotocol/sdk": "^1.17.2",
         "zod": "catalog:"
-    },
-    "devDependencies": {
-        "@types/bun": "latest",
-        "@types/crypto-js": "^4.2.2",
-        "tsup": "catalog:",
-        "vitest": "catalog:"
     }
 }
