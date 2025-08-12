@@ -37,14 +37,23 @@ axiomkit/
 │   ├── 🚀 create-agent/           # CLI tool for bootstrapping new agents
 │   ├── 🗄️ mongodb/               # MongoDB integration for persistent memory
 │   ├── ⛓️ sei/                   # Sei blockchain integration
-│   └── 📱 telegram/               # Telegram bot integration
-├── 🎯 examples/                   # Ready-to-run example implementations
-│   ├── 🤖 bots/                   # Various bot implementations
-│   ├── 💬 chat/                   # Next.js chat interface
-│   ├── 🎮 games/                  # Game-related examples
-│   ├── 🗄️ mongodb/               # MongoDB usage examples
-│   ├── ⛓️ sei/                   # Sei blockchain examples
-│   └── 📱 telegram/               # Telegram bot examples
+│   ├── 📱 telegram/               # Telegram bot integration
+│   ├── 🎮 discord/                # Discord bot integration
+│   ├── 🗄️ supabase/              # Supabase integration
+│   └── 🔗 mcp/                    # Model Context Protocol integration
+├── 📚 app/
+│   ├── 📖 docs/                   # Documentation site (Next.js)
+│   └── 🎯 examples/               # Ready-to-run example implementations
+│       ├── 🤖 bots/               # Various bot implementations
+│       ├── 💬 chat/               # Next.js chat interface
+│       ├── 🎮 games/              # Game-related examples
+│       ├── 🗄️ mongodb/           # MongoDB usage examples
+│       ├── ⛓️ sei/               # Sei blockchain examples
+│       ├── 📱 telegram/           # Telegram bot examples
+│       ├── 🎮 discord/            # Discord bot examples
+│       ├── 🗄️ supabase/          # Supabase examples
+│       ├── 🔗 mcp/                # MCP examples
+│       └── 🌐 socials/            # Social media integrations
 └── 📋 scripts/                    # Build and deployment scripts
 ```
 
@@ -52,18 +61,22 @@ axiomkit/
 
 | Category | Example | Description | Link |
 |----------|---------|-------------|------|
-| **🤖 Bot Agents** | Calculator Bot | Simple arithmetic operations with memory | [`examples/bots/calculator-bot.ts`](./examples/bots/calculator-bot.ts) |
-| | Translator Bot | Multi-language translation with context | [`examples/bots/translator-bot.ts`](./examples/bots/translator-bot.ts) |
-| | Writing Assistant | AI-powered writing and editing help | [`examples/bots/writing-assistant.ts`](./examples/bots/writing-assistant.ts) |
-| | Debugging Assistant | Code debugging and problem-solving | [`examples/bots/debugging-assistant.ts`](./examples/bots/debugging-assistant.ts) |
-| | Multi-Functional Agent | Complex agent with multiple capabilities | [`examples/bots/multi-functional-agent.ts`](./examples/bots/multi-functional-agent.ts) |
-| | Custom Chatbot | Basic conversational agent | [`examples/bots/custom-chatbot.ts`](./examples/bots/custom-chatbot.ts) |
-| | Echo Bot | Simple message echoing with memory | [`examples/bots/echo.ts`](./examples/bots/echo.ts) |
-| **💬 Chat Interface** | Next.js Chat App | Full-stack chat application with UI | [`examples/chat/`](./examples/chat/) |
-| **⛓️ Blockchain** | Sei Integration | Sei blockchain trading and wallet management | [`examples/sei/`](./examples/sei/) |
-| **📱 Messaging** | Telegram Bot | Telegram bot with AxiomKit integration | [`examples/telegram/`](./examples/telegram/) |
-| **🗄️ Database** | MongoDB Memory | Persistent memory storage with MongoDB | [`examples/mongodb/`](./examples/mongodb/) |
-| **🎮 Gaming** | Game Examples | Gaming-related agent implementations | [`examples/games/`](./examples/games/) |
+| **🤖 Bot Agents** | Calculator Bot | Simple arithmetic operations with memory | [`app/examples/bots/calculator-bot.ts`](./app/examples/bots/calculator-bot.ts) |
+| | Translator Bot | Multi-language translation with context | [`app/examples/bots/translator-bot.ts`](./app/examples/bots/translator-bot.ts) |
+| | Writing Assistant | AI-powered writing and editing help | [`app/examples/bots/writing-assistant.ts`](./app/examples/bots/writing-assistant.ts) |
+| | Debugging Assistant | Code debugging and problem-solving | [`app/examples/bots/debugging-assistant.ts`](./app/examples/bots/debugging-assistant.ts) |
+| | Multi-Functional Agent | Complex agent with multiple capabilities | [`app/examples/bots/multi-functional-agent.ts`](./app/examples/bots/multi-functional-agent.ts) |
+| | Custom Chatbot | Basic conversational agent | [`app/examples/bots/custom-chatbot.ts`](./app/examples/bots/custom-chatbot.ts) |
+| | Echo Bot | Simple message echoing with memory | [`app/examples/bots/echo.ts`](./app/examples/bots/echo.ts) |
+| **💬 Chat Interface** | Next.js Chat App | Full-stack chat application with UI | [`app/examples/chat/`](./app/examples/chat/) |
+| **⛓️ Blockchain** | Sei Integration | Sei blockchain trading and wallet management | [`app/examples/sei/`](./app/examples/sei/) |
+| **📱 Messaging** | Telegram Bot | Telegram bot with AxiomKit integration | [`app/examples/telegram/`](./app/examples/telegram/) |
+| **🎮 Gaming** | Discord Bot | Discord bot integration | [`app/examples/discord/`](./app/examples/discord/) |
+| **🗄️ Database** | MongoDB Memory | Persistent memory storage with MongoDB | [`app/examples/mongodb/`](./app/examples/mongodb/) |
+| **🗄️ Database** | Supabase Integration | Supabase database integration | [`app/examples/supabase/`](./app/examples/supabase/) |
+| **🔗 MCP** | Model Context Protocol | MCP integration examples | [`app/examples/mcp/`](./app/examples/mcp/) |
+| **🌐 Socials** | Social Media | Social media platform integrations | [`app/examples/socials/`](./app/examples/socials/) |
+| **🎮 Gaming** | Game Examples | Gaming-related agent implementations | [`app/examples/games/`](./app/examples/games/) |
 
 ## 📦 Core Packages
 
@@ -75,6 +88,9 @@ axiomkit/
 | **🗄️ @axiomkit/mongodb** | MongoDB integration for persistent memory storage | [`packages/mongodb/`](./packages/mongodb/) |
 | **⛓️ @axiomkit/sei** | Sei blockchain integration for DeFi and trading | [`packages/sei/`](./packages/sei/) |
 | **📱 @axiomkit/telegram** | Telegram bot integration for messaging | [`packages/telegram/`](./packages/telegram/) |
+| **🎮 @axiomkit/discord** | Discord bot integration for gaming and community | [`packages/discord/`](./packages/discord/) |
+| **🗄️ @axiomkit/supabase** | Supabase integration for database operations | [`packages/supabase/`](./packages/supabase/) |
+| **🔗 @axiomkit/mcp** | Model Context Protocol integration | [`packages/mcp/`](./packages/mcp/) |
 
 ## 🚀 Quick Start
 
@@ -85,7 +101,7 @@ npx @axiomkit/create-agent my-agent
 
 ### 2. Run an Example
 ```bash
-cd examples/bots
+cd app/examples/bots
 npm install
 npm run calculator-bot
 ```
@@ -110,7 +126,7 @@ npm install @axiomkit/core
 ```
 # Install with extensions
 ```bash
-npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei
+npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei @axiomkit/discord @axiomkit/supabase @axiomkit/mcp
 ```
 ```bash
 npx @axiomkit/create-agent my-agent
@@ -118,12 +134,16 @@ npx @axiomkit/create-agent my-agent
 
 ## 📚 Documentation
 
+- **Documentation Site**: [`app/docs/`](./app/docs/) - Full documentation with examples
 - **Core Concepts**: [`packages/core/README.md`](./packages/core/README.md)
 - **CLI Tools**: [`packages/cli/`](./packages/cli/)
 - **Create Agent**: [`packages/create-agent/README.md`](./packages/create-agent/README.md)
 - **MongoDB Extension**: [`packages/mongodb/README.md`](./packages/mongodb/README.md)
 - **Sei Extension**: [`packages/sei/Readme.md`](./packages/sei/Readme.md)
 - **Telegram Extension**: [`packages/telegram/README.md`](./packages/telegram/README.md)
+- **Discord Extension**: [`packages/discord/README.md`](./packages/discord/README.md)
+- **Supabase Extension**: [`packages/supabase/README.md`](./packages/supabase/README.md)
+- **MCP Extension**: [`packages/mcp/README.md`](./packages/mcp/README.md)
 
 ## 🤝 Contributing
 
