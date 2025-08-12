@@ -19,7 +19,7 @@ export class McpConnectionManager {
   }
 
   async connectToServer(serverConfig: McpServerConfig): Promise<void> {
-    const { id, name, retryConfig } = serverConfig;
+    const { id, name } = serverConfig;
 
     this.logger.debug("mcp:connection-manager", "Connecting to MCP server", {
       id,
