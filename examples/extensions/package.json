@@ -9,6 +9,7 @@
     "@axiomkit/core": "workspace:*",
     "@axiomkit/telegram": "workspace:*",
     "@axiomkit/cli": "workspace:*",
+    "@axiomkit/discord": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

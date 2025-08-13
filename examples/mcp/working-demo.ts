@@ -2,12 +2,12 @@ import { workingGroqAgent } from "./working-groq-agent";
 
 async function workingDemo() {
   console.log("🚀 Working MCP Agent Demo - AxiomKit + File System\n");
-  console.log("=" .repeat(60));
+  console.log("=".repeat(60));
   console.log("🎯 Showcasing AxiomKit + MCP Integration (WORKING!)");
   console.log("⚡ Real MCP server connection");
   console.log("🎨 Creative writing, code generation, data analysis");
   console.log("🌍 Multi-language translation and problem solving");
-  console.log("=" .repeat(60) + "\n");
+  console.log("=".repeat(60) + "\n");
 
   try {
     // Start the agent
@@ -16,7 +16,7 @@ async function workingDemo() {
 
     // 🎨 Example 1: Creative Writing
     console.log("🎨 Example 1: Creative Writing Assistant");
-    console.log("-" .repeat(40));
+    console.log("-".repeat(40));
     const creativeResult = await workingGroqAgent.run({
       context: {
         type: "creative_writing",
@@ -28,7 +28,8 @@ async function workingDemo() {
           name: "creative_writing",
           arguments: {
             genre: "science fiction short story",
-            topic: "a time traveler who discovers they can only travel to the past",
+            topic:
+              "a time traveler who discovers they can only travel to the past",
             length: "short",
             style: "mysterious and thought-provoking",
           },
@@ -45,7 +46,7 @@ async function workingDemo() {
 
     // 💻 Example 2: Code Generation
     console.log("💻 Example 2: Code Generation Assistant");
-    console.log("-" .repeat(40));
+    console.log("-".repeat(40));
     const codeResult = await workingGroqAgent.run({
       context: {
         type: "code_generation",
@@ -75,7 +76,7 @@ async function workingDemo() {
 
     // 📊 Example 3: Data Analysis
     console.log("📊 Example 3: Data Analysis Assistant");
-    console.log("-" .repeat(40));
+    console.log("-".repeat(40));
     const analysisResult = await workingGroqAgent.run({
       context: {
         type: "data_analysis",
@@ -104,7 +105,7 @@ async function workingDemo() {
 
     // 🎯 Example 4: Problem Solving
     console.log("🎯 Example 4: Problem Solving Assistant");
-    console.log("-" .repeat(40));
+    console.log("-".repeat(40));
     const problemResult = await workingGroqAgent.run({
       context: {
         type: "problem_solving",
@@ -133,7 +134,7 @@ async function workingDemo() {
 
     // 🌍 Example 5: Translation
     console.log("🌍 Example 5: Language Translation Assistant");
-    console.log("-" .repeat(40));
+    console.log("-".repeat(40));
     const translationResult = await workingGroqAgent.run({
       context: {
         type: "translation",
@@ -163,7 +164,7 @@ async function workingDemo() {
 
     // 🏆 Summary
     console.log("🏆 Demo Summary");
-    console.log("=" .repeat(40));
+    console.log("=".repeat(40));
     console.log("✅ All examples completed successfully!");
     console.log("⚡ Real MCP server connection working!");
     console.log("🎯 5 different AI capabilities demonstrated");
@@ -178,11 +179,14 @@ async function workingDemo() {
     console.log("• ✅ Multi-modal capabilities");
     console.log("• ✅ File system access");
     console.log("• ✅ Production-ready architecture");
-
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Demo failed:", error.message);
-    console.log("\n💡 Note: This demo uses the File System MCP server which should work.");
-    console.log("   If it fails, check your internet connection and npm registry access.");
+    console.log(
+      "\n💡 Note: This demo uses the File System MCP server which should work."
+    );
+    console.log(
+      "   If it fails, check your internet connection and npm registry access."
+    );
   } finally {
     // Stop the agent
     await workingGroqAgent.stop();

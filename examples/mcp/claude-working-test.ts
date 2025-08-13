@@ -102,7 +102,7 @@ async function claudeWorkingTest() {
     console.log("• Real server connections are possible");
     console.log("• Multi-modal AI capabilities work");
     console.log("• Production-ready architecture");
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Test failed:", error.message);
     console.log("\n💡 Note: This test uses the File System MCP server.");
     console.log("   If it fails, check your internet connection.");
