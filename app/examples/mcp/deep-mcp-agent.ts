@@ -25,6 +25,9 @@ const mcpServers: McpServerConfig[] = [
       type: "stdio",
       command: "npx",
       args: ["@modelcontextprotocol/server-brave-search"],
+      env: {
+        BRAVE_API_KEY: process.env.BRAVE_API_KEY || "",
+      },
     },
     capabilities: { tools: {}, prompts: {} },
     retryConfig: { maxRetries: 3, retryDelay: 1000, backoffMultiplier: 2 },
@@ -39,7 +42,7 @@ const mcpServers: McpServerConfig[] = [
       command: "npx",
       args: [
         "@modelcontextprotocol/server-postgres",
-        "postgresql://postgres:karasbuilder0308@@db.kdergjnqzavczviyhowy.supabase.co:5432/postgres",
+        process.env.DATABASE_URL || "",
       ],
     },
     capabilities: { tools: {}, prompts: {} },
