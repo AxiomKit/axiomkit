@@ -11,10 +11,6 @@ import {
 } from "@axiomkit/core";
 import { createMongoMemoryStore } from "@axiomkit/mongodb";
 
-/**
- *
- * Example Build AI SDK
- */
 const env = validateEnv(
   z.object({
     GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
@@ -158,21 +154,17 @@ async function main() {
   console.log("- 'Bonjour' (translate to English)");
   console.log("- 'Translate this to German: Good morning'");
 
-  // Example usage with custom handlers to capture final results
   console.log("\n--- Testing Translation Memory Storage ---");
 
-  // Test the agent with a translation
-  const result = await agent.run({
+  await agent.run({
     context: translatorContext,
     args: { sourceLanguage: "English", targetLanguage: "Vietnamese" },
     handlers: {
       onLogStream: (log, done) => {
-        // Only show final outputs, not intermediate thoughts
         if (log.ref === "output" && log.type === "cli:message") {
           console.log(`🎯 Final Translation: "${log.content}"`);
 
-          // Store the translation result
-          const input = "hello"; // This would come from the actual input
+          const input = "hello";
           translationMemoryStore.storeTranslationResult(
             input,
             log.content.trim(),
