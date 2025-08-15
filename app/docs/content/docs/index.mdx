@@ -1,13 +1,76 @@
 ---
-title: Hello World
-description: Your first document
+title: Axiomkit
+description: >-
+  TypeScript framework for building autonomous AI agents with unified LLM
+  provider support.
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+# About Axiomkit
 
-## What is Next?
+## What is Axiomkit?
 
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.vercel.app" />
-</Cards>
+**Axiomkit** is a next-generation TypeScript framework for building autonomous AI agents. It emphasizes:
+
+* **Modularity** - Easily compose agents from reusable parts
+* **Extensibility** - Add new capabilities via actions, adapters, and extensions
+* **Scalability** - Build agents that can grow from simple scripts to full production systems
+* **Advanced Autonomy** - Agents can plan, act, learn, and adapt in dynamic environments
+
+## What is AI Agent?
+
+An AI agent is a smart, self-directed assistant that can:
+
+* **Listen** to external events (messages, API calls, time-based triggers).
+* **Reason** using powerful models like GPT to decide what to do.
+* **Act** by executing functions (e.g., send emails, update orders, query APIs).
+* **Remember** past interactions to improve future decisions.
+
+## Why Axiomkit?
+
+In a crowded field of AI frameworks, **AxiomKit** stands out for developer-first design and deep agent capabilities:
+
+#### ✅ TypeScript-Native
+
+* Full type safety&#x20;
+* Clean, productive DX for developers
+* Easily integrated into existing Node.js ecosystems
+
+#### ✅ Model-Agnostic
+
+* Compatible with OpenAI, Groq, DeepSeek, Anthropic, Gemini, Ollama, and more
+* Plug in any provider via `@ai-sdk` abstraction
+
+#### ✅ Agent Autonomy
+
+* **Dynamic Re-Planning**: Agents can detect failed plans and re-evaluate goals in response to changing environments
+* **Self-Correction Loops**: Built-in mechanisms for agents to reflect, assess outcomes, and optimize strategies over time
+
+#### ✅ Flexible Memory System
+
+* Structured short-term and long-term memory
+* Contextual queries: _“What did I discuss with User A about Project X last week?”_
+* Supports multi-session and multi-user continuity
+
+#### ✅ Scalable Plugin System
+
+* Extend agents with production-grade integrations for Discord, Telegram, Twitter, and more
+* Extend behavior via reusable `actions`, `contexts`, and `extensions`
+
+### ⚙️ Architecture Overview
+
+| Component         | Function                                                               |
+| ----------------- | ---------------------------------------------------------------------- |
+| **Agent Runtime** | Orchestrates event processing, action dispatch, and memory usage       |
+| **Contexts**      | Isolated memory/state containers for conversations, tasks, or domains  |
+| **Actions**       | Declarative function interfaces for the agent to interact with systems |
+| **Memory**        | Structured state persistence with retrieval and summarization APIs     |
+| **Extensions**    | Pluggable modules bundling actions, adapters, and custom logic         |
+| **LLM Providers** | Abstracts interaction with any supported language model                |
+|                   |                                                                        |
+
+### 👥 Who Should Use AxiomKit?
+
+* Developers building AI-first applications
+* Teams deploying domain-specific intelligent agents
+* Researchers designing memory-aware, goal-driven AI systems
+* Projects integrating AI with social platforms, CRMs, blockchains, or internal tools
