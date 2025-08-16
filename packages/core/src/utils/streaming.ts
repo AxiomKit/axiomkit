@@ -139,8 +139,6 @@ export async function handleStream(
           current.content += result.value.content;
           push(current);
         }
-
-        // todo: we need to handle text when !current to a default output?
       }
 
       if (result.value.type === "self-closing") {
