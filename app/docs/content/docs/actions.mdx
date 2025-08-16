@@ -1,0 +1,763 @@
+---
+title: Actions
+description: Creating and using custom actions in Axiomkit
+---
+
+# Actions
+
+Actions in Axiomkit allow agents to perform specific tasks and interact with external systems. They provide a way to extend agent capabilities beyond just conversation.
+
+## Overview
+
+Actions enable agents to:
+- **Perform specific tasks**: Execute custom logic and operations
+- **Interact with APIs**: Make HTTP requests to external services
+- **Access databases**: Read and write data to persistent storage
+- **Execute workflows**: Chain multiple actions together
+- **Integrate with tools**: Connect to external tools and services
+
+```typescript
+interface Action<Schema, Result, TError, TContext, TAgent, TMemory> {
+  name: string;
+  description: string;
+  schema: z.ZodSchema<Schema>;
+  handler: (args: Schema, ctx: TContext, agent: TAgent) => Promise<Result>;
+}
+```
+
+## Basic Actions
+
+### Simple Calculator Action
+
+```typescript
+import { z } from "zod";
+
+const calculatorAction = {
+  name: "calculate",
+  description: "Perform mathematical calculations",
+  schema: z.object({
+    expression: z.string(),
+    precision: z.number().optional().default(2),
+  }),
+  handler: async (args, ctx, agent) => {
+    try {
+      // Simple expression evaluation (use a proper math library in production)
+      const result = eval(args.expression);
+      return {
+        result: Number(result.toFixed(args.precision)),
+        expression: args.expression,
+        success: true,
+      };
+    } catch (error) {
+      return {
+        error: "Invalid mathematical expression",
+        expression: args.expression,
+        success: false,
+      };
+    }
+  },
+};
+```
+
+### Using the Action
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  actions: [calculatorAction],
+});
+
+// Execute the action
+const result = await agent.executeAction("calculate", {
+  expression: "2 + 2 * 3",
+  precision: 2,
+});
+
+console.log(result); // { result: 8, expression: "2 + 2 * 3", success: true }
+```
+
+## Advanced Actions
+
+### 1. API Integration Action
+
+```typescript
+import { z } from "zod";
+
+const weatherAction = {
+  name: "get_weather",
+  description: "Get current weather information for a location",
+  schema: z.object({
+    location: z.string(),
+    units: z.enum(["metric", "imperial"]).default("metric"),
+  }),
+  handler: async (args, ctx, agent) => {
+    try {
+      const apiKey = process.env.WEATHER_API_KEY;
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(args.location)}&units=${args.units}&appid=${apiKey}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Weather API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        location: data.name,
+        temperature: data.main.temp,
+        description: data.weather[0].description,
+        humidity: data.main.humidity,
+        windSpeed: data.wind.speed,
+        units: args.units,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        error: error.message,
+        location: args.location,
+        success: false,
+      };
+    }
+  },
+};
+```
+
+### 2. Database Action
+
+```typescript
+import { z } from "zod";
+
+const userAction = {
+  name: "get_user_profile",
+  description: "Retrieve user profile information from database",
+  schema: z.object({
+    userId: z.string(),
+    includeHistory: z.boolean().default(false),
+  }),
+  handler: async (args, ctx, agent) => {
+    try {
+      // Simulate database query
+      const user = await db.users.findUnique({
+        where: { id: args.userId },
+        include: {
+          profile: true,
+          history: args.includeHistory ? {
+            take: 10,
+            orderBy: { createdAt: 'desc' }
+          } : false,
+        },
+      });
+      
+      if (!user) {
+        return {
+          error: "User not found",
+          userId: args.userId,
+          success: false,
+        };
+      }
+      
+      return {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          profile: user.profile,
+          history: user.history || [],
+        },
+        success: true,
+      };
+    } catch (error) {
+      return {
+        error: error.message,
+        userId: args.userId,
+        success: false,
+      };
+    }
+  },
+};
+```
+
+### 3. File System Action
+
+```typescript
+import { z } from "zod";
+import { readFile, writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
+
+const fileAction = {
+  name: "file_operations",
+  description: "Perform file system operations",
+  schema: z.object({
+    operation: z.enum(["read", "write", "create_directory"]),
+    path: z.string(),
+    content: z.string().optional(),
+    encoding: z.enum(["utf8", "base64"]).default("utf8"),
+  }),
+  handler: async (args, ctx, agent) => {
+    try {
+      switch (args.operation) {
+        case "read":
+          const content = await readFile(args.path, args.encoding);
+          return {
+            operation: "read",
+            path: args.path,
+            content,
+            success: true,
+          };
+          
+        case "write":
+          // Ensure directory exists
+          const dir = path.dirname(args.path);
+          if (!existsSync(dir)) {
+            await mkdir(dir, { recursive: true });
+          }
+          
+          await writeFile(args.path, args.content || "", args.encoding);
+          return {
+            operation: "write",
+            path: args.path,
+            success: true,
+          };
+          
+        case "create_directory":
+          await mkdir(args.path, { recursive: true });
+          return {
+            operation: "create_directory",
+            path: args.path,
+            success: true,
+          };
+          
+        default:
+          throw new Error(`Unknown operation: ${args.operation}`);
+      }
+    } catch (error) {
+      return {
+        error: error.message,
+        operation: args.operation,
+        path: args.path,
+        success: false,
+      };
+    }
+  },
+};
+```
+
+## Action Chaining
+
+### Workflow Action
+
+```typescript
+const researchWorkflowAction = {
+  name: "research_workflow",
+  description: "Research a topic and generate a comprehensive report",
+  schema: z.object({
+    topic: z.string(),
+    depth: z.enum(["shallow", "medium", "deep"]).default("medium"),
+    includeImages: z.boolean().default(false),
+  }),
+  handler: async (args, ctx, agent) => {
+    try {
+      // Step 1: Search for information
+      const searchResult = await agent.executeAction("web_search", {
+        query: args.topic,
+        maxResults: 10,
+      });
+      
+      if (!searchResult.success) {
+        throw new Error("Search failed");
+      }
+      
+      // Step 2: Analyze the information
+      const analysisResult = await agent.executeAction("analyze_text", {
+        text: searchResult.results.join("\n"),
+        analysisType: "summary",
+        includeSentiment: true,
+      });
+      
+      if (!analysisResult.success) {
+        throw new Error("Analysis failed");
+      }
+      
+      // Step 3: Generate report
+      const reportResult = await agent.executeAction("generate_report", {
+        topic: args.topic,
+        analysis: analysisResult.summary,
+        depth: args.depth,
+        includeImages: args.includeImages,
+      });
+      
+      if (!reportResult.success) {
+        throw new Error("Report generation failed");
+      }
+      
+      // Step 4: Save to file
+      const filename = `${args.topic.replace(/\s+/g, '_')}_research.md`;
+      await agent.executeAction("file_operations", {
+        operation: "write",
+        path: `./reports/${filename}`,
+        content: reportResult.report,
+      });
+      
+      return {
+        topic: args.topic,
+        searchResults: searchResult.results,
+        analysis: analysisResult.summary,
+        report: reportResult.report,
+        filename,
+        success: true,
+      };
+    } catch (error) {
+      return {
+        error: error.message,
+        topic: args.topic,
+        success: false,
+      };
+    }
+  },
+};
+```
+
+## Action Patterns
+
+### 1. CRUD Operations
+
+```typescript
+const crudActions = {
+  // Create
+  createItem: {
+    name: "create_item",
+    description: "Create a new item in the database",
+    schema: z.object({
+      type: z.string(),
+      data: z.record(z.any()),
+    }),
+    handler: async (args, ctx, agent) => {
+      const item = await db[args.type].create({
+        data: args.data,
+      });
+      return { item, success: true };
+    },
+  },
+  
+  // Read
+  getItem: {
+    name: "get_item",
+    description: "Retrieve an item from the database",
+    schema: z.object({
+      type: z.string(),
+      id: z.string(),
+    }),
+    handler: async (args, ctx, agent) => {
+      const item = await db[args.type].findUnique({
+        where: { id: args.id },
+      });
+      return { item, success: !!item };
+    },
+  },
+  
+  // Update
+  updateItem: {
+    name: "update_item",
+    description: "Update an existing item in the database",
+    schema: z.object({
+      type: z.string(),
+      id: z.string(),
+      data: z.record(z.any()),
+    }),
+    handler: async (args, ctx, agent) => {
+      const item = await db[args.type].update({
+        where: { id: args.id },
+        data: args.data,
+      });
+      return { item, success: true };
+    },
+  },
+  
+  // Delete
+  deleteItem: {
+    name: "delete_item",
+    description: "Delete an item from the database",
+    schema: z.object({
+      type: z.string(),
+      id: z.string(),
+    }),
+    handler: async (args, ctx, agent) => {
+      await db[args.type].delete({
+        where: { id: args.id },
+      });
+      return { success: true };
+    },
+  },
+};
+```
+
+### 2. Validation Actions
+
+```typescript
+const validationActions = {
+  validateEmail: {
+    name: "validate_email",
+    description: "Validate email address format and existence",
+    schema: z.object({
+      email: z.string().email(),
+      checkExistence: z.boolean().default(false),
+    }),
+    handler: async (args, ctx, agent) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isValidFormat = emailRegex.test(args.email);
+      
+      if (!isValidFormat) {
+        return {
+          email: args.email,
+          isValid: false,
+          reason: "Invalid email format",
+        };
+      }
+      
+      if (args.checkExistence) {
+        // Check if email domain exists
+        const domain = args.email.split('@')[1];
+        try {
+          const mxRecords = await dns.promises.resolveMx(domain);
+          return {
+            email: args.email,
+            isValid: mxRecords.length > 0,
+            reason: mxRecords.length > 0 ? "Valid email" : "Domain not found",
+          };
+        } catch (error) {
+          return {
+            email: args.email,
+            isValid: false,
+            reason: "Domain validation failed",
+          };
+        }
+      }
+      
+      return {
+        email: args.email,
+        isValid: true,
+        reason: "Valid email format",
+      };
+    },
+  },
+  
+  validatePassword: {
+    name: "validate_password",
+    description: "Validate password strength",
+    schema: z.object({
+      password: z.string(),
+      minLength: z.number().default(8),
+      requireUppercase: z.boolean().default(true),
+      requireLowercase: z.boolean().default(true),
+      requireNumbers: z.boolean().default(true),
+      requireSpecialChars: z.boolean().default(true),
+    }),
+    handler: async (args, ctx, agent) => {
+      const checks = {
+        length: args.password.length >= args.minLength,
+        uppercase: args.requireUppercase ? /[A-Z]/.test(args.password) : true,
+        lowercase: args.requireLowercase ? /[a-z]/.test(args.password) : true,
+        numbers: args.requireNumbers ? /\d/.test(args.password) : true,
+        specialChars: args.requireSpecialChars ? /[!@#$%^&*(),.?":{}|<>]/.test(args.password) : true,
+      };
+      
+      const isValid = Object.values(checks).every(Boolean);
+      const failedChecks = Object.entries(checks)
+        .filter(([, passed]) => !passed)
+        .map(([check]) => check);
+      
+      return {
+        password: args.password,
+        isValid,
+        strength: calculatePasswordStrength(args.password),
+        failedChecks,
+        suggestions: generatePasswordSuggestions(failedChecks),
+      };
+    },
+  },
+};
+```
+
+### 3. Utility Actions
+
+```typescript
+const utilityActions = {
+  generateId: {
+    name: "generate_id",
+    description: "Generate a unique identifier",
+    schema: z.object({
+      type: z.enum(["uuid", "nanoid", "timestamp"]).default("uuid"),
+      length: z.number().optional(),
+    }),
+    handler: async (args, ctx, agent) => {
+      switch (args.type) {
+        case "uuid":
+          return { id: crypto.randomUUID() };
+        case "nanoid":
+          const { nanoid } = await import("nanoid");
+          return { id: nanoid(args.length || 21) };
+        case "timestamp":
+          return { id: Date.now().toString() };
+        default:
+          throw new Error(`Unknown ID type: ${args.type}`);
+      }
+    },
+  },
+  
+  formatDate: {
+    name: "format_date",
+    description: "Format date in various formats",
+    schema: z.object({
+      date: z.union([z.string(), z.number(), z.date()]),
+      format: z.enum(["iso", "human", "short", "custom"]).default("iso"),
+      customFormat: z.string().optional(),
+      timezone: z.string().optional(),
+    }),
+    handler: async (args, ctx, agent) => {
+      const date = new Date(args.date);
+      
+      switch (args.format) {
+        case "iso":
+          return { formatted: date.toISOString() };
+        case "human":
+          return { formatted: date.toLocaleDateString() };
+        case "short":
+          return { formatted: date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })};
+        case "custom":
+          if (!args.customFormat) {
+            throw new Error("Custom format requires customFormat parameter");
+          }
+          // Use a date formatting library like date-fns
+          const { format } = await import("date-fns");
+          return { formatted: format(date, args.customFormat) };
+        default:
+          throw new Error(`Unknown format: ${args.format}`);
+      }
+    },
+  },
+};
+```
+
+## Action Execution
+
+### Direct Execution
+
+```typescript
+// Execute action directly
+const result = await agent.executeAction("calculate", {
+  expression: "10 * 5",
+  precision: 2,
+});
+
+console.log(result); // { result: 50, expression: "10 * 5", success: true }
+```
+
+### Execution with Error Handling
+
+```typescript
+try {
+  const result = await agent.executeAction("get_weather", {
+    location: "New York",
+    units: "metric",
+  });
+  
+  if (result.success) {
+    console.log(`Weather in ${result.location}: ${result.temperature}°C`);
+  } else {
+    console.error("Weather action failed:", result.error);
+  }
+} catch (error) {
+  console.error("Action execution error:", error);
+}
+```
+
+### Batch Execution
+
+```typescript
+const actions = [
+  { name: "calculate", args: { expression: "2 + 2" } },
+  { name: "get_weather", args: { location: "London" } },
+  { name: "generate_id", args: { type: "uuid" } },
+];
+
+const results = await Promise.all(
+  actions.map(action => agent.executeAction(action.name, action.args))
+);
+
+console.log("Batch results:", results);
+```
+
+## Action Configuration
+
+### Action with Dependencies
+
+```typescript
+const databaseAction = {
+  name: "database_operation",
+  description: "Perform database operations",
+  schema: z.object({
+    operation: z.enum(["query", "insert", "update", "delete"]),
+    table: z.string(),
+    data: z.any(),
+  }),
+  dependencies: ["database"], // Requires database extension
+  handler: async (args, ctx, agent) => {
+    // Access database through context or extension
+    const db = ctx.database || agent.extensions.database;
+    
+    switch (args.operation) {
+      case "query":
+        return await db.query(args.table, args.data);
+      case "insert":
+        return await db.insert(args.table, args.data);
+      case "update":
+        return await db.update(args.table, args.data);
+      case "delete":
+        return await db.delete(args.table, args.data);
+    }
+  },
+};
+```
+
+### Action with Caching
+
+```typescript
+const cachedAction = {
+  name: "cached_api_call",
+  description: "Make API call with caching",
+  schema: z.object({
+    url: z.string().url(),
+    cacheDuration: z.number().default(300), // 5 minutes
+  }),
+  handler: async (args, ctx, agent) => {
+    const cacheKey = `api_${Buffer.from(args.url).toString('base64')}`;
+    
+    // Check cache first
+    const cached = await agent.memory.getCache(cacheKey);
+    if (cached && Date.now() - cached.timestamp < args.cacheDuration * 1000) {
+      return { ...cached.data, fromCache: true };
+    }
+    
+    // Make API call
+    const response = await fetch(args.url);
+    const data = await response.json();
+    
+    // Cache the result
+    await agent.memory.setCache(cacheKey, {
+      data,
+      timestamp: Date.now(),
+    });
+    
+    return { ...data, fromCache: false };
+  },
+};
+```
+
+## Best Practices
+
+### 1. Action Design
+
+- **Keep actions focused**: Each action should do one thing well
+- **Use descriptive names**: Make action names clear and self-documenting
+- **Validate inputs**: Always use proper schema validation
+- **Handle errors gracefully**: Return meaningful error messages
+- **Make actions idempotent**: Actions should be safe to retry
+
+### 2. Performance Optimization
+
+```typescript
+// Use connection pooling for database actions
+const dbAction = {
+  name: "database_query",
+  description: "Execute database query with connection pooling",
+  schema: z.object({
+    query: z.string(),
+    parameters: z.array(z.any()).optional(),
+  }),
+  handler: async (args, ctx, agent) => {
+    const pool = await getConnectionPool();
+    const client = await pool.connect();
+    
+    try {
+      const result = await client.query(args.query, args.parameters);
+      return { rows: result.rows, rowCount: result.rowCount };
+    } finally {
+      client.release();
+    }
+  },
+};
+```
+
+### 3. Security Considerations
+
+```typescript
+// Sanitize inputs and outputs
+const secureAction = {
+  name: "secure_operation",
+  description: "Perform secure operation with input sanitization",
+  schema: z.object({
+    input: z.string().max(1000), // Limit input size
+  }),
+  handler: async (args, ctx, agent) => {
+    // Sanitize input
+    const sanitizedInput = sanitizeInput(args.input);
+    
+    // Perform operation
+    const result = await performSecureOperation(sanitizedInput);
+    
+    // Sanitize output
+    const sanitizedOutput = sanitizeOutput(result);
+    
+    return { result: sanitizedOutput };
+  },
+};
+```
+
+### 4. Testing Actions
+
+```typescript
+// Test action handler
+describe("Calculator Action", () => {
+  it("should calculate simple expressions", async () => {
+    const result = await calculatorAction.handler(
+      { expression: "2 + 2", precision: 2 },
+      {},
+      {} as any
+    );
+    
+    expect(result).toEqual({
+      result: 4,
+      expression: "2 + 2",
+      success: true,
+    });
+  });
+  
+  it("should handle invalid expressions", async () => {
+    const result = await calculatorAction.handler(
+      { expression: "invalid", precision: 2 },
+      {},
+      {} as any
+    );
+    
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+});
+```
+
+## Next Steps
+
+Explore these related topics to deepen your understanding:
+
+<Cards>
+  <Card title="Context Management" href="/docs/context" />
+  <Card title="Memory Management" href="/docs/memory" />
+  <Card title="Agent Architecture" href="/docs/agent-architecture" />
+  <Card title="Extensions" href="/docs/extensions" />
+</Cards>

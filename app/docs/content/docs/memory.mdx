@@ -1,0 +1,661 @@
+---
+title: Memory
+description: Understanding and managing memory in Axiomkit agents
+---
+
+# Memory
+
+Axiomkit's memory system provides agents with the ability to remember, learn, and adapt over time. It consists of three main types of memory: episodic, semantic, and working memory.
+
+## Overview
+
+The memory system enables agents to:
+- **Remember conversations**: Store and retrieve past interactions
+- **Learn patterns**: Build semantic understanding from experiences
+- **Maintain context**: Keep track of current session state
+- **Adapt behavior**: Use past experiences to improve responses
+
+```typescript
+interface MemoryStore {
+  // Episodic memory (conversation history)
+  episodes: Episode[];
+  
+  // Semantic memory (learned knowledge)
+  semantic: SemanticMemory;
+  
+  // Working memory (current session)
+  working: WorkingMemory;
+  
+  // Memory operations
+  addEpisode(episode: Episode): Promise<void>;
+  getRelevantEpisodes(query: string, limit?: number): Promise<Episode[]>;
+  compressMemory(): Promise<void>;
+}
+```
+
+## Memory Types
+
+### 1. Episodic Memory
+
+Stores individual interactions and conversations:
+
+```typescript
+interface Episode {
+  id: string;
+  timestamp: Date;
+  context: string;
+  input: any;
+  output: any;
+  metadata: {
+    userId?: string;
+    sessionId?: string;
+    taskId?: string;
+    performance?: number;
+    importance?: number;
+    tags?: string[];
+  };
+}
+```
+
+#### Basic Episode Usage
+
+```typescript
+// Add an episode to memory
+await agent.memory.addEpisode({
+  id: generateId(),
+  timestamp: new Date(),
+  context: "chat",
+  input: { message: "What's the weather like?" },
+  output: { response: "I don't have access to real-time weather data." },
+  metadata: {
+    userId: "user123",
+    sessionId: "session456",
+    performance: 0.8,
+    importance: 0.5,
+    tags: ["weather", "information_request"],
+  },
+});
+
+// Retrieve relevant episodes
+const relevantEpisodes = await agent.memory.getRelevantEpisodes(
+  "weather information",
+  5
+);
+```
+
+### 2. Semantic Memory
+
+Stores learned concepts, patterns, and relationships:
+
+```typescript
+interface SemanticMemory {
+  concepts: Map<string, Concept>;
+  patterns: Map<string, Pattern>;
+  relationships: Map<string, Relationship[]>;
+  
+  addConcept(concept: Concept): Promise<void>;
+  findSimilarConcepts(query: string): Promise<Concept[]>;
+  updateRelationships(conceptId: string, relationships: Relationship[]): Promise<void>;
+}
+
+interface Concept {
+  id: string;
+  name: string;
+  description: string;
+  examples: string[];
+  confidence: number;
+  lastUpdated: Date;
+}
+
+interface Pattern {
+  id: string;
+  pattern: string;
+  frequency: number;
+  contexts: string[];
+  effectiveness: number;
+}
+```
+
+#### Semantic Memory Usage
+
+```typescript
+// Add a learned concept
+await agent.memory.semantic.addConcept({
+  id: "weather_requests",
+  name: "Weather Information Requests",
+  description: "Users often ask about weather conditions",
+  examples: [
+    "What's the weather like?",
+    "Is it going to rain today?",
+    "What's the temperature?",
+  ],
+  confidence: 0.9,
+  lastUpdated: new Date(),
+});
+
+// Find similar concepts
+const similarConcepts = await agent.memory.semantic.findSimilarConcepts(
+  "temperature information"
+);
+```
+
+### 3. Working Memory
+
+Manages current session state and attention:
+
+```typescript
+interface WorkingMemory {
+  currentContext: any;
+  activeGoals: Goal[];
+  attention: Attention[];
+  pressure: number; // 0-1, indicates memory pressure
+  
+  addGoal(goal: Goal): void;
+  updateAttention(focus: Attention): void;
+  checkPressure(): boolean;
+  clear(): void;
+}
+
+interface Goal {
+  id: string;
+  description: string;
+  priority: number;
+  status: "active" | "completed" | "failed";
+  createdAt: Date;
+}
+
+interface Attention {
+  focus: string;
+  intensity: number; // 0-1
+  timestamp: Date;
+}
+```
+
+#### Working Memory Usage
+
+```typescript
+// Add a goal to working memory
+agent.memory.working.addGoal({
+  id: "help_user_weather",
+  description: "Help user find weather information",
+  priority: 0.8,
+  status: "active",
+  createdAt: new Date(),
+});
+
+// Update attention focus
+agent.memory.working.updateAttention({
+  focus: "weather_api_integration",
+  intensity: 0.9,
+  timestamp: new Date(),
+});
+
+// Check memory pressure
+if (agent.memory.working.checkPressure()) {
+  console.log("Memory pressure is high, consider compression");
+}
+```
+
+## Memory Configuration
+
+### Basic Memory Setup
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory: {
+    enabled: true,
+    maxEpisodes: 100,
+    maxSemanticConcepts: 1000,
+    compressionEnabled: true,
+  },
+});
+```
+
+### Advanced Memory Configuration
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory: {
+    enabled: true,
+    
+    // Episodic memory settings
+    maxEpisodes: 200,
+    episodeRetentionDays: 30,
+    pruningStrategy: "lru", // "lru" | "importance" | "time"
+    
+    // Semantic memory settings
+    maxSemanticConcepts: 2000,
+    conceptConfidenceThreshold: 0.7,
+    patternMatchingEnabled: true,
+    
+    // Working memory settings
+    maxWorkingGoals: 10,
+    maxAttentionItems: 5,
+    pressureThreshold: 0.8,
+    
+    // Compression settings
+    compressionEnabled: true,
+    compressionThreshold: 0.7,
+    compressionAlgorithm: "gzip",
+    
+    // Importance calculation
+    importanceFunction: (episode) => {
+      return (
+        episode.metadata.performance * 0.4 +
+        episode.metadata.importance * 0.3 +
+        (episode.metadata.tags?.length || 0) * 0.1 +
+        (Date.now() - episode.timestamp.getTime()) / (1000 * 60 * 60 * 24) * 0.2
+      );
+    },
+  },
+});
+```
+
+## Memory Operations
+
+### 1. Adding Episodes
+
+```typescript
+// Simple episode addition
+await agent.memory.addEpisode({
+  id: generateId(),
+  timestamp: new Date(),
+  context: "chat",
+  input: { message: "Hello" },
+  output: { response: "Hi there!" },
+  metadata: {
+    userId: "user123",
+    performance: 1.0,
+  },
+});
+
+// Episode with rich metadata
+await agent.memory.addEpisode({
+  id: generateId(),
+  timestamp: new Date(),
+  context: "task_execution",
+  input: {
+    task: "calculate_fibonacci",
+    parameters: { n: 10 },
+  },
+  output: {
+    result: 55,
+    steps: ["F(10) = F(9) + F(8)", "F(9) = 34", "F(8) = 21", "34 + 21 = 55"],
+  },
+  metadata: {
+    taskId: "task_123",
+    performance: 0.95,
+    importance: 0.8,
+    tags: ["mathematics", "calculation", "fibonacci"],
+    executionTime: 150, // milliseconds
+  },
+});
+```
+
+### 2. Retrieving Episodes
+
+```typescript
+// Get recent episodes
+const recentEpisodes = await agent.memory.getRecentEpisodes(10);
+
+// Get episodes by user
+const userEpisodes = await agent.memory.getUserEpisodes("user123", 20);
+
+// Get episodes by context
+const chatEpisodes = await agent.memory.getEpisodesByContext("chat", 15);
+
+// Get episodes by tags
+const mathEpisodes = await agent.memory.getEpisodesByTags(["mathematics"], 10);
+
+// Semantic search for episodes
+const relevantEpisodes = await agent.memory.getRelevantEpisodes(
+  "How to calculate fibonacci numbers",
+  5
+);
+```
+
+### 3. Memory Compression
+
+```typescript
+// Manual compression
+await agent.memory.compressMemory();
+
+// Compression with options
+await agent.memory.compressMemory({
+  targetSize: 0.5, // Reduce to 50% of current size
+  preserveImportant: true,
+  algorithm: "gzip",
+});
+
+// Check compression status
+const compressionStats = await agent.memory.getCompressionStats();
+console.log(`Memory compressed by ${compressionStats.compressionRatio}%`);
+```
+
+## Memory Providers
+
+### 1. In-Memory Provider (Default)
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory: {
+    enabled: true,
+    provider: "memory", // Default
+    maxEpisodes: 100,
+  },
+});
+```
+
+### 2. File-Based Provider
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory: {
+    enabled: true,
+    provider: "file",
+    path: "./memory",
+    maxEpisodes: 1000,
+  },
+});
+```
+
+### 3. MongoDB Provider
+
+```typescript
+import { createMongoDBExtension } from "@axiomkit/mongodb";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory: {
+    enabled: true,
+    provider: "mongodb",
+    uri: process.env.MONGODB_URI,
+    database: "axiomkit",
+    collections: {
+      episodes: "episodes",
+      semantic: "semantic_memory",
+      working: "working_memory",
+    },
+  },
+  extensions: [createMongoDBExtension({
+    uri: process.env.MONGODB_URI,
+    database: "axiomkit",
+  })],
+});
+```
+
+## Memory Patterns
+
+### 1. Conversation Memory
+
+```typescript
+const conversationMemory = {
+  // Store conversation context
+  async addConversation(userId: string, message: string, response: string) {
+    await agent.memory.addEpisode({
+      id: generateId(),
+      timestamp: new Date(),
+      context: "conversation",
+      input: { message, userId },
+      output: { response },
+      metadata: {
+        userId,
+        sessionId: getCurrentSessionId(),
+        performance: calculateResponseQuality(response),
+        tags: extractTags(message),
+      },
+    });
+  },
+
+  // Retrieve conversation history
+  async getConversationHistory(userId: string, limit: number = 10) {
+    return await agent.memory.getUserEpisodes(userId, limit);
+  },
+
+  // Get conversation context for response generation
+  async getConversationContext(userId: string) {
+    const history = await this.getConversationHistory(userId, 5);
+    return {
+      recentMessages: history.map(ep => ep.input.message),
+      userPreferences: extractUserPreferences(history),
+      conversationStyle: analyzeConversationStyle(history),
+    };
+  },
+};
+```
+
+### 2. Learning Memory
+
+```typescript
+const learningMemory = {
+  // Store learned patterns
+  async addPattern(pattern: string, context: string, effectiveness: number) {
+    await agent.memory.semantic.addPattern({
+      id: generateId(),
+      pattern,
+      frequency: 1,
+      contexts: [context],
+      effectiveness,
+    });
+  },
+
+  // Apply learned patterns
+  async applyPatterns(input: string, context: string) {
+    const patterns = await agent.memory.semantic.getPatternsByContext(context);
+    return patterns
+      .filter(p => p.effectiveness > 0.7)
+      .sort((a, b) => b.effectiveness - a.effectiveness);
+  },
+
+  // Update pattern effectiveness
+  async updatePatternEffectiveness(patternId: string, newEffectiveness: number) {
+    const pattern = await agent.memory.semantic.getPattern(patternId);
+    if (pattern) {
+      pattern.effectiveness = (pattern.effectiveness + newEffectiveness) / 2;
+      pattern.frequency += 1;
+      await agent.memory.semantic.updatePattern(pattern);
+    }
+  },
+};
+```
+
+### 3. Task Memory
+
+```typescript
+const taskMemory = {
+  // Store task execution
+  async addTaskExecution(taskId: string, task: any, result: any) {
+    await agent.memory.addEpisode({
+      id: generateId(),
+      timestamp: new Date(),
+      context: "task_execution",
+      input: { taskId, task },
+      output: { result },
+      metadata: {
+        taskId,
+        performance: calculateTaskPerformance(result),
+        executionTime: result.executionTime,
+        tags: extractTaskTags(task),
+      },
+    });
+  },
+
+  // Get similar tasks
+  async getSimilarTasks(task: any, limit: number = 5) {
+    const taskDescription = JSON.stringify(task);
+    return await agent.memory.getRelevantEpisodes(taskDescription, limit);
+  },
+
+  // Learn from task execution
+  async learnFromTask(taskId: string, success: boolean, feedback: any) {
+    const episode = await agent.memory.getEpisodeByTaskId(taskId);
+    if (episode) {
+      episode.metadata.performance = success ? 1.0 : 0.0;
+      episode.metadata.feedback = feedback;
+      await agent.memory.updateEpisode(episode);
+    }
+  },
+};
+```
+
+## Memory Optimization
+
+### 1. Pruning Strategies
+
+```typescript
+// LRU (Least Recently Used) - Default
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    pruningStrategy: "lru",
+    maxEpisodes: 100,
+  },
+});
+
+// Importance-based pruning
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    pruningStrategy: "importance",
+    maxEpisodes: 100,
+    importanceFunction: (episode) => {
+      return (
+        episode.metadata.performance * 0.5 +
+        episode.metadata.importance * 0.3 +
+        (episode.metadata.tags?.length || 0) * 0.2
+      );
+    },
+  },
+});
+
+// Time-based pruning
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    pruningStrategy: "time",
+    maxEpisodes: 100,
+    retentionDays: 30,
+  },
+});
+```
+
+### 2. Compression Strategies
+
+```typescript
+// Gzip compression
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    compressionEnabled: true,
+    compressionAlgorithm: "gzip",
+    compressionThreshold: 0.8,
+  },
+});
+
+// Semantic compression (combine similar episodes)
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    compressionEnabled: true,
+    compressionAlgorithm: "semantic",
+    semanticCompressionThreshold: 0.9,
+  },
+});
+```
+
+### 3. Memory Monitoring
+
+```typescript
+// Monitor memory usage
+const memoryStats = await agent.memory.getStats();
+console.log({
+  totalEpisodes: memoryStats.episodes.count,
+  totalConcepts: memoryStats.semantic.concepts.count,
+  workingMemoryPressure: memoryStats.working.pressure,
+  compressionRatio: memoryStats.compression.ratio,
+});
+
+// Set up memory alerts
+agent.memory.on("pressure", (pressure) => {
+  if (pressure > 0.8) {
+    console.warn("Memory pressure is high, consider compression");
+  }
+});
+
+agent.memory.on("pruning", (stats) => {
+  console.log(`Pruned ${stats.removedCount} episodes`);
+});
+```
+
+## Best Practices
+
+### 1. Memory Design
+
+- **Set appropriate limits**: Balance memory capacity with performance
+- **Use meaningful metadata**: Include relevant tags and performance metrics
+- **Implement proper pruning**: Choose the right pruning strategy for your use case
+- **Monitor memory pressure**: Set up alerts for memory management
+
+### 2. Performance Optimization
+
+```typescript
+// Use indexing for frequent queries
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    indexes: [
+      { field: "metadata.userId", type: "hash" },
+      { field: "metadata.tags", type: "array" },
+      { field: "timestamp", type: "date" },
+    ],
+  },
+});
+
+// Batch memory operations
+const episodes = [/* multiple episodes */];
+await agent.memory.addEpisodes(episodes); // Batch add
+```
+
+### 3. Security Considerations
+
+```typescript
+// Sanitize sensitive data before storing
+const sanitizedEpisode = {
+  ...episode,
+  input: sanitizeInput(episode.input),
+  output: sanitizeOutput(episode.output),
+  metadata: {
+    ...episode.metadata,
+    // Remove sensitive fields
+    sessionToken: undefined,
+    password: undefined,
+  },
+};
+
+// Encrypt sensitive memory data
+const agent = createAgent({
+  memory: {
+    enabled: true,
+    encryption: {
+      enabled: true,
+      algorithm: "aes-256-gcm",
+      key: process.env.MEMORY_ENCRYPTION_KEY,
+    },
+  },
+});
+```
+
+## Next Steps
+
+Explore these related topics to deepen your understanding:
+
+<Cards>
+  <Card title="Context Management" href="/docs/context" />
+  <Card title="Custom Actions" href="/docs/actions" />
+  <Card title="Agent Architecture" href="/docs/agent-architecture" />
+  <Card title="Extensions" href="/docs/extensions" />
+</Cards>

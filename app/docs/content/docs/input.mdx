@@ -1,0 +1,741 @@
+---
+title: Input
+description: Understanding and working with inputs in Axiomkit
+---
+
+# Input
+
+Input handling in Axiomkit manages how agents receive and process various types of data from users, systems, and external sources.
+
+## Overview
+
+The input system in Axiomkit provides:
+- **Multiple input types**: Text, structured data, files, streams
+- **Input validation**: Schema-based validation and sanitization
+- **Input processing**: Transformation and enrichment
+- **Input routing**: Directing inputs to appropriate handlers
+- **Input history**: Tracking and managing input streams
+
+```typescript
+interface Input<TData = any> {
+  type: string;
+  data: TData;
+  metadata: {
+    timestamp: Date;
+    source: string;
+    format: string;
+    encoding?: string;
+  };
+  validation?: ValidationResult;
+}
+```
+
+## Input Types
+
+### 1. Text Input
+
+```typescript
+const textInput = {
+  type: "text",
+  data: "Hello, how can you help me today?",
+  metadata: {
+    timestamp: new Date(),
+    source: "user",
+    format: "plaintext",
+    encoding: "utf-8",
+  },
+};
+```
+
+### 2. Structured Input
+
+```typescript
+const structuredInput = {
+  type: "json",
+  data: {
+    message: "Calculate the sum of 5 and 3",
+    context: {
+      userId: "user123",
+      sessionId: "session456",
+      preferences: {
+        language: "en",
+        detailLevel: "detailed",
+      },
+    },
+  },
+  metadata: {
+    timestamp: new Date(),
+    source: "api",
+    format: "json",
+  },
+};
+```
+
+### 3. File Input
+
+```typescript
+const fileInput = {
+  type: "file",
+  data: {
+    content: "file content here...",
+    filename: "document.txt",
+    size: 1024,
+    mimeType: "text/plain",
+  },
+  metadata: {
+    timestamp: new Date(),
+    source: "upload",
+    format: "file",
+  },
+};
+```
+
+### 4. Stream Input
+
+```typescript
+const streamInput = {
+  type: "stream",
+  data: {
+    stream: readableStream,
+    chunkSize: 1024,
+    encoding: "utf-8",
+  },
+  metadata: {
+    timestamp: new Date(),
+    source: "websocket",
+    format: "stream",
+  },
+};
+```
+
+## Input Processing
+
+### 1. Input Validation
+
+```typescript
+import { z } from "zod";
+
+const inputSchema = z.object({
+  message: z.string().min(1).max(1000),
+  userId: z.string().optional(),
+  context: z.object({
+    sessionId: z.string(),
+    preferences: z.record(z.any()).optional(),
+  }).optional(),
+});
+
+const validateInput = (input: any) => {
+  try {
+    const validated = inputSchema.parse(input);
+    return {
+      isValid: true,
+      data: validated,
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      isValid: false,
+      data: null,
+      errors: error.errors,
+    };
+  }
+};
+```
+
+### 2. Input Sanitization
+
+```typescript
+const sanitizeInput = (input: any) => {
+  if (typeof input === "string") {
+    return {
+      ...input,
+      data: input.data
+        .trim()
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replace(/javascript:/gi, "")
+        .replace(/on\w+=/gi, ""),
+    };
+  }
+  
+  if (typeof input === "object") {
+    return {
+      ...input,
+      data: JSON.parse(JSON.stringify(input.data)), // Deep clone
+    };
+  }
+  
+  return input;
+};
+```
+
+### 3. Input Enrichment
+
+```typescript
+const enrichInput = async (input: any, context: any) => {
+  const enriched = {
+    ...input,
+    metadata: {
+      ...input.metadata,
+      enriched: true,
+      enrichmentTimestamp: new Date(),
+    },
+  };
+  
+  // Add user context
+  if (input.data.userId) {
+    const userProfile = await getUserProfile(input.data.userId);
+    enriched.data.userProfile = userProfile;
+  }
+  
+  // Add session context
+  if (input.data.context?.sessionId) {
+    const sessionData = await getSessionData(input.data.context.sessionId);
+    enriched.data.sessionData = sessionData;
+  }
+  
+  // Add location context
+  if (context.location) {
+    enriched.data.location = context.location;
+  }
+  
+  return enriched;
+};
+```
+
+## Input Handlers
+
+### 1. Text Input Handler
+
+```typescript
+const textInputHandler = {
+  name: "text_handler",
+  description: "Handle plain text input",
+  
+  canHandle: (input: any) => input.type === "text",
+  
+  process: async (input: any, context: any) => {
+    // Validate text input
+    if (!input.data || typeof input.data !== "string") {
+      throw new Error("Invalid text input");
+    }
+    
+    // Sanitize text
+    const sanitizedText = sanitizeText(input.data);
+    
+    // Extract entities (names, dates, etc.)
+    const entities = await extractEntities(sanitizedText);
+    
+    // Detect intent
+    const intent = await detectIntent(sanitizedText);
+    
+    return {
+      type: "processed_text",
+      data: {
+        original: input.data,
+        sanitized: sanitizedText,
+        entities,
+        intent,
+      },
+      metadata: {
+        ...input.metadata,
+        processed: true,
+        processingTime: Date.now() - input.metadata.timestamp.getTime(),
+      },
+    };
+  },
+};
+```
+
+### 2. JSON Input Handler
+
+```typescript
+const jsonInputHandler = {
+  name: "json_handler",
+  description: "Handle structured JSON input",
+  
+  canHandle: (input: any) => input.type === "json",
+  
+  process: async (input: any, context: any) => {
+    // Validate JSON structure
+    const validation = validateInput(input.data);
+    if (!validation.isValid) {
+      throw new Error(`Invalid JSON input: ${validation.errors.join(", ")}`);
+    }
+    
+    // Process structured data
+    const processed = {
+      message: input.data.message,
+      context: {
+        ...input.data.context,
+        processedAt: new Date().toISOString(),
+      },
+      metadata: {
+        userId: input.data.userId,
+        sessionId: input.data.context?.sessionId,
+      },
+    };
+    
+    return {
+      type: "processed_json",
+      data: processed,
+      metadata: {
+        ...input.metadata,
+        processed: true,
+        validation: validation,
+      },
+    };
+  },
+};
+```
+
+### 3. File Input Handler
+
+```typescript
+const fileInputHandler = {
+  name: "file_handler",
+  description: "Handle file uploads and processing",
+  
+  canHandle: (input: any) => input.type === "file",
+  
+  process: async (input: any, context: any) => {
+    const { content, filename, mimeType } = input.data;
+    
+    // Validate file type
+    const allowedTypes = ["text/plain", "text/markdown", "application/json"];
+    if (!allowedTypes.includes(mimeType)) {
+      throw new Error(`Unsupported file type: ${mimeType}`);
+    }
+    
+    // Process based on file type
+    let processedContent;
+    switch (mimeType) {
+      case "text/plain":
+        processedContent = await processTextFile(content);
+        break;
+      case "text/markdown":
+        processedContent = await processMarkdownFile(content);
+        break;
+      case "application/json":
+        processedContent = await processJsonFile(content);
+        break;
+    }
+    
+    return {
+      type: "processed_file",
+      data: {
+        original: input.data,
+        processed: processedContent,
+        filename,
+        mimeType,
+      },
+      metadata: {
+        ...input.metadata,
+        processed: true,
+        fileSize: content.length,
+      },
+    };
+  },
+};
+```
+
+## Input Routing
+
+### 1. Router Configuration
+
+```typescript
+const inputRouter = {
+  handlers: [
+    textInputHandler,
+    jsonInputHandler,
+    fileInputHandler,
+  ],
+  
+  route: async (input: any, context: any) => {
+    // Find appropriate handler
+    const handler = inputRouter.handlers.find(h => h.canHandle(input));
+    
+    if (!handler) {
+      throw new Error(`No handler found for input type: ${input.type}`);
+    }
+    
+    // Process input with handler
+    return await handler.process(input, context);
+  },
+  
+  // Add custom routing logic
+  customRoute: (input: any, context: any) => {
+    // Custom routing based on content or context
+    if (input.data.message?.includes("code")) {
+      return "code_handler";
+    }
+    
+    if (input.data.message?.includes("calculate")) {
+      return "calculator_handler";
+    }
+    
+    return "default_handler";
+  },
+};
+```
+
+### 2. Priority-Based Routing
+
+```typescript
+const priorityRouter = {
+  handlers: [
+    { handler: urgentHandler, priority: 1 },
+    { handler: normalHandler, priority: 2 },
+    { handler: backgroundHandler, priority: 3 },
+  ],
+  
+  route: async (input: any, context: any) => {
+    // Sort handlers by priority
+    const sortedHandlers = priorityRouter.handlers
+      .sort((a, b) => a.priority - b.priority);
+    
+    // Find first handler that can process the input
+    for (const { handler } of sortedHandlers) {
+      if (handler.canHandle(input)) {
+        return await handler.process(input, context);
+      }
+    }
+    
+    throw new Error("No suitable handler found");
+  },
+};
+```
+
+## Input Validation
+
+### 1. Schema Validation
+
+```typescript
+import { z } from "zod";
+
+const inputValidationSchemas = {
+  chat: z.object({
+    message: z.string().min(1).max(1000),
+    userId: z.string().optional(),
+    sessionId: z.string().optional(),
+  }),
+  
+  task: z.object({
+    taskType: z.enum(["calculation", "analysis", "generation"]),
+    parameters: z.record(z.any()),
+    priority: z.enum(["low", "medium", "high"]).default("medium"),
+  }),
+  
+  file: z.object({
+    content: z.string(),
+    filename: z.string(),
+    mimeType: z.string(),
+    size: z.number().max(10 * 1024 * 1024), // 10MB limit
+  }),
+};
+
+const validateInputByType = (input: any, type: string) => {
+  const schema = inputValidationSchemas[type];
+  if (!schema) {
+    throw new Error(`Unknown input type: ${type}`);
+  }
+  
+  return schema.safeParse(input.data);
+};
+```
+
+### 2. Custom Validation
+
+```typescript
+const customValidators = {
+  // Validate email format
+  email: (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
+  },
+  
+  // Validate URL format
+  url: (value: string) => {
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  
+  // Validate file size
+  fileSize: (size: number, maxSize: number) => {
+    return size <= maxSize;
+  },
+  
+  // Validate content length
+  contentLength: (content: string, minLength: number, maxLength: number) => {
+    return content.length >= minLength && content.length <= maxLength;
+  },
+};
+```
+
+## Input Transformation
+
+### 1. Text Transformation
+
+```typescript
+const textTransformers = {
+  // Convert to lowercase
+  toLowerCase: (text: string) => text.toLowerCase(),
+  
+  // Remove extra whitespace
+  normalizeWhitespace: (text: string) => text.replace(/\s+/g, " ").trim(),
+  
+  // Extract keywords
+  extractKeywords: (text: string) => {
+    const words = text.toLowerCase().split(/\s+/);
+    const stopWords = new Set(["the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"]);
+    return words.filter(word => !stopWords.has(word) && word.length > 2);
+  },
+  
+  // Detect language
+  detectLanguage: async (text: string) => {
+    // Use a language detection library
+    const { detect } = await import("langdetect");
+    return detect(text);
+  },
+};
+```
+
+### 2. Data Transformation
+
+```typescript
+const dataTransformers = {
+  // Flatten nested objects
+  flatten: (obj: any, prefix = "") => {
+    return Object.keys(obj).reduce((acc, key) => {
+      const newKey = prefix ? `${prefix}.${key}` : key;
+      if (typeof obj[key] === "object" && obj[key] !== null && !Array.isArray(obj[key])) {
+        Object.assign(acc, dataTransformers.flatten(obj[key], newKey));
+      } else {
+        acc[newKey] = obj[key];
+      }
+      return acc;
+    }, {} as any);
+  },
+  
+  // Convert to specific format
+  toFormat: (data: any, format: string) => {
+    switch (format) {
+      case "json":
+        return JSON.stringify(data);
+      case "xml":
+        return convertToXml(data);
+      case "csv":
+        return convertToCsv(data);
+      default:
+        throw new Error(`Unsupported format: ${format}`);
+    }
+  },
+};
+```
+
+## Input Monitoring
+
+### 1. Input Metrics
+
+```typescript
+const inputMetrics = {
+  // Track input statistics
+  trackInput: (input: any) => {
+    const metrics = {
+      timestamp: new Date(),
+      type: input.type,
+      size: JSON.stringify(input.data).length,
+      source: input.metadata.source,
+      processingTime: 0,
+    };
+    
+    // Store metrics
+    storeMetrics(metrics);
+    return metrics;
+  },
+  
+  // Get input statistics
+  getStats: () => {
+    return {
+      totalInputs: getTotalInputs(),
+      averageProcessingTime: getAverageProcessingTime(),
+      inputTypes: getInputTypeDistribution(),
+      errorRate: getErrorRate(),
+    };
+  },
+};
+```
+
+### 2. Input Logging
+
+```typescript
+const inputLogger = {
+  // Log input for debugging
+  logInput: (input: any, level: "debug" | "info" | "warn" | "error" = "info") => {
+    const logEntry = {
+      timestamp: new Date(),
+      level,
+      input: {
+        type: input.type,
+        data: sanitizeForLogging(input.data),
+        metadata: input.metadata,
+      },
+    };
+    
+    logger.log(level, "Input received", logEntry);
+  },
+  
+  // Log input processing errors
+  logError: (input: any, error: Error) => {
+    const errorEntry = {
+      timestamp: new Date(),
+      input: {
+        type: input.type,
+        metadata: input.metadata,
+      },
+      error: {
+        message: error.message,
+        stack: error.stack,
+      },
+    };
+    
+    logger.error("Input processing error", errorEntry);
+  },
+};
+```
+
+## Best Practices
+
+### 1. Input Security
+
+```typescript
+const secureInputHandling = {
+  // Sanitize all inputs
+  sanitize: (input: any) => {
+    if (typeof input === "string") {
+      return input
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replace(/javascript:/gi, "")
+        .replace(/on\w+=/gi, "");
+    }
+    return input;
+  },
+  
+  // Validate file uploads
+  validateFile: (file: any) => {
+    const allowedTypes = ["text/plain", "text/markdown", "application/json"];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    
+    if (!allowedTypes.includes(file.mimeType)) {
+      throw new Error("Unsupported file type");
+    }
+    
+    if (file.size > maxSize) {
+      throw new Error("File too large");
+    }
+    
+    return true;
+  },
+  
+  // Rate limiting
+  rateLimit: (userId: string, inputType: string) => {
+    const key = `rate_limit:${userId}:${inputType}`;
+    const limit = 100; // requests per minute
+    
+    const current = getCurrentRequests(key);
+    if (current >= limit) {
+      throw new Error("Rate limit exceeded");
+    }
+    
+    incrementRequests(key);
+  },
+};
+```
+
+### 2. Input Performance
+
+```typescript
+const performanceOptimizations = {
+  // Use streaming for large inputs
+  streamLargeInput: async (input: any) => {
+    if (input.data.length > 1024 * 1024) { // 1MB
+      return await processStream(input.data);
+    }
+    return await processBuffer(input.data);
+  },
+  
+  // Cache processed inputs
+  cacheProcessedInput: (input: any, processed: any) => {
+    const key = generateCacheKey(input);
+    cache.set(key, processed, 300); // Cache for 5 minutes
+  },
+  
+  // Batch process inputs
+  batchProcess: async (inputs: any[]) => {
+    const batches = chunk(inputs, 10); // Process 10 at a time
+    const results = [];
+    
+    for (const batch of batches) {
+      const batchResults = await Promise.all(
+        batch.map(input => processInput(input))
+      );
+      results.push(...batchResults);
+    }
+    
+    return results;
+  },
+};
+```
+
+### 3. Input Error Handling
+
+```typescript
+const errorHandling = {
+  // Graceful degradation
+  handleInputError: (input: any, error: Error) => {
+    // Log the error
+    inputLogger.logError(input, error);
+    
+    // Return fallback response
+    return {
+      type: "error_response",
+      data: {
+        error: "Input processing failed",
+        fallback: "Please try again with different input",
+      },
+      metadata: {
+        originalError: error.message,
+        timestamp: new Date(),
+      },
+    };
+  },
+  
+  // Retry logic
+  retryInput: async (input: any, maxRetries: number = 3) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await processInput(input);
+      } catch (error) {
+        if (i === maxRetries - 1) {
+          throw error;
+        }
+        await delay(1000 * (i + 1)); // Exponential backoff
+      }
+    }
+  },
+};
+```
+
+## Next Steps
+
+Explore these related topics to deepen your understanding:
+
+<Cards>
+  <Card title="Outputs" href="/docs/outputs" />
+  <Card title="Context Management" href="/docs/context" />
+  <Card title="Agent Architecture" href="/docs/agent-architecture" />
+  <Card title="Custom Actions" href="/docs/actions" />
+</Cards>

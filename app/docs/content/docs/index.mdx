@@ -1,13 +1,120 @@
 ---
-title: Hello World
-description: Your first document
+title: About Axiomkit
+description: A full-stack TypeScript framework for building truly autonomous AI agents
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+# Axiomkit
 
-## What is Next?
+<div align="center">
+<img src="https://files.catbox.moe/aslpwo.png" alt="Axiomkit" width="100" />
+<h1>Axiomkit</h1>
+</div>
+
+⚠️ **Alpha Software:** This framework is under active development. APIs may change between versions.
+
+## Overview
+
+**AxiomKit** is a full-stack TypeScript framework for building truly autonomous AI agents. It combines structured planning, adaptive memory, and explainable decision-making in one clean system, designed for:
+
+- **Autonomous task execution** - Agents that can work independently
+- **Stateful, long-running conversations** - Persistent memory across sessions
+- **Memory-backed decision making** - Learning from past interactions
+- **Multi-agent ecosystems** - Coordination between multiple agents
+- **Dynamic learning and adaptation** - Continuous improvement
+
+It's a framework for building real AI agents, not just chatbots. Built for both Node.js and browser environments.
+
+### Key Features
+
+- ⚙️ **Modular TypeScript Architecture**: Clean, extensible, and fully typed for robust development
+- 🧠 **Adaptive Memory + Dynamic Contexts**: Agents remember, prioritize, and adapt their understanding over time
+- 📚 **Goal-Driven Planning + Self-Improvement**: Enables complex task decomposition and continuous learning from experience
+- 🤝 **Multi-Agent Collaboration**: Facilitates seamless coordination and task-sharing among multiple agents
+- 🔍 **Explainable + Ethical by Design**: Built-in mechanisms for transparency and adherence to ethical guidelines
+- 🌐 **Universal Compatibility**: Runs in Node.js, browsers, Deno, Bun, and edge runtimes
+- 🤖 **Any LLM Provider**: Works with OpenAI, Anthropic, Groq, local models, or any provider via adapters
+
+## Project Structure
+
+```
+axiomkit/
+├── 📦 packages/                    # Core framework packages
+│   ├── 🧠 core/                   # Main framework with agent, memory, and context systems
+│   ├── 🛠️ cli/                   # Command-line interface tools
+│   ├── 🚀 create-agent/           # CLI tool for bootstrapping new agents
+│   ├── 🗄️ mongodb/               # MongoDB integration for persistent memory
+│   ├── ⛓️ sei/                   # Sei blockchain integration
+│   ├── 📱 telegram/               # Telegram bot integration
+│   ├── 🎮 discord/                # Discord bot integration
+│   ├── 🗄️ supabase/              # Supabase integration
+│   └── 🔗 mcp/                    # Model Context Protocol integration
+├── 📚 app/
+│   ├── 📖 docs/                   # Documentation site (Next.js)
+│   └── 🎯 examples/               # Ready-to-run example implementations
+└── 📋 scripts/                    # Build and deployment scripts
+```
+
+## Quick Start
+
+### 1. Create a New Agent
+
+```bash
+npx @axiomkit/create-agent my-agent
+```
+
+### 2. Run an Example
+
+```bash
+cd app/examples/bots
+npm install
+npm run calculator-bot
+```
+
+### 3. Build Your Own
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [/* your extensions */],
+});
+
+agent.start();
+```
+
+## Installation
+
+### Core Package
+
+```bash
+npm install @axiomkit/core
+```
+
+### With Extensions
+
+```bash
+npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei @axiomkit/discord @axiomkit/supabase @axiomkit/mcp
+```
+
+## Core Packages
+
+| Package | Description |
+|---------|-------------|
+| **🧠 @axiomkit/core** | Main framework with agent, memory, and context systems |
+| **🛠️ @axiomkit/cli** | Command-line interface tools and utilities |
+| **🚀 @axiomkit/create-agent** | CLI tool for bootstrapping new agents |
+| **🗄️ @axiomkit/mongodb** | MongoDB integration for persistent memory storage |
+| **⛓️ @axiomkit/sei** | Sei blockchain integration for DeFi and trading |
+| **📱 @axiomkit/telegram** | Telegram bot integration for messaging |
+| **🎮 @axiomkit/discord** | Discord bot integration for gaming and community |
+| **🗄️ @axiomkit/supabase** | Supabase integration for database operations |
+| **🔗 @axiomkit/mcp** | Model Context Protocol integration |
 
 <Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.vercel.app" />
+  <Card title="Quick Start Guide" href="/docs/quick-start" />
+  <Card title="First AI Agent" href="/docs/first-ai-agent" />
+  <Card title="Agent Architecture" href="/docs/agent-architecture" />
+  <Card title="Examples" href="/docs/examples" />
 </Cards>

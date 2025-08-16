@@ -1,0 +1,191 @@
+---
+title: Quick Start
+description: Get started with Axiomkit in minutes
+---
+
+# Quick Start
+
+Get up and running with Axiomkit in just a few minutes. This guide will walk you through creating your first AI agent.
+
+## Prerequisites
+
+- Node.js 18+ or Bun
+- npm, yarn, or pnpm
+- Basic TypeScript knowledge
+
+## Installation
+
+### Option 1: Create a New Agent Project
+
+The easiest way to get started is using our CLI tool:
+
+```bash
+npx @axiomkit/create-agent my-first-agent
+cd my-first-agent
+npm install
+```
+
+### Option 2: Manual Installation
+
+If you prefer to set up manually:
+
+```bash
+# Create a new directory
+mkdir my-axiomkit-project
+cd my-axiomkit-project
+
+# Initialize package.json
+npm init -y
+
+# Install Axiomkit core
+npm install @axiomkit/core
+
+# Install a language model provider (choose one)
+npm install @ai-sdk/groq
+# or
+npm install @ai-sdk/openai
+# or
+npm install @ai-sdk/anthropic
+```
+
+## Your First Agent
+
+Create a file called `agent.ts`:
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+// Create a simple agent
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  modelSettings: {
+    maxTokens: 1000,
+    temperature: 0.7,
+  },
+});
+
+async function main() {
+  // Start the agent
+  await agent.start();
+  
+  console.log("🤖 Agent started successfully!");
+  console.log("Type 'exit' to quit");
+  
+  // Simple CLI interface
+  process.stdin.on('data', async (data) => {
+    const input = data.toString().trim();
+    
+    if (input === 'exit') {
+      await agent.stop();
+      process.exit(0);
+    }
+    
+    try {
+      const result = await agent.run({
+        context: {
+          type: "chat",
+          instructions: "You are a helpful assistant. Respond concisely and clearly.",
+        },
+        args: { message: input },
+      });
+      
+      console.log("🤖 Agent:", result.output);
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  });
+}
+
+main().catch(console.error);
+```
+
+## Running Your Agent
+
+```bash
+# If using TypeScript, compile first
+npx tsc agent.ts
+
+# Run the agent
+node agent.js
+```
+
+## Adding Extensions
+
+Axiomkit becomes powerful when you add extensions. Here's how to add the CLI extension:
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+// Create a CLI extension
+const cliExtension = createCliExtension({
+  name: "assistant",
+  instructions: [
+    "You are a helpful command-line assistant.",
+    "Help users with their questions and tasks.",
+    "Provide clear, actionable advice.",
+  ],
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+});
+
+async function main() {
+  await agent.start();
+  console.log("🚀 CLI Agent ready!");
+}
+
+main();
+```
+
+## Next Steps
+
+Now that you have a basic agent running, explore these areas:
+
+<Cards>
+  <Card title="First AI Agent" href="/docs/first-ai-agent" />
+  <Card title="Agent Architecture" href="/docs/agent-architecture" />
+  <Card title="Memory Management" href="/docs/memory" />
+  <Card title="Custom Actions" href="/docs/actions" />
+</Cards>
+
+## Common Issues
+
+### Model Provider Issues
+
+If you encounter issues with model providers:
+
+1. **Check API Keys**: Ensure your API keys are properly set in environment variables
+2. **Rate Limits**: Some providers have rate limits - check your usage
+3. **Model Availability**: Verify the model name is correct and available
+
+### TypeScript Issues
+
+```bash
+# Install TypeScript if not already installed
+npm install -D typescript @types/node
+
+# Create tsconfig.json
+npx tsc --init
+```
+
+### Memory Issues
+
+For production use, consider adding persistent memory:
+
+```bash
+npm install @axiomkit/mongodb
+```
+
+## Examples
+
+Check out our examples for more advanced usage:
+
+- [Calculator Bot](/docs/examples/calculator-bot)
+- [Translator Bot](/docs/examples/translator-bot)
+- [Writing Assistant](/docs/examples/writing-assistant)
+- [Telegram Bot](/docs/examples/telegram-bot)
