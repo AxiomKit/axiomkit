@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import type { Logger } from "./logs/logger";
+import type { Logger } from "./logs";
 import type { TaskRunner } from "./task";
 import { runAction } from "./tasks";
 import type {
@@ -19,22 +19,25 @@ import type {
   InputConfig,
   InputRef,
   MaybePromise,
-  Memory,
+  ActionState,
   Output,
   OutputCtxRef,
   OutputRef,
+  Resolver,
   TemplateResolver,
   WorkingMemory,
 } from "./types";
 import { randomUUIDv7 } from "./utils";
-import { parse } from "./utils/xml";
-import { jsonPath } from "./utils/jsonpath";
+import { parse } from "./utils";
+import { jsonPath } from "./utils";
 import { jsonSchema } from "ai";
+
+import type { WorkingMemoryData } from "./memory";
 
 export class NotFoundError extends Error {
   name = "NotFoundError";
   constructor(public ref: ActionCall | OutputRef | InputRef) {
-    super();
+    super(`${ref.ref} not found: ${ref.ref || "unknown"}`);
   }
 }
 
@@ -44,11 +47,17 @@ export class ParsingError extends Error {
     public ref: ActionCall | OutputRef | InputRef,
     public parsingError: unknown
   ) {
-    super();
+    super(
+      `Parsing failed for ${ref.ref}: ${
+        parsingError instanceof Error
+          ? parsingError.message
+          : String(parsingError)
+      }`
+    );
   }
 }
 
-function parseJSONContent(content: string) {
+function parseJSONContent(content: string): unknown {
   if (content.startsWith("```json")) {
     content = content.slice("```json".length, -3);
   }
@@ -56,7 +65,7 @@ function parseJSONContent(content: string) {
   return JSON.parse(content);
 }
 
-function parseXMLContent(content: string) {
+function parseXMLContent(content: string): Record<string, string> {
   const nodes = parse(content, (node) => {
     return node;
   });
@@ -72,7 +81,7 @@ function parseXMLContent(content: string) {
 }
 
 export interface TemplateInfo {
-  path: (string | number)[];
+  path: readonly (string | number)[];
   template_string: string;
   expression: string;
   primary_key: string | null;
@@ -85,12 +94,12 @@ export function detectTemplates(obj: unknown): TemplateInfo[] {
 
   function traverse(
     currentObj: unknown,
-    currentPath: (string | number)[]
+    currentPath: readonly (string | number)[]
   ): void {
     if (typeof currentObj === "object" && currentObj !== null) {
       if (Array.isArray(currentObj)) {
         currentObj.forEach((item, index) => {
-          traverse(item, [...currentPath, index]);
+          traverse(item, [...currentPath, index] as const);
         });
       } else {
         // Handle non-array objects (assuming Record<string, unknown> or similar)
@@ -100,7 +109,7 @@ export function detectTemplates(obj: unknown): TemplateInfo[] {
             traverse((currentObj as Record<string, unknown>)[key], [
               ...currentPath,
               key,
-            ]);
+            ] as const);
           }
         }
       }
@@ -125,16 +134,16 @@ export function detectTemplates(obj: unknown): TemplateInfo[] {
   return foundTemplates;
 }
 
-export function getPathSegments(pathString: string) {
+export function getPathSegments(pathString: string): string[] {
   const segments = pathString.split(/[.\[\]]+/).filter(Boolean);
   return segments;
 }
 
-export function resolvePathSegments<T = any>(
-  source: any,
-  segments: string[]
+export function resolvePathSegments<T = unknown>(
+  source: unknown,
+  segments: readonly string[]
 ): T | undefined {
-  let current: any = source;
+  let current: unknown = source;
 
   for (const segment of segments) {
     if (current === null || current === undefined) {
@@ -146,20 +155,20 @@ export function resolvePathSegments<T = any>(
     if (!isNaN(index) && Array.isArray(current)) {
       current = current[index];
     } else if (typeof current === "object") {
-      current = current[segment];
+      current = current[segment as keyof typeof current];
     } else {
       return undefined; // Cannot access property on non-object/non-array
     }
   }
 
-  return current;
+  return current as T;
 }
 
 /**
  * Native implementation to safely get a nested value from an object/array
  * using a string path like 'a.b[0].c'.
  */
-export function getValueByPath(source: any, pathString: string): any {
+export function getValueByPath(source: unknown, pathString: string): unknown {
   if (!pathString) {
     return source; // Return the source itself if path is empty
   }
@@ -177,12 +186,12 @@ export function getValueByPath(source: any, pathString: string): any {
  * Creates nested structures if they don't exist.
  */
 function setValueByPath(
-  target: any,
-  path: (string | number)[],
-  value: any,
+  target: Record<string | number, unknown>,
+  path: readonly (string | number)[],
+  value: unknown,
   logger: Logger
 ): void {
-  let current: any = target;
+  let current: Record<string | number, unknown> = target;
   const lastIndex = path.length - 1;
 
   for (let i = 0; i < lastIndex; i++) {
@@ -193,7 +202,10 @@ function setValueByPath(
       // If the next key looks like an array index, create an array, otherwise an object
       current[key] = typeof nextKey === "number" ? [] : {};
     }
-    current = current[key];
+    current = current[key as keyof typeof current] as Record<
+      string | number,
+      unknown
+    >;
 
     // Safety check: if current is not an object/array, we can't proceed
     if (typeof current !== "object" || current === null) {
@@ -226,13 +238,13 @@ function setValueByPath(
  * Modifies the input object directly. Uses native helper functions.
  */
 export async function resolveTemplates(
-  argsObject: any, // The object containing templates (will be mutated)
-  detectedTemplates: TemplateInfo[],
-  resolver: (primary_key: string, path: string) => Promise<any>,
+  argsObject: Record<string | number, unknown>, // The object containing templates (will be mutated)
+  detectedTemplates: readonly TemplateInfo[],
+  resolver: (primary_key: string, path: string) => MaybePromise<unknown>,
   logger: Logger
 ): Promise<void> {
   for (const templateInfo of detectedTemplates) {
-    let resolvedValue: any = undefined;
+    let resolvedValue: unknown = undefined;
 
     if (!templateInfo.primary_key) {
       logger.warn(
@@ -279,9 +291,9 @@ export async function resolveTemplates(
 }
 
 export async function templateResultsResolver(
-  arr: MaybePromise<ActionResult>[],
+  arr: readonly MaybePromise<ActionResult>[],
   path: string
-) {
+): Promise<unknown> {
   const [index, ...resultPath] = getPathSegments(path);
   const actionResult = arr[Number(index)];
 
@@ -295,13 +307,15 @@ export async function templateResultsResolver(
 }
 
 export function createResultsTemplateResolver(
-  arr: Array<MaybePromise<any>>
+  arr: readonly MaybePromise<ActionResult>[]
 ): TemplateResolver {
   return (path) => templateResultsResolver(arr, path);
 }
 
-export function createObjectTemplateResolver(obj: object): TemplateResolver {
-  return async function templateObjectResolver(path) {
+export function createObjectTemplateResolver(
+  obj: Record<string, unknown>
+): TemplateResolver {
+  return async function templateObjectResolver(path: string): Promise<unknown> {
     const res = jsonPath(obj, path);
     if (!res) throw new Error("invalid path: " + path);
     return res.length > 1 ? res : res[0];
@@ -318,7 +332,7 @@ export function parseActionCallContent({
   try {
     const content = call.content.trim();
 
-    let data: any;
+    let data: unknown;
 
     if (action.parser) {
       data = action.parser(call);
@@ -344,9 +358,9 @@ export function resolveActionCall({
   logger,
 }: {
   call: ActionCall;
-  actions: ActionCtxRef[];
+  actions: readonly ActionCtxRef[];
   logger: Logger;
-}) {
+}): ActionCtxRef {
   const contextKey = call.params?.contextKey;
 
   const action = actions.find(
@@ -355,11 +369,23 @@ export function resolveActionCall({
   );
 
   if (!action) {
-    logger.error("agent:action", "ACTION_MISMATCH", {
-      name: call.name,
-      data: call.content,
+    const availableActions = actions.map((a) => a.name);
+    const errorDetails = {
+      error: "ACTION_MISMATCH",
+      requestedAction: call.name,
+      availableActions,
       contextKey,
-    });
+      callContent: call.content,
+      callId: call.id,
+    };
+
+    logger.error(
+      "agent:action",
+      `Action '${
+        call.name
+      }' not found. Available actions: ${availableActions.join(", ")}`,
+      errorDetails
+    );
 
     throw new NotFoundError(call);
   }
@@ -391,15 +417,15 @@ export async function prepareActionCall({
     primary_key: string,
     path: string,
     callCtx: ActionCallContext
-  ) => MaybePromise<any>;
+  ) => MaybePromise<unknown>;
   abortSignal?: AbortSignal;
-}) {
-  let actionMemory: Memory<any> | undefined = undefined;
+}): Promise<ActionCallContext> {
+  let actionMemory: unknown = undefined;
 
-  if (action.memory) {
+  if (action.actionState) {
     actionMemory =
-      (await agent.memory.store.get(action.memory.key)) ??
-      action.memory.create();
+      (await agent.memory.kv.get(action.actionState.key)) ??
+      action.actionState.create();
   }
 
   const callCtx: ActionCallContext = {
@@ -445,7 +471,7 @@ export async function prepareActionCall({
       call.data =
         "parse" in schema
           ? (schema as z.ZodType).parse(data)
-          : schema.validate
+          : "validate" in schema && schema.validate
           ? schema.validate(data)
           : data;
     } catch (error) {
@@ -512,8 +538,8 @@ export async function handleActionCall({
 
   if (action.format) result.formatted = action.format(result);
 
-  if (callCtx.actionMemory) {
-    await agent.memory.store.set(action.memory.key, callCtx.actionMemory);
+  if (callCtx.actionMemory && action.actionState) {
+    await agent.memory.kv.set(action.actionState.key, callCtx.actionMemory);
   }
 
   if (action.onSuccess) {
@@ -529,12 +555,29 @@ export function prepareOutputRef({
   logger,
 }: {
   outputRef: OutputRef;
-  outputs: OutputCtxRef[];
+  outputs: readonly OutputCtxRef[];
   logger: Logger;
-}) {
+}): { output: OutputCtxRef } {
   const output = outputs.find((output) => output.type === outputRef.type);
 
   if (!output) {
+    const availableOutputs = outputs.map((o) => o.type);
+    const errorDetails = {
+      error: "OUTPUT_TYPE_MISMATCH",
+      requestedType: outputRef.type,
+      availableTypes: availableOutputs,
+      outputData: outputRef.data,
+      outputId: outputRef.id,
+    };
+
+    logger.error(
+      "agent:output",
+      `Output type '${
+        outputRef.type
+      }' not found. Available types: ${availableOutputs.join(", ")}`,
+      errorDetails
+    );
+
     throw new NotFoundError(outputRef);
   }
 
@@ -630,7 +673,7 @@ export async function prepareContextActions(params: {
   workingMemory: WorkingMemory;
   agent: AnyAgent;
   agentCtxState: ContextState<AnyContext> | undefined;
-}): Promise<ActionCtxRef[]> {
+}): Promise<readonly ActionCtxRef[]> {
   const { context, state } = params;
   const actions =
     typeof context.actions === "function"
@@ -678,7 +721,7 @@ export async function prepareContextOutputs(params: {
   workingMemory: WorkingMemory;
   agent: AnyAgent;
   agentCtxState: ContextState<AnyContext> | undefined;
-}): Promise<OutputCtxRef[]> {
+}): Promise<readonly OutputCtxRef[]> {
   return params.context.outputs
     ? Promise.all(
         Object.entries(params.context.outputs).map(([type, output]) =>
@@ -711,12 +754,12 @@ export async function prepareAction({
 }): Promise<ActionCtxRef | undefined> {
   if (action.context && action.context.type !== context.type) return undefined;
 
-  let actionMemory: Memory | undefined = undefined;
+  let actionMemory: unknown = undefined;
 
-  if (action.memory) {
+  if (action.actionState) {
     actionMemory =
-      (await agent.memory.store.get(action.memory.key)) ??
-      action.memory.create();
+      (await agent.memory.kv.get(action.actionState.key)) ??
+      action.actionState.create();
   }
 
   const enabled = action.enabled
@@ -729,8 +772,8 @@ export async function prepareAction({
       })
     : true;
 
-  if (action.enabled && actionMemory) {
-    await agent.memory.store.set(actionMemory.key, actionMemory);
+  if (action.enabled && action.actionState && actionMemory) {
+    await agent.memory.kv.set(action.actionState.key, actionMemory);
   }
 
   return enabled
@@ -745,11 +788,15 @@ export async function prepareAction({
     : undefined;
 }
 
-function resolve<Value = any, Ctx = any>(
+function resolve<Value = unknown, Ctx = unknown>(
   value: Value,
   ctx: Ctx
 ): Promise<Value extends (ctx: Ctx) => infer R ? R : Value> {
-  return typeof value === "function" ? value(ctx) : (value as any);
+  return typeof value === "function"
+    ? value(ctx)
+    : (Promise.resolve(value) as Promise<
+        Value extends (ctx: Ctx) => infer R ? R : Value
+      >);
 }
 
 export async function prepareContext(
@@ -820,15 +867,21 @@ export async function prepareContext(
     }
   }
 
-  for (const { context, args } of ctxRefs) {
-    await prepareContext(
-      {
-        agent,
-        ctxState: await agent.getContext({ context, args }),
-        workingMemory,
-        agentCtxState,
-      },
-      state
+  // Parallelize context preparation for composed contexts
+  if (ctxRefs.length > 0) {
+    await Promise.all(
+      ctxRefs.map(async ({ context, args }) => {
+        const composedCtxState = await agent.getContext({ context, args });
+        return prepareContext(
+          {
+            agent,
+            ctxState: composedCtxState,
+            workingMemory,
+            agentCtxState,
+          },
+          state
+        );
+      })
     );
   }
 
@@ -910,17 +963,21 @@ export async function prepareContexts({
   );
 
   if (params?.contexts) {
-    for (const ctxRef of params?.contexts) {
-      await prepareContext(
-        {
-          agent,
-          ctxState: await agent.getContext(ctxRef),
-          workingMemory,
-          agentCtxState,
-        },
-        state
-      );
-    }
+    // Parallelize context preparation for better performance
+    await Promise.all(
+      params.contexts.map(async (ctxRef) => {
+        const ctxState = await agent.getContext(ctxRef);
+        return prepareContext(
+          {
+            agent,
+            ctxState,
+            workingMemory,
+            agentCtxState,
+          },
+          state
+        );
+      })
+    );
   }
 
   return state;
@@ -934,16 +991,33 @@ export async function handleInput({
   workingMemory,
   agent,
 }: {
-  inputs: Input[];
+  inputs: readonly Input[];
   inputRef: InputRef;
   logger: Logger;
-  workingMemory: WorkingMemory;
+  workingMemory: WorkingMemoryData;
   ctxState: ContextState;
   agent: AnyAgent;
-}) {
+}): Promise<void> {
   const input = inputs.find((input) => input.type === inputRef.type);
 
   if (!input) {
+    const availableInputs = inputs.map((i) => i.type);
+    const errorDetails = {
+      error: "INPUT_TYPE_MISMATCH",
+      requestedType: inputRef.type,
+      availableTypes: availableInputs,
+      inputContent: inputRef.content,
+      inputId: inputRef.id,
+    };
+
+    logger.error(
+      "agent:input",
+      `Input type '${
+        inputRef.type
+      }' not found. Available types: ${availableInputs.join(", ")}`,
+      errorDetails
+    );
+
     throw new NotFoundError(inputRef);
   }
 
@@ -962,18 +1036,29 @@ export async function handleInput({
 
   logger.debug("agent:send", "Querying episodic memory");
 
-  const episodicMemory = await agent.memory.vector.query(
-    `${ctxState.id}`,
-    JSON.stringify(inputRef.data)
+  const episodicMemory = await agent.memory.episodes.findSimilar(
+    ctxState.id,
+    typeof inputRef.data === "string"
+      ? inputRef.data
+      : JSON.stringify(inputRef.data),
+    5
   );
 
   logger.trace("agent:send", "Episodic memory retrieved", {
     episodesCount: episodicMemory.length,
   });
 
-  workingMemory.episodicMemory = {
-    episodes: episodicMemory,
-  };
+  workingMemory.relevantMemories = episodicMemory.map((episode) => ({
+    id: episode.id,
+    type: "episode",
+    content: episode.input || episode.output,
+    metadata: {
+      context: episode.context,
+      timestamp: episode.timestamp,
+      duration: episode.duration,
+    },
+    timestamp: episode.timestamp,
+  }));
 
   if (input.handler) {
     logger.debug("agent:send", "Using custom input handler", {

@@ -2,7 +2,6 @@ export * from "./formatters";
 export * from "./jsonpath";
 export * from "./streaming";
 export * from "./xml";
-
 import * as z from "zod/v4";
 import type {
   Action,
@@ -15,7 +14,7 @@ import type {
   Extension,
   InputConfig,
   InputRef,
-  Memory,
+  ActionState,
   Optional,
   OutputConfig,
   OutputRef,
@@ -58,7 +57,7 @@ export function action<
   TError = any,
   TContext extends AnyContext = AnyContext,
   TAgent extends AnyAgent = AnyAgent,
-  TMemory extends Memory<any> = Memory<any>
+  TMemory extends ActionState<any> = ActionState<any>
 >(
   action: Optional<
     Action<TSchema, Result, TError, TContext, TAgent, TMemory>,
@@ -145,7 +144,7 @@ export function splitTextIntoChunks(
  * @param memory - Memory configuration object
  * @returns Typed memory configuration
  */
-export function memory<Data = any>(memory: Memory<Data>) {
+export function memory<Data = any>(memory: ActionState<Data>) {
   return memory;
 }
 
@@ -164,6 +163,12 @@ export function extension<
   };
 }
 
+/**
+ * Validates environment variables against a Zod schema
+ * @param schema The Zod schema to validate against
+ * @param env The environment object to validate (defaults to process.env)
+ * @returns The validated environment variables
+ */
 export function validateEnv<T extends z.ZodTypeAny>(
   schema: T,
   env = process.env

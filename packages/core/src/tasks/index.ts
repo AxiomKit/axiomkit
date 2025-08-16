@@ -1,3 +1,4 @@
+import { type LanguageModelV2 } from "@ai-sdk/provider";
 import {
   streamText,
   type CoreMessage,
@@ -20,7 +21,7 @@ import { generateText } from "ai";
 import { type RequestContext } from "../monitor";
 import { getRequestTracker } from "../monitor/monitor";
 import { LogEventType, StructuredLogger } from "../logs/logging-events";
-import { type LanguageModelV2 } from "../types";
+
 /**
  * Prepares a stream response by handling the stream result and parsing it.
  *
