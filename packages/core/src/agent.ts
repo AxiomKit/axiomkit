@@ -156,7 +156,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
   container.instance("structuredLogger", structuredLogger);
 
   // Log agent creation
-  logger.info("agent:create", "Creating Daydreams agent", {
+  logger.info("agent:create", "Creating Axiomkit agent", {
     model: model,
     reasoningModel: reasoningModel,
     logLevel: config.logLevel ?? LogLevel.INFO,
@@ -556,7 +556,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     async start(args) {
       if (booted) return agent;
 
-      logger.info("agent:start", "Starting Daydreams agent", {
+      logger.info("agent:start", "Starting Axiomkit agent", {
         args,
         booted,
         agentContext: agent.context?.type,

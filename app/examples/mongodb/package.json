@@ -3,6 +3,15 @@
     "module": "index.ts",
     "type": "module",
     "private": true,
+    "scripts": {
+        "start": "tsx index.ts",
+        "dev": "tsx watch index.ts",
+        "build": "tsc",
+        "test": "tsx test-memory.ts",
+        "test:memory": "tsx test-memory.ts",
+        "test:translation": "tsx test-translation.ts",
+        "simple": "tsx simple-example.ts"
+    },
     "dependencies": {
         "@ai-sdk/anthropic": "catalog:",
         "@ai-sdk/groq": "catalog:",
@@ -13,7 +22,9 @@
         "@axiomkit/sei": "workspace:*",
         "viem": "^2.33.0",
         "zod": "catalog:",
-        "chalk": "catalog:"
+        "chalk": "catalog:",
+        "tsx": "catalog:",
+        "dotenv": "catalog:"
     },
     "peerDependencies": {
         "typescript": "catalog:"

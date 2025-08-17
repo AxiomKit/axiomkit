@@ -1,6 +1,6 @@
 # Episode Export System
 
-The episode export system provides a clean and extensible way to export conversation episodes from the Daydreams memory system.
+The episode export system provides a clean and extensible way to export conversation episodes from the memory system.
 
 ## Usage
 
@@ -92,7 +92,7 @@ lines.forEach(line => {
 ## Creating Custom Exporters
 
 ```typescript
-import { EpisodeExporter, ExportResult } from '@daydreams/core';
+import { EpisodeExporter, ExportResult } from '@axiomkit/core';
 
 class CSVExporter implements EpisodeExporter<CSVOptions> {
   name = 'csv';

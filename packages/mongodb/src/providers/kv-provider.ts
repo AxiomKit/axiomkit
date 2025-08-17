@@ -43,7 +43,7 @@ export class MongoKVProvider implements KeyValueProvider {
   constructor(config: MongoKVProviderConfig) {
     const {
       uri,
-      dbName = "daydreams_memory",
+      dbName = "axiomkit_memory",
       collectionName = "kv_store",
     } = config;
     this.client = new MongoClient(uri);

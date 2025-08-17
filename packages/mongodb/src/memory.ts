@@ -33,7 +33,7 @@ export interface MongoMemoryConfig {
 export function createMongoMemory(config: MongoMemoryConfig): MemorySystem {
   const {
     uri,
-    dbName = "daydreams_memory",
+    dbName = "axiomkit_memory",
     collectionName = "kv_store",
     options,
   } = config;
