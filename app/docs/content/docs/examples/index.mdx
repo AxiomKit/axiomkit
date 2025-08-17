@@ -1,0 +1,160 @@
+---
+title: Example
+description: A full-stack TypeScript framework for building truly autonomous AI agents
+---
+
+# About Axiomkit
+
+<div align="center">
+<img src="https://files.catbox.moe/aslpwo.png" alt="Axiomkit" width="100" />
+<h1>Axiomkit</h1>
+</div>
+
+⚠️ **Alpha Software:** This framework is under active development. APIs may change between versions.
+
+## What is Axiomkit?
+
+**Axiomkit** is a next-generation TypeScript framework for building autonomous AI agents. It emphasizes:
+
+- **Modularity** - Easily compose agents from reusable parts
+- **Extensibility** - Add new capabilities via actions, adapters, and extensions
+- **Scalability** - Build agents that can grow from simple scripts to full production systems
+- **Advanced Autonomy** - Agents can plan, act, learn, and adapt in dynamic environments
+
+## What is an AI Agent?
+
+An AI agent is a smart, self-directed assistant that can:
+
+- **Listen** to external events (messages, API calls, time-based triggers)
+- **Reason** using powerful models like GPT to decide what to do
+- **Act** by executing functions (e.g., send emails, update orders, query APIs)
+- **Remember** past interactions to improve future decisions
+
+## Why Axiomkit?
+
+In a crowded field of AI frameworks, **AxiomKit** stands out for developer-first design and deep agent capabilities:
+
+### ✅ TypeScript-Native
+- Full type safety
+- Clean, productive DX for developers
+- Easily integrated into existing Node.js ecosystems
+
+### ✅ Model-Agnostic
+- Compatible with OpenAI, Groq, DeepSeek, Anthropic, Gemini, Ollama, and more
+- Plug in any provider via `@ai-sdk` abstraction
+
+### ✅ Agent Autonomy
+- **Dynamic Re-Planning**: Agents can detect failed plans and re-evaluate goals in response to changing environments
+- **Self-Correction Loops**: Built-in mechanisms for agents to reflect, assess outcomes, and optimize strategies over time
+
+### ✅ Flexible Memory System
+- Structured short-term and long-term memory
+- Contextual queries: *"What did I discuss with User A about Project X last week?"*
+- Supports multi-session and multi-user continuity
+
+### ✅ Scalable Plugin System
+- Extend agents with production-grade integrations for Discord, Telegram, Twitter, and more
+- Extend behavior via reusable `actions`, `contexts`, and `extensions`
+
+## ⚙️ Architecture Overview
+
+| Component | Function |
+|-----------|----------|
+| **Agent Runtime** | Orchestrates event processing, action dispatch, and memory usage |
+| **Contexts** | Isolated memory/state containers for conversations, tasks, or domains |
+| **Actions** | Declarative function interfaces for the agent to interact with systems |
+| **Memory** | Structured state persistence with retrieval and summarization APIs |
+| **Extensions** | Pluggable modules bundling actions, adapters, and custom logic |
+| **LLM Providers** | Abstracts interaction with any supported language model |
+
+## 👥 Who Should Use AxiomKit?
+
+- **Developers building AI-first applications** - Create intelligent systems that can reason and act autonomously
+- **Teams deploying domain-specific intelligent agents** - Build specialized agents for customer service, data analysis, or automation
+- **Researchers designing memory-aware, goal-driven AI systems** - Experiment with advanced agent architectures
+- **Projects integrating AI with social platforms, CRMs, blockchains, or internal tools** - Connect AI to real-world systems
+
+## Project Structure
+
+```
+axiomkit/
+├── 📦 packages/                    # Core framework packages
+│   ├── 🧠 core/                   # Main framework with agent, memory, and context systems
+│   ├── 🛠️ cli/                   # Command-line interface tools
+│   ├── 🚀 create-agent/           # CLI tool for bootstrapping new agents
+│   ├── 🗄️ mongodb/               # MongoDB integration for persistent memory
+│   ├── ⛓️ sei/                   # Sei blockchain integration
+│   ├── 📱 telegram/               # Telegram bot integration
+│   ├── 🎮 discord/                # Discord bot integration
+│   ├── 🗄️ supabase/              # Supabase integration
+│   └── 🔗 mcp/                    # Model Context Protocol integration
+├── 📚 app/
+│   ├── 📖 docs/                   # Documentation site (Next.js)
+│   └── 🎯 examples/               # Ready-to-run example implementations
+└── 📋 scripts/                    # Build and deployment scripts
+```
+
+## Quick Start
+
+### 1. Create a New Agent
+
+```bash
+npx @axiomkit/create-agent my-agent
+```
+
+### 2. Run an Example
+
+```bash
+cd app/examples/bots
+npm install
+npm run calculator-bot
+```
+
+### 3. Build Your Own
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [/* your extensions */],
+});
+
+agent.start();
+```
+
+## Installation
+
+### Core Package
+
+```bash
+npm install @axiomkit/core
+```
+
+### With Extensions
+
+```bash
+npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei @axiomkit/discord @axiomkit/supabase @axiomkit/mcp
+```
+
+## Core Packages
+
+| Package | Description |
+|---------|-------------|
+| **🧠 @axiomkit/core** | Main framework with agent, memory, and context systems |
+| **🛠️ @axiomkit/cli** | Command-line interface tools and utilities |
+| **🚀 @axiomkit/create-agent** | CLI tool for bootstrapping new agents |
+| **🗄️ @axiomkit/mongodb** | MongoDB integration for persistent memory storage |
+| **⛓️ @axiomkit/sei** | Sei blockchain integration for DeFi and trading |
+| **📱 @axiomkit/telegram** | Telegram bot integration for messaging |
+| **🎮 @axiomkit/discord** | Discord bot integration for gaming and community |
+| **🗄️ @axiomkit/supabase** | Supabase integration for database operations |
+| **🔗 @axiomkit/mcp** | Model Context Protocol integration |
+
+<Cards>
+  <Card title="Quick Start Guide" href="/docs/quick-start" />
+  <Card title="First AI Agent" href="/docs/first-ai-agent" />
+  <Card title="Agent Architecture" href="/docs/agent-architecture" />
+  <Card title="Examples" href="/docs/examples" />
+</Cards>

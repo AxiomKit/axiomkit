@@ -1,0 +1,11 @@
+{
+    "title": "Examples",
+    "description": "The docs Examples",
+    "icon": "Building",
+    "root": true,
+    "pages": [
+        "---Introduction---",
+        "index",
+        "first-ai-agent"
+    ]
+}
