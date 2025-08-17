@@ -4,6 +4,7 @@ packages:
   - app/*
 
 catalog:
+
   '@ai-sdk/anthropic': 2.0.1
   '@ai-sdk/groq': 2.0.2
   '@ai-sdk/openai': 2.0.4
@@ -16,6 +17,7 @@ catalog:
   zod-to-json-schema: 3.24.3
   dotenv: 16.4.7
   '@types/bun': latest  
+  tsx: ^4.20.0
   typescript: 5.8.3
   tsup: 8.5.0
   vitest: 3.2.4
