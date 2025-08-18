@@ -17,8 +17,6 @@ export interface MongoMemoryConfig {
   dbName?: string;
   /** Collection name for storing key-value data */
   collectionName?: string;
-  /** Optional configuration for memory system behavior */
-  options?: MemoryConfig["options"];
 }
 
 /**
@@ -33,9 +31,8 @@ export interface MongoMemoryConfig {
 export function createMongoMemory(config: MongoMemoryConfig): MemorySystem {
   const {
     uri,
-    dbName = "axiomkit_memory",
+    dbName = "daydreams_memory",
     collectionName = "kv_store",
-    options,
   } = config;
 
   // Create the MongoDB KV provider
@@ -57,7 +54,6 @@ export function createMongoMemory(config: MongoMemoryConfig): MemorySystem {
       vector: vectorProvider,
       graph: graphProvider,
     },
-    options,
   };
 
   // Return the complete memory system

@@ -41,7 +41,7 @@ export type TextNode = {
 };
 
 export type ElementNode<
-  Attributes extends Record<string, string> = Record<string, any>,
+  Attributes extends Record<string, string> = Record<string, any>
 > = {
   type: "element";
   name: string;

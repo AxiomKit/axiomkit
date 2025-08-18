@@ -4,7 +4,10 @@ export const StdioTransportSchema = z.object({
   type: z.literal("stdio"),
   command: z.string().describe("Command to execute for the MCP server"),
   args: z.array(z.string()).optional().describe("Command line arguments"),
-  env: z.record(z.string()).optional().describe("Environment variables"),
+  env: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe("Environment variables"),
 });
 
 export const SseTransportSchema = z.object({
@@ -21,9 +24,9 @@ export const TransportSchema = z.union([
 
 // Capabilities schema
 export const CapabilitiesSchema = z.object({
-  prompts: z.record(z.unknown()).optional(),
-  resources: z.record(z.unknown()).optional(),
-  tools: z.record(z.unknown()).optional(),
+  prompts: z.any().optional(),
+  resources: z.any().optional(),
+  tools: z.any().optional(),
 });
 
 // Server configuration schema
@@ -51,7 +54,7 @@ export const McpClientConfigSchema = z.object({
     .optional(),
   transport: TransportSchema,
   capabilities: CapabilitiesSchema.optional(),
-  env: z.record(z.string()).optional(),
+  env: z.string().optional(),
 });
 
 // Response types

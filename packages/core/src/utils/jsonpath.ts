@@ -1,3 +1,6 @@
+/* JSONPath 0.8.0 - XPath for JSON
+ */
+
 interface JsonPathArgs {
   resultType?: "VALUE" | "PATH";
 }

@@ -1,9 +1,11 @@
 export * from "./agent";
 export * from "./types";
-
 export * from "./utils";
-export * from "./logs";
 
+export * from "./logger";
+
+export * from "./memory";
+export * from "./prompt";
 export * from "./task";
 export * from "./context";
 export * from "./container";
@@ -11,7 +13,6 @@ export * from "./service-provider";
 export * from "./handlers";
 export * from "./providers";
 export * from "./http";
-export * from "./template";
-export * from "./tasks/index";
-export * from "./monitor";
-export * from "./memory";
+export * from "./templates";
+export * from "./tasks";
+export * from "./simple-tracker";

@@ -1,8 +1,8 @@
 export * from "./formatters";
 export * from "./jsonpath";
-export * from "./streaming";
 export * from "./xml";
-import * as z from "zod/v4";
+
+import * as z from "zod";
 import type {
   Action,
   ActionCall,
@@ -10,7 +10,6 @@ import type {
   AnyAgent,
   AnyContext,
   EventRef,
-  ExpertConfig,
   Extension,
   InputConfig,
   InputRef,
@@ -82,16 +81,6 @@ export function output<
   Response extends OutputRefResponse = OutputRefResponse,
   Context extends AnyContext = AnyContext
 >(config: OutputConfig<Schema, Response, Context>) {
-  return config;
-}
-
-/**
- * Creates an expert configuration
- * @template Context - Context type for expert execution
- * @param config - Expert configuration object
- * @returns Typed expert configuration
- */
-export function expert(config: ExpertConfig) {
   return config;
 }
 

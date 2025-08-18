@@ -1,7 +1,7 @@
 // Example with a chat context - cli
 import { groq } from "@ai-sdk/groq";
 import { context, createAgent, validateEnv } from "@axiomkit/core";
-import * as z from "zod/v4";
+import * as z from "zod";
 import { cliExtension } from "@axiomkit/cli";
 // Validation install .env
 validateEnv(

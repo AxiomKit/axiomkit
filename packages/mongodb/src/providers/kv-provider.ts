@@ -4,10 +4,10 @@ import type {
   SetOptions,
   HealthStatus,
 } from "@axiomkit/core";
-import CryptoJS from "crypto-js";
+import crypto from "crypto";
 
 export function _hashKey(key: string): string {
-  return CryptoJS.SHA256(key).toString(CryptoJS.enc.Hex);
+  return crypto.createHash("sha256").update(key).digest("hex");
 }
 
 /**
@@ -43,7 +43,7 @@ export class MongoKVProvider implements KeyValueProvider {
   constructor(config: MongoKVProviderConfig) {
     const {
       uri,
-      dbName = "axiomkit_memory",
+      dbName = "daydreams_memory",
       collectionName = "kv_store",
     } = config;
     this.client = new MongoClient(uri);

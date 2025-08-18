@@ -39,7 +39,9 @@ export async function getConfiguredDependencies(
   };
 
   // Import the configured dependencies from config.ts
-  const { BASEDEPS_AXIOMKIT, MODEL_DEPS_AXIOMKIT } = await import("./config.js");
+  const { BASEDEPS_AXIOMKIT, MODEL_DEPS_AXIOMKIT } = await import(
+    "./config.js"
+  );
 
   // Base dependencies from config
   const baseDependencies = { ...BASEDEPS_AXIOMKIT };
@@ -76,7 +78,11 @@ export async function getConfiguredDependencies(
   };
 
   log(
-    `Using configured versions for ${Object.keys(allDependencies).length} packages (${selectedModel} model + ${selectedExtensions.length} extensions)...`
+    `Using configured versions for ${
+      Object.keys(allDependencies).length
+    } packages (${selectedModel} model + ${
+      selectedExtensions.length
+    } extensions)...`
   );
 
   // Use configured versions directly without fetching from registry
@@ -226,7 +232,7 @@ export function generateTemplateContent(
     );
   }
 
-  // Replace extensions list in createDreams if specified
+  // Replace extensions list in createAxiomkit if specified
   if (extensionsList.length > 0) {
     processedContent = processedContent.replace(
       "extensions: [cli]",

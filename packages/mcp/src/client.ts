@@ -7,6 +7,8 @@ import {
   McpTransportError,
   McpValidationError,
 } from "./errors";
+import z from "zod";
+import { validateEnv } from "@axiomkit/core";
 
 /**
  * Creates and connects an MCP client to a server
@@ -37,12 +39,18 @@ export async function createMcpClient(options: McpClientConfig) {
   }
 
   let transport;
+
+  const env = options.env || {};
+  const filteredEnv: Record<string, string> = Object.fromEntries(
+    Object.entries(env).filter(([_, v]) => typeof v === "string")
+  ) as Record<string, string>;
+
   try {
     if (options.transport.type === "stdio") {
       transport = new StdioClientTransport({
         command: options.transport.command,
         args: options.transport.args || [],
-        env: options.env,
+        env: filteredEnv,
       });
     } else if (options.transport.type === "sse") {
       // Create the SSE transport with the correct configuration

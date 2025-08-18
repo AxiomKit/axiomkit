@@ -13,6 +13,7 @@ export const modelsResponseConfig: Record<string, ModelConfig> = {
   "qwen-qwq-32b": {
     prefix: "",
   },
+  // "google/gemini-2.0-flash-001": {},
   "deepseek-r1-distill-llama-70b": {
     prefix: "",
     assist: false,

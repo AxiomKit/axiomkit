@@ -6,6 +6,9 @@ import {
   createSupabaseGraphProvider,
 } from "./providers";
 
+/**
+ * Configuration for creating a Supabase-backed memory system
+ */
 export interface SupabaseMemoryConfig {
   /** Supabase URL */
   url: string;
@@ -21,8 +24,6 @@ export interface SupabaseMemoryConfig {
   edgesTableName?: string;
   /** Embedding dimension for vector operations */
   embeddingDimension?: number;
-  /** Optional configuration for memory system behavior */
-  options?: MemoryConfig["options"];
 }
 
 /**
@@ -44,7 +45,6 @@ export function createSupabaseMemory(
     nodesTableName = "graph_nodes",
     edgesTableName = "graph_edges",
     embeddingDimension = 1536,
-    options,
   } = config;
 
   // Create the providers
@@ -75,7 +75,6 @@ export function createSupabaseMemory(
       vector: vectorProvider,
       graph: graphProvider,
     },
-    options,
   };
 
   // Return the complete memory system
