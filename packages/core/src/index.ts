@@ -7,7 +7,7 @@ export * from "./logs";
 export * from "./task";
 export * from "./context";
 export * from "./container";
-export * from "./serviceProvider";
+export * from "./service-provider";
 export * from "./handlers";
 export * from "./providers";
 export * from "./http";

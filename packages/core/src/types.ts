@@ -1,7 +1,7 @@
 import { type Schema } from "ai";
 import { z, ZodObject, ZodType, type ZodRawShape } from "zod/v4";
 import type { Container } from "./container";
-import type { ServiceProvider } from "./serviceProvider";
+import type { ServiceProvider } from "./service-provider";
 import type { TaskRunner } from "./task";
 
 import type { RequestContext, RequestTrackingConfig } from "./monitor";
