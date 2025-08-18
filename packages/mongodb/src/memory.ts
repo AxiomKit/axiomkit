@@ -29,11 +29,7 @@ export interface MongoMemoryConfig {
  * @returns A MemorySystem implementation using MongoDB for KV storage
  */
 export function createMongoMemory(config: MongoMemoryConfig): MemorySystem {
-  const {
-    uri,
-    dbName = "daydreams_memory",
-    collectionName = "kv_store",
-  } = config;
+  const { uri, dbName = "axiom_memory", collectionName = "kv_store" } = config;
 
   // Create the MongoDB KV provider
   const kvProvider = createMongoKVProvider({

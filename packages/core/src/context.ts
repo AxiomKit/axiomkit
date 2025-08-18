@@ -22,7 +22,7 @@ import type { Logger } from "./logger";
 /**
  * Creates a typed context configuration with builder methods
  *
- * This is the main factory function for creating context definitions in Dreams.
+ * This is the main factory function for creating context definitions in Axiom.
  * Contexts define reusable conversation patterns, memory structures, and behaviors
  * that can be executed by agents.
  *
