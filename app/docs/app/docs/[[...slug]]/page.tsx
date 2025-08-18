@@ -8,7 +8,8 @@ import {
 import { notFound } from "next/navigation";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import { getMDXComponents } from "@/mdx-components";
-
+import { MDXComponents } from "mdx/types";
+import * as icons from "lucide-react";
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
 }) {
@@ -25,7 +26,7 @@ export default async function Page(props: {
       <DocsBody>
         <MDXContent
           components={getMDXComponents({
-            // this allows you to link to other pages with relative file paths
+            ...(icons as unknown as MDXComponents),
             a: createRelativeLink(source, page),
           })}
         />
