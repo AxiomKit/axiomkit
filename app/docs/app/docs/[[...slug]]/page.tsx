@@ -21,9 +21,9 @@ export default async function Page(props: {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <div className="flex flex-row gap-2 items-center border-b pt-2 pb-6">
+      {/* <div className="flex flex-row gap-2 items-center border-b pt-2 pb-6">
         sss
-      </div>
+      </div> */}
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>

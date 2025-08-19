@@ -1,0 +1,107 @@
+---
+title: Overview
+description: 
+  A core objective is to comprehend the fundamental building blocks that
+  constitute the Axiomkit framework.
+---
+
+# Overview
+
+Axiomkit is built on a foundation of core principles that enable autonomous agent behavior. Grasping these key concepts is essential for effectively creating and customizing intelligent agents
+
+## Core Architecture
+
+Axiomkit Agent consists of several key components:
+
+### Contexts:
+
+Contexts form the core building blocks of a Axiomkit agent. Much like React components, they manage both state and rendering logic.&#x20;
+
+Each context:
+
+* Defines a schema for initialization
+* Maintains its own memory state
+* Includes a rendering function that formats its state for interaction with the LLM
+
+```typescript
+import {context} from "@axiomkit/core"
+
+const agentContext= context({
+  // Unique identifier for this context type
+  type: "agent-context",
+ 
+  // Define the schema for initializing the context.
+  // This ensures the context receives a valid 'id' string.
+  schema: z.object({
+    id: z.string(),
+  }),
+ 
+  // Generate a unique key for each context instance.
+  // This allows multiple instances with different 'id's.
+  key({ id }) {
+    return id;
+  },
+ 
+  // Initialize the context's memory state.
+  // Sets up an empty items array and a placeholder for the active item.
+  create(state) {
+    return {
+      items: [],
+      currentItem: null,
+    };
+  },
+ 
+  // Format the memory state into a string for the LLM to interpret.
+  // Useful for giving the model readable context during reasoning.
+  render({ memory }) {
+    return `
+      Current Items: ${memory.items.join(", ")}
+      Active Item: ${memory.currentItem || "None"}
+    `;
+  },
+});
+```
+
+### Actions
+
+Actions are functions that enable your agent to interact with its environment or update its internal state. They work similarly to event handlers in React.
+
+```typescript
+action({
+  // Unique name for the action — this is how the agent refers to it
+  name: "addItem",
+
+  // A short description of what this action does
+  description: "Add a new item to the list",
+
+  // Define the expected input schema using Zod
+  schema: z.object({
+    item: z.string().describe("The item to add"),
+  }),
+
+  // Handler function called when the action is triggered
+  handler(call, ctx, agent) {
+    // Access the agent's context-specific memory
+    const contextMemory = ctx.agentMemory;
+
+    // Add the new item to the list
+    contextMemory.items.push(call.data.item);
+
+    // Return a structured response for logging or the LLM
+    return {
+      message: `Added ${call.data.item} to the list`,
+      items: contextMemory.items,
+    };
+  },
+});
+
+```
+
+### Extensions
+
+Extensions are modular packages that bundle inputs, outputs, and actions to equip your agent with specific capabilities. For instance, the `cli` extension enables terminal-based input and output for your agent
+
+## Architecture Layer
+
+### Execution Flow
+

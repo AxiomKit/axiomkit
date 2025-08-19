@@ -1,7 +1,7 @@
 import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider";
 import { Metadata } from "next";
-import { Inter, Open_Sans, Space_Grotesk } from "next/font/google";
+import { Fira_Code, Inter, Open_Sans, Space_Grotesk } from "next/font/google";
 
 import Favicon from "./favicon.ico";
 import Banner from "@/public/banner.png";
@@ -47,25 +47,25 @@ export const metadata: Metadata = {
   },
   category: "technology",
 };
+// const inter = Inter({
+//   subsets: ["latin"],
+// });
+
 const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-sans",
 });
 
-const jetbrainsMono = Open_Sans({
+const firaCode = Fira_Code({
   subsets: ["latin"],
   variable: "--font-mono",
-});
-
-const space_grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-sans",
 });
 
 export default function Layout({ children }: { children: any }) {
   return (
     <html
       lang="en"
-      className={`${inter.className} ${jetbrainsMono.variable} ${space_grotesk.variable}`}
+      className={`${inter.className} ${inter.variable} ${firaCode.variable}`}
       suppressHydrationWarning
     >
       <body className="flex flex-col min-h-screen font-sans">

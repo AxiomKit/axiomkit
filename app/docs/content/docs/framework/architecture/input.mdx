@@ -1,0 +1,70 @@
+---
+title: Input
+description: How agents receive information and trigger processing.
+---
+
+# Input
+
+## What is an input?
+
+An **Input** is the entry point for external signals into your agent. Inputs define how the agent _receives_ data - such as messages, events, or API calls - from the outside world.\
+If **Outputs** are how the agent _responds_ or communicates outward, **Inputs** are how it _listens_ and reacts to changes or interactions from external systems.
+
+## Examples
+
+#### CLI Commands
+
+```typescript
+import { context, input } from "@axiomkit/core";
+import * as readline from "readline/promises";
+import * as z from "zod/v4";
+
+// This context defines how the agent interacts with a command-line interface.
+export const cliContext = context({
+  type: "cli",
+  // A schema to identify a specific CLI session. Here, we use a simple string.
+  schema: z.object({
+    sessionId: z.string(),
+  }),
+
+  // The 'inputs' block defines how the agent receives data from the outside world.
+  inputs: {
+    // We name our input 'cli:message'
+    "cli:message": input({
+      // The subscribe function is where the listening happens. It's async.
+      async subscribe(send, { container }) {
+        const rl = container.resolve<readline.Interface>("readline");
+        const controller = new AbortController();
+
+        // This loop waits for the user to type something and press Enter.
+        while (!controller.signal.aborted) {
+          const userInput = await rl.question("> ");
+
+          // Typing 'exit' will break the loop and end the program.
+          if (userInput.toLowerCase() === "exit") {
+            break;
+          }
+
+          // Send the user's input to the agent for processing.
+          // 1. context: Tells the agent which context to use (this one).
+          // 2. args: Identifies the specific session (e.g., { sessionId: "user123" }).
+          // 3. data: The actual message from the user.
+          send(cliContext, { sessionId: "main_session" }, userInput);
+        }
+
+        // This function is called to clean up and stop listening.
+        return () => {
+          controller.abort();
+          rl.close();
+        };
+      },
+    }),
+  },
+
+  // The 'outputs' block would define how the agent sends messages back.
+  outputs: {
+    /* ... your output definitions go here ... */
+  },
+});
+```
+

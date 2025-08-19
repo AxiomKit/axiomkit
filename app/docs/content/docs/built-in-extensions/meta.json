@@ -1,0 +1,12 @@
+{
+    "title": "Built-In Extensions",
+    "description": "Built In Extensions",
+    "icon": "building",
+    "root": true,
+    "pages": [
+        "index",
+        "---SOCIAL EXTENSION---",
+        "twitter",
+        "discord"
+    ]
+}

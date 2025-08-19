@@ -1,0 +1,364 @@
+---
+title: Context
+description: 
+  Managing context state, working memory, and execution logic for agent
+  interactions.
+---
+
+# Context
+
+## What is a Context?
+
+A **Context** represents an isolated execution scope within an agent - similar to a dedicated workspace or session. Each context maintains its own persistent state (`ContextState.memory`), temporary working memory, and reasoning history.\
+You can think of it like a browser tab: each tab runs independently, holds its own data, and tracks its own interaction thread.
+
+Contexts enable agents to manage multiple concurrent tasks, users, or domains without state collisions.
+
+## Real-World Context Examples in AxiomKit
+
+### **🧾 Invoice Assistant Context**
+
+A context that helps manage invoice generation, tracking, and reminders for individual clients.
+
+```typescript
+const invoiceContext = context({
+  type: "invoice",
+  schema: z.object({ clientId: z.string() }),
+  create: () => ({
+    invoices: [],
+    lastIssued: null,
+    paymentStatus: "unpaid",
+  }),
+  render: (state) => `
+    Client: ${state.args.clientId}
+    Outstanding invoices: ${state.memory.invoices.length}
+    Last issued: ${state.memory.lastIssued}
+    Status: ${state.memory.paymentStatus}
+  `,
+});
+```
+
+**📦 Order Fulfilment Context**
+
+Used for ecommerce agents that track and manage the status of a customer’s active order lifecycle.
+
+```typescript
+const orderContext = context({
+  type: "order",
+  schema: z.object({ orderId: z.string() }),
+  create: () => ({
+    items: [],
+    shippingStatus: "pending",
+    estimatedDelivery: null,
+  }),
+  render: (state) => `
+    Order: ${state.args.orderId}
+    Items: ${state.memory.items.length}
+    Shipping: ${state.memory.shippingStatus}
+    ETA: ${state.memory.estimatedDelivery}
+  `,
+});
+
+```
+
+### **🧠 Research Assistant Context**
+
+Designed for AI agents that help summarize documents or track literature reviews. Stores what was read and what insights were extracted.
+
+```typescript
+const researchContext = context({
+  type: "research_session",
+  schema: z.object({ sessionId: z.string() }),
+  create: () => ({
+    docsReviewed: [],
+    keyFindings: [],
+    unansweredQuestions: [],
+  }),
+  render: (state) => `
+    Session: ${state.args.sessionId}
+    Documents reviewed: ${state.memory.docsReviewed.length}
+    Key findings: ${state.memory.keyFindings.length}
+    Open questions: ${state.memory.unansweredQuestions.length}
+  `,
+});
+
+```
+
+## The Problem: Agents Need to Track Separate States
+
+Without contexts, your agent mixes up information across users and domains:
+
+```
+Client A: "Send my invoice again"
+Client B: "Has my invoice been paid?"
+Agent: "Yes, it was paid yesterday"
+// ❌ Mixed up invoices between clients!
+
+Order #123: "Add a new item to my cart"
+Order #456: "Where's my package?"
+Agent: "You just added a backpack to your cart"
+// ❌ Wrong order state—totally different customer!
+
+Research Session A: Reviewing climate data
+Research Session B: Reviewing blockchain protocols
+Agent: "Summary: Renewable energy is volatile"
+// ❌ Pulled insight from the wrong session!
+
+```
+
+#### The Solution: Contexts Keep Everything Isolated
+
+With AxiomKit contexts, agents handle each session independently - clean, isolated, and accurate:
+
+```
+Invoice Context - Client A:
+- Remembers invoices for Client A only
+- Tracks payment status and last issue date
+
+Invoice Context - Client B:
+- Completely separate record
+- Agent can truthfully say: "No invoice has been paid yet"
+
+Order Context - Order #123:
+- Items added: backpack, laptop
+- Shipping: not started
+
+Order Context - Order #456:
+- Status: In transit, ETA in 2 days
+// ✅ No cross-contamination
+
+Research Context - Session A:
+- Reviewed climate papers, extracted energy trends
+
+Research Context - Session B:
+- Separate literature on Ethereum scaling
+// ✅ Accurate domain-specific reasoning
+
+```
+
+## How Contexts Work in Your AxiomKit Agent
+
+Contexts are what make AxiomKit agents stateful. Each context manages its own memory, instructions, and rendering logic - allowing agents to track separate conversations, tasks, sessions, or domains without interference.
+
+### 1. You Define Context Types
+
+Agents can be configured with multiple context types to handle different interaction scopes:
+
+```typescript
+const agent = createAgent({
+  model: groq("meta-llama/llama-4-scout-17b-16e-instruct"),
+  contexts: [
+     orderContext,      // Tracks individual order fulfillment
+    invoiceContext,    // Manages invoices for different clients
+    researchContext,   // Keeps memory of research sessions
+  ],
+});
+```
+
+### 2. Inputs Route to Specific Context Instances
+
+Inputs are dynamically routed to the correct context based on their type and identifier.
+
+```typescript
+// Route e-commerce order events to orderContext
+orderEvents.subscribe((send, agent) => {
+  ecommerce.on("orderUpdate", (event) => {
+    send(
+      orderContext,
+      { orderId: event.orderId },
+      { update: event.details }
+    );
+  });
+});
+
+// Route document uploads to researchContext
+researchBot.on("documentUploaded", (doc) => {
+  send(
+    researchContext,
+    { sessionId: doc.sessionId },
+    { documentText: doc.text }
+  );
+});
+
+```
+
+### 3. Separate Memory Per Instance
+
+Each instance of a context maintains its own isolated memory:
+
+```
+cssCopyEditOrder Contexts:
+- order:001 → { items: [...], shippingStatus: "shipped" }
+- order:002 → { items: [...], shippingStatus: "pending" }
+
+Invoice Contexts:
+- invoice:acme → { invoices: [...], paymentStatus: "unpaid" }
+- invoice:globex → { invoices: [...], paymentStatus: "paid" }
+
+Research Contexts:
+- research:sessionA → { docsReviewed: [...], keyFindings: [...] }
+- research:sessionB → { docsReviewed: [...], keyFindings: [...] }
+```
+
+No memory leaks. Each context remembers only what it’s supposed to.
+
+### 4. Create Your First Context: `orderContext`
+
+```ts
+const orderContext = context({
+  type: "order",
+  schema: z.object({
+    orderId: z.string().describe("Order ID"),
+  }),
+  create: () => ({
+    items: [],
+    shippingStatus: "pending",
+    estimatedDelivery: null,
+  }),
+  render: (state) => `
+    Order: ${state.args.orderId}
+    Items: ${state.memory.items.length}
+    Status: ${state.memory.shippingStatus}
+    ETA: ${state.memory.estimatedDelivery}
+  `,
+  instructions: "Help track and update order status based on user or system inputs."
+});
+```
+
+***
+
+### 5. Memory Persists Across Conversations
+
+```ts
+// First interaction
+User: “Add item A to order 001”
+→ Memory: order:001 → { items: [A], shippingStatus: "pending" }
+
+// Later interaction
+User: “What’s the shipping status of order 001?”
+→ Memory still contains: { items: [A], shippingStatus: "pending" }
+```
+
+✅ Contexts automatically persist and recall relevant state.
+
+***
+
+### 6. Switch Between Contexts Dynamically
+
+```xml
+<!-- User starts by uploading a document -->
+<input type="fileUpload" sessionId="research-123">
+  Uploaded: climate-impact-study.pdf
+</input>
+
+<!-- Agent routes to researchContext -->
+<action_call name="extract-key-findings" context="research_session" args='{"sessionId": "research-123"}'>
+  {"document": "climate-impact-study.pdf"}
+</action_call>
+
+<!-- Later user inquires about an invoice -->
+<input type="chat" clientId="acme">
+  “What’s my last issued invoice?”
+</input>
+
+→ Agent switches to invoiceContext
+```
+
+***
+
+### 7. Context-Specific Actions
+
+Only relevant actions show up in the right context:
+
+```ts
+const invoiceContextWithActions = invoiceContext.setActions([
+  action({
+    name: "send-invoice",
+    schema: z.object({
+      amount: z.number(),
+    }),
+    handler: async ({ amount }, ctx) => {
+      const newInvoice = {
+        id: crypto.randomUUID(),
+        amount,
+        date: new Date().toISOString(),
+      };
+      ctx.memory.invoices.push(newInvoice);
+      ctx.memory.lastIssued = newInvoice.date;
+
+      return {
+        success: true,
+        message: `Invoice of $${amount} issued.`,
+      };
+    },
+  }),
+]);
+```
+
+✅ This action will only appear when the `invoiceContext` is active.
+
+***
+
+### 8. Use Context Lifecycle Hooks
+
+```ts
+const researchContext = context({
+  type: "research_session",
+  schema: z.object({ sessionId: z.string() }),
+
+  create: () => ({
+    docsReviewed: [],
+    keyFindings: [],
+    startTime: Date.now(),
+  }),
+
+  onStep: async (ctx) => {
+    ctx.memory.lastInteraction = Date.now();
+  },
+
+  onRun: async (ctx, agent) => {
+    const elapsed = Date.now() - ctx.memory.startTime;
+    agent.logger.info(`Research session ${ctx.key} ran for ${elapsed}ms`);
+  },
+});
+```
+
+***
+
+## Best Practices
+
+### **✅ Clear Contexts**
+
+```ts
+context({ type: "order", schema: z.object({ orderId: z.string() }) });
+context({ type: "invoice", schema: z.object({ clientId: z.string() }) });
+```
+
+### **❌ Avoid Vague Contexts**
+
+```ts
+context({ type: "misc", schema: z.object({ id: z.string() }) }); // unclear purpose
+```
+
+### **✅ Helpful Render Output**
+
+```ts
+render: (state) => `
+  Client: ${state.args.clientId}
+  Unpaid invoices: ${state.memory.invoices.length}
+  Last issued: ${state.memory.lastIssued}
+`;
+```
+
+***
+
+## Key Takeaways
+
+* **Context = Scoped Memory + Logic**\
+  Each session, order, or client interaction runs in isolation.
+* **Instance-based Memory**\
+  Same context type, many instances: `order:001`, `order:002`, etc.
+* **LLM Awareness via `render()`**\
+  What the agent sees is controlled—so you guide behavior directly.
+* **Actions Stay Contextual**\
+  No bloated menus, just the tools that matter in the current state.

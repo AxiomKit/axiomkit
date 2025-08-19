@@ -1,0 +1,95 @@
+---
+title: Task
+description: Handling parallel inputs, action execution, and run state in AxiomKit agents.
+---
+
+## What is a Task?
+
+A **Task** in Axiomkit is any asynchronous operation that takes time to complete. This includes things like:
+
+* Fetching data from external APIs
+* Writing or reading from a database
+* Performing computationally intensive logic
+* Sending emails, notifications, or webhook calls
+
+Tasks are automatically managed by the Axiomkit runtime to ensure efficient, concurrent execution without overloading external systems.
+
+#### Why Task Management Matters
+
+Without task management, executing multiple long-running operations sequentially leads to performance bottlenecks. For example:
+
+```bash
+// User asks: "What are the current stock prices for 5 companies?"
+// Agent needs to call weather API 5 times
+// Without task management:
+await fetchStockPrice("AAPL"); // 500ms eg
+await fetchStockPrice("GOOGL"); 
+await fetchStockPrice("AMZN");
+await fetchStockPrice("MSFT");
+await fetchStockPrice("TSLA");
+```
+
+This would take \~2.5 seconds if each API call takes 500ms.
+
+With AxiomKit’s built-in task manager, calls are scheduled concurrently with safe limits:
+
+```typescript
+// With task management: AxiomKit executes a limited number of tasks concurrently, 
+improving response time.
+// Runs 3 operations at the same time (concurrent)
+// Queues the rest until the first ones finish
+// Approximate total duration: 1 second
+
+const results = await Promise.all([
+  fetchStockPrice("AAPL"),  // Starts immediately
+  fetchStockPrice("GOOGL"), // Starts immediately
+  fetchStockPrice("AMZN"), // Starts immediately
+  fetchStockPrice("MSFT"), // wait at a queue
+  fetchStockPrice("TSLA"), // wait at a queue
+]);
+```
+
+Only a limited number of tasks  run at once; the rest queue until slots free up.
+
+#### How Tasks Are Handled in AxiomKit
+
+Every `action` handler you define is automatically treated as a task:
+
+```typescript
+const fetchStockPriceAction = action({
+  name: "fetch-stock-price",
+  description: "Retrieve the latest stock price for a company",
+  schema: z.object({ symbol: z.string() }),
+  handler: async ({ symbol }) => {
+    const res = await fetch(`https://api.stocks.com/price?symbol=${symbol}`);
+    return await res.json();
+  },
+});
+```
+
+When the LLM issues multiple `<action_call>`s, AxiomKit:
+
+* Runs a limited number in parallel
+* Queues excess tasks
+* Manages retry logic automatically.
+
+## Configuring Task Concurrency
+
+Use `TaskRunner` to control concurrency at the agent level:
+
+```typescript
+const agent = createAgent({
+  model: openai("gpt-4o"),
+  extensions: [stockDataExtension],
+  taskRunner: new TaskRunner(5), // Custom concurrency limit
+});
+```
+
+## Summary
+
+* Action handlers are executed as managed tasks
+* Concurrency is configurable per agent instance
+* Async best practices prevent bugs and ensure performance
+* Tasks are queued, retried, and cancellable by default
+
+The Axiomkit task system ensures your agents scale safely, even in environments with external rate limits or heavy load.

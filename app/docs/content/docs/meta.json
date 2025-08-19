@@ -1,6 +1,7 @@
 {
     "pages": [
         "framework",
+        "built-in-extensions",
         "sei",
         "examples"
     ]
