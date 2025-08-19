@@ -441,39 +441,6 @@ importers:
         specifier: ^5
         version: 5.9.2
 
-  app/examples/games:
-    dependencies:
-      '@ai-sdk/anthropic':
-        specifier: 'catalog:'
-        version: 2.0.1(zod@4.0.17)
-      '@ai-sdk/groq':
-        specifier: 'catalog:'
-        version: 2.0.2(zod@4.0.17)
-      '@ai-sdk/openai':
-        specifier: 'catalog:'
-        version: 2.0.4(zod@4.0.17)
-      '@axiomkit/cli':
-        specifier: workspace:*
-        version: link:../../../packages/cli
-      '@axiomkit/core':
-        specifier: workspace:*
-        version: link:../../../packages/core
-      '@axiomkit/sei':
-        specifier: workspace:*
-        version: link:../../../packages/sei
-      chalk:
-        specifier: 'catalog:'
-        version: 5.3.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.8.3
-      viem:
-        specifier: ^2.33.0
-        version: 2.33.0(typescript@5.8.3)(zod@4.0.17)
-      zod:
-        specifier: 'catalog:'
-        version: 4.0.17
-
   app/examples/mcp:
     dependencies:
       '@axiomkit/core':
@@ -585,6 +552,9 @@ importers:
       '@axiomkit/discord':
         specifier: workspace:*
         version: link:../../../packages/discord
+      '@axiomkit/telegram':
+        specifier: workspace:*
+        version: link:../../../packages/telegram
       '@tavily/core':
         specifier: 0.5.10
         version: 0.5.10

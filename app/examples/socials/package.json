@@ -10,6 +10,7 @@
     "@ai-sdk/groq": "catalog:",
     "@axiomkit/core": "workspace:*",
     "@axiomkit/discord": "workspace:*",
+    "@axiomkit/telegram": "workspace:*",
     "zod": "catalog:",
     "@tavily/core": "0.5.10"
   }
