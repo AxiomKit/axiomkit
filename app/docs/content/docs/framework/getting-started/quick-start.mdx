@@ -2,79 +2,61 @@
 title: Quick Start
 description: This guide will help you create your first AI agent with Axiomkit in under 5 minutes. We'll build a simple calculator bot that demonstrates the core concepts.
 icon: Play
+date: 2025-08-20
 ---
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
-## Prerequisites
+# Prerequisites
 Before you begin, ensure you have:
 
 - **Node.js** (v18 or higher)
 - **pnpm** package manager
 - A **Groq API key** (free tier available at [console.groq.com](https://console.groq.com))
 You can use any provider different to build
-## Step 1: Create a New Project
 
-### Option A: Using create-agent 
 
+# Install Guide
+## Quick Start
+The fastest way to scaffold a new agent project is by using the @axiomkit/create-agent 
+### Step 1: Initialize your project and install core packages:
 ```bash
-# Install create-agent globally
-pnpm add -g @axiomkit/create-agent
-
-# Create a new agent project
-create-agent my-first-agent --cli --model groq
-
-# Navigate to your project
-cd my-first-agent
+npx @axiomkit/create-agent my-agent
 ```
+This command will:
+- Create a new project directory with your agent’s name
+- Initialize a package.json with all required dependencies
+- Scaffold an index.ts file preconfigured with selected extensions
+- Generate a .env.example with required environment variables 
+- Automatically install all dependencies using your package manage
 
-### Option B: Manual Setup
-
+### Step 2: Choose extensions when prompted:
+```plaintext
+$ npx @axiomkit/create-agent my-agent
+🚀 Initializing new AxiomKit agent...
+🔧 Choose extensions for your agent:
+? Select extensions to include › Use space to select, enter to confirm 
+Instructions:
+    ↑/↓: Highlight option
+    ←/→/[space]: Toggle selection
+    a: Toggle all
+    enter/return: Complete answer
+◯   CLI - Command-line interface for terminal interactions
+◯   Telegram
+◯   Discord
+```
+### Step 3: Configure Environment
+Create a `.env` from .env.example file in your project root:
 ```bash
-# Create a new directory
-mkdir my-first-agent
-cd my-first-agent
-
-# Initialize package.json
-pnpm init
-
-# Install dependencies
-pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod
-pnpm add -D typescript @types/node
-
+cp .env.example .env
 ```
-### Install in Existing Project
-<Tabs groupId="language" items={["pnpm", "npm", "bun", "yarn"]} persist>
-  <Tab value="pnpm">
-  ```bash
-   pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod
-   ```
-  </Tab>
-  <Tab value="npm">
-    ```bash
-    npm install @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
-    ```
-  </Tab>
-  <Tab value="bun">
-   ```bash
-    bun add @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
-    ```
-  </Tab>
-  <Tab value="yarn">
-   ```bash
-    yarn add @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
-    ```
-  </Tab>
-</Tabs>
-## Step 2: Configure Environment
-Create a `.env` file in your project root:
-
+Setting and Edit Your .env
 ```bash
 # .env
 GROQ_API_KEY=your_groq_api_key_here
 NODE_ENV=development
 ```
 
-## Step 3: Create Your First Agent
+### Step 4: Create Your First Agent
 
 Create an `index.ts` file:
 
@@ -370,3 +352,25 @@ Now that you have a basic agent running, explore:
 - **Examples Repository**: Study working examples
 
 Congratulations! You've successfully created your first AI agent with Axiomkit. 🎉
+<Tabs groupId="language" items={["pnpm", "npm", "bun", "yarn"]} persist>
+  <Tab value="pnpm">
+  ```bash
+   pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod
+   ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
+    ```
+  </Tab>
+  <Tab value="bun">
+   ```bash
+    bun add @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
+    ```
+  </Tab>
+  <Tab value="yarn">
+   ```bash
+    yarn add @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
+    ```
+  </Tab>
+</Tabs>

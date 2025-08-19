@@ -1,4 +1,4 @@
-import * as z from "zod/v4";
+import z from "zod";
 import { context } from "@axiomkit/core";
 import { service } from "@axiomkit/core";
 import { Telegraf } from "telegraf";

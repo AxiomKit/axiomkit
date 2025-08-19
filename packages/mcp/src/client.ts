@@ -7,8 +7,6 @@ import {
   McpTransportError,
   McpValidationError,
 } from "./errors";
-import z from "zod";
-import { validateEnv } from "@axiomkit/core";
 
 /**
  * Creates and connects an MCP client to a server

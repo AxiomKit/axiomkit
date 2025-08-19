@@ -1,4 +1,3 @@
-/**  */
 export class McpError extends Error {
   constructor(
     message: string,
