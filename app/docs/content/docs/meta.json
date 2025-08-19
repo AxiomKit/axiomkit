@@ -1,8 +1,7 @@
 {
     "pages": [
         "framework",
-        "examples",
-        "mcp",
-        "supabase"
+        "sei",
+        "examples"
     ]
 }

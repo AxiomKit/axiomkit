@@ -1,10 +1,10 @@
-import "@/app/global.css";
+import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider";
-import { Inter } from "next/font/google";
-import type { ReactNode } from "react";
+import { Metadata } from "next";
+import { Inter, Open_Sans, Space_Grotesk } from "next/font/google";
+
 import Favicon from "./favicon.ico";
 import Banner from "@/public/banner.png";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://axiomkit.altlab.space"),
@@ -47,14 +47,28 @@ export const metadata: Metadata = {
   },
   category: "technology",
 };
-
 const inter = Inter({
   subsets: ["latin"],
 });
-export default function Layout({ children }: { children: ReactNode }) {
+
+const jetbrainsMono = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
+
+const space_grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+export default function Layout({ children }: { children: any }) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen">
+    <html
+      lang="en"
+      className={`${inter.className} ${jetbrainsMono.variable} ${space_grotesk.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="flex flex-col min-h-screen font-sans">
         <RootProvider>{children}</RootProvider>
       </body>
     </html>

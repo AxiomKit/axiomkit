@@ -1,16 +1,11 @@
 {
     "title": "Framework",
     "description": "The docs framework",
-    "icon": "Building",
+    "icon": "building",
     "root": true,
     "pages": [
         "---GETTING STARTED---",
         "getting-started/index",
-        "getting-started/quick-start",
-        "getting-started/first-ai-agent",
-        "---Agent Architecture---",
-        "architecture/index",
-        "architecture/context",
-        "architecture/agent"
+        "getting-started/quick-start"
     ]
 }

@@ -1,17 +1,22 @@
+"use client";
 import Link from "next/link";
 
-export default function HomePage() {
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+// Utility function for combining classnames
+function cn(...inputs: any[]) {
+  return twMerge(clsx(inputs));
+}
+
+export default function Home() {
   return (
-    <main className="flex flex-1 flex-col justify-center text-center">
-      <h1 className="mb-4 text-2xl font-bold">Hello World</h1>
-      <p className="text-fd-muted-foreground">
-        <Link
-          href="/docs/framework"
-          className="text-fd-foreground font-semibold underline"
-        >
-          Read Document Here
+    <main className="min-h-screen bg-background text-foreground font-mono">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <Link href={`/docs/framework`} className="text-2xl font-bold mb-4">
+          Quick Start
         </Link>
-      </p>
+      </div>
     </main>
   );
 }

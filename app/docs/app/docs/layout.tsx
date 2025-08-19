@@ -1,5 +1,4 @@
-import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import type { ReactNode } from "react";
+import { DocsLayout } from "fumadocs-ui/layouts/notebook";
 import { baseOptions } from "@/app/layout.config";
 import { source } from "@/lib/source";
 import { baseUrl, createMetadata } from "@/lib/metadata";
@@ -14,9 +13,9 @@ export const metadata = createMetadata({
   metadataBase: baseUrl,
 });
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: any }) {
   return (
-    <DocsLayout tree={source.pageTree} {...baseOptions}>
+    <DocsLayout tabMode="navbar" tree={source.pageTree} {...baseOptions}>
       {children}
     </DocsLayout>
   );

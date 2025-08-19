@@ -1,10 +1,9 @@
 {
-    "title": "Examples",
-    "description": "The docs Examples",
-    "icon": "Building",
-    "root": true,
-    "pages": [
-        "---Introduction---",
-        "index"
-    ]
+  "title": "Examples and Guides",
+  "description": "Examples and Guides",
+  "icon": "User",
+  "root": true,
+  "pages": [
+    "index"
+  ]
 }
