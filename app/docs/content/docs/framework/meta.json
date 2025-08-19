@@ -4,9 +4,13 @@
     "icon": "Building",
     "root": true,
     "pages": [
-        "---Introduction---",
-        "index",
-        "quick-start",
-        "first-ai-agent"
+        "---GETTING STARTED---",
+        "getting-started/index",
+        "getting-started/quick-start",
+        "getting-started/first-ai-agent",
+        "---Agent Architecture---",
+        "architecture/index",
+        "architecture/context",
+        "architecture/agent"
     ]
 }

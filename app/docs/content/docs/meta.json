@@ -2,6 +2,7 @@
     "pages": [
         "framework",
         "examples",
-        "mcp"
+        "mcp",
+        "supabase"
     ]
 }
