@@ -1,0 +1,310 @@
+---
+title: API Reference
+description: Complete API reference for Axiomkit core functions and types
+---
+
+# API Reference
+
+## Overview
+
+This section provides comprehensive API documentation for all Axiomkit core functions, types, and utilities. Each API is documented with detailed examples, parameter descriptions, and usage patterns.
+
+## Core Modules
+
+### 🧠 **Agent**
+The central agent runtime that orchestrates all components.
+
+- **[createAgent](/docs/api/agent#createagent)** - Create and configure AI agents
+- **[Agent Interface](/docs/api/agent#agent-interface)** - Agent lifecycle and methods
+- **[Agent Configuration](/docs/api/agent#configuration)** - Configuration options
+
+### 📦 **Context**
+Isolated state containers for managing memory and behavior.
+
+- **[context](/docs/api/context#context)** - Create context definitions
+- **[Context Schema](/docs/api/context#schema)** - Type-safe context initialization
+- **[Context Memory](/docs/api/context#memory)** - State management and persistence
+
+### ⚡ **Action**
+Typed function interfaces for external interactions.
+
+- **[action](/docs/api/action#action)** - Create action definitions
+- **[Action Schema](/docs/api/action#schema)** - Parameter validation with Zod
+- **[Action Handler](/docs/api/action#handler)** - Execution logic and error handling
+
+### 🧠 **Memory**
+Multi-layered memory system for persistent storage.
+
+- **[MemorySystem](/docs/api/memory#memorysystem)** - Memory system configuration
+- **[Memory Providers](/docs/api/memory#providers)** - Storage backends
+- **[Memory Operations](/docs/api/memory#operations)** - Store, retrieve, and query
+
+### 🔌 **Extension**
+Pluggable modules for platform integrations.
+
+- **[extension](/docs/api/extension#extension)** - Create extension bundles
+- **[Extension Components](/docs/api/extension#components)** - Contexts, actions, services
+- **[Extension Lifecycle](/docs/api/extension#lifecycle)** - Loading and initialization
+
+### 📝 **Types**
+TypeScript type definitions and interfaces.
+
+- **[Core Types](/docs/api/types#core-types)** - Fundamental type definitions
+- **[Agent Types](/docs/api/types#agent-types)** - Agent-related types
+- **[Memory Types](/docs/api/types#memory-types)** - Memory system types
+
+## Quick Reference
+
+### Basic Agent Creation
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [],
+  contexts: [],
+  actions: [],
+});
+```
+
+### Context Definition
+
+```typescript
+import { context } from "@axiomkit/core";
+import { z } from "zod";
+
+const userContext = context({
+  type: "user-session",
+  schema: z.object({ userId: z.string() }),
+  key: ({ userId }) => userId,
+  create: (state) => ({ preferences: {} }),
+  render: ({ memory }) => `User: ${memory.preferences}`,
+});
+```
+
+### Action Definition
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+const customAction = action({
+  name: "custom-operation",
+  description: "Perform a custom operation",
+  schema: z.object({ input: z.string() }),
+  handler: async (args, ctx, agent) => {
+    return { result: "success" };
+  },
+});
+```
+
+### Memory Configuration
+
+```typescript
+import { MemorySystem } from "@axiomkit/core";
+
+const memory = new MemorySystem({
+  providers: {
+    episodic: new InMemoryKeyValueProvider(),
+    vector: new InMemoryVectorProvider(),
+  },
+});
+```
+
+### Extension Creation
+
+```typescript
+import { extension } from "@axiomkit/core";
+
+const customExtension = extension({
+  name: "custom",
+  contexts: { custom: customContext },
+  actions: [customAction],
+  services: [customService],
+});
+```
+
+## Type Definitions
+
+### Agent Configuration
+
+```typescript
+interface Config<TContext extends AnyContext = AnyContext> {
+  model: LanguageModel;
+  modelSettings?: ModelSettings;
+  extensions?: Extension[];
+  contexts?: Context<TContext>[];
+  actions?: Action[];
+  memory?: MemorySystem;
+  logger?: Logger;
+  errorHandling?: ErrorHandlingConfig;
+}
+```
+
+### Context Definition
+
+```typescript
+interface ContextConfig<TState = any, TMemory = any> {
+  type: string;
+  schema: z.ZodSchema<TState>;
+  key: (state: TState) => string;
+  create: (state: TState) => TMemory;
+  render: (params: RenderParams<TState, TMemory>) => string;
+  instructions?: string | string[];
+  maxSteps?: number;
+}
+```
+
+### Action Definition
+
+```typescript
+interface ActionConfig<TSchema = any, TResult = any> {
+  name: string;
+  description?: string;
+  schema?: TSchema;
+  handler: ActionHandler<TSchema, TResult>;
+}
+```
+
+## Error Handling
+
+### Common Error Types
+
+```typescript
+// Agent errors
+class AgentError extends Error {
+  constructor(message: string, public code: string) {
+    super(message);
+  }
+}
+
+// Context errors
+class ContextError extends Error {
+  constructor(message: string, public contextType: string) {
+    super(message);
+  }
+}
+
+// Action errors
+class ActionError extends Error {
+  constructor(message: string, public actionName: string) {
+    super(message);
+  }
+}
+```
+
+### Error Handling Patterns
+
+```typescript
+// Graceful error handling
+try {
+  const result = await agent.run({
+    context: userContext,
+    args: { userId: "user123" },
+    input: "Hello",
+  });
+} catch (error) {
+  if (error instanceof AgentError) {
+    console.error(`Agent error: ${error.message}`);
+  } else if (error instanceof ContextError) {
+    console.error(`Context error: ${error.message}`);
+  } else {
+    console.error(`Unexpected error: ${error.message}`);
+  }
+}
+```
+
+## Best Practices
+
+### 1. **Type Safety**
+```typescript
+// Use strict typing
+const typedContext = context({
+  type: "typed-context",
+  schema: z.object({
+    id: z.string(),
+    data: z.record(z.unknown()),
+  }),
+  // TypeScript will infer proper types
+  create: (state) => ({ items: [] }),
+});
+```
+
+### 2. **Error Handling**
+```typescript
+// Comprehensive error handling
+const robustAction = action({
+  name: "robust-operation",
+  handler: async (args, ctx, agent) => {
+    try {
+      const result = await externalService.call(args);
+      return { success: true, data: result };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        retryable: error.retryable || false,
+      };
+    }
+  },
+});
+```
+
+### 3. **Performance Optimization**
+```typescript
+// Use caching and optimization
+const optimizedContext = context({
+  type: "optimized",
+  create: (state) => ({
+    cache: new Map(),
+    lastAccess: Date.now(),
+  }),
+  render: ({ memory }) => {
+    // Only render if cache is stale
+    if (Date.now() - memory.lastAccess > 60000) {
+      return generateFreshContent();
+    }
+    return memory.cachedContent;
+  },
+});
+```
+
+## Migration Guide
+
+### From v1.x to v2.x
+
+```typescript
+// v1.x (deprecated)
+const agent = new Agent({
+  model: openai("gpt-4"),
+  memory: new Memory(),
+});
+
+// v2.x (current)
+const agent = createAgent({
+  model: openai("gpt-4"),
+  memory: new MemorySystem({
+    providers: { episodic: new InMemoryProvider() },
+  }),
+});
+```
+
+### Breaking Changes
+
+1. **Agent Creation**: `new Agent()` → `createAgent()`
+2. **Memory System**: `Memory` → `MemorySystem`
+3. **Context API**: Updated schema and rendering API
+4. **Action API**: Enhanced type safety and error handling
+
+## Contributing
+
+When contributing to the API documentation:
+
+1. **Keep Examples Simple**: Use clear, minimal examples
+2. **Include TypeScript**: All examples should be TypeScript
+3. **Document Errors**: Include common error scenarios
+4. **Update Regularly**: Keep documentation in sync with code changes
+
+This API reference provides comprehensive coverage of all Axiomkit functionality. For specific use cases and advanced patterns, refer to the [Examples](/docs/examples) section.

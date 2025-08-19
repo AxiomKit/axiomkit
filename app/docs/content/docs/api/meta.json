@@ -1,0 +1,14 @@
+{
+    "title": "API Reference",
+    "description": "Complete API reference for Axiomkit core functions and types",
+    "icon": "code",
+    "pages": [
+        "index",
+        "agent",
+        "context",
+        "action",
+        "memory",
+        "extension",
+        "types"
+    ]
+}

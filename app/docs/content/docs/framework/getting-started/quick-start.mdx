@@ -1,187 +1,372 @@
 ---
 title: Quick Start
-description: Get started with Axiomkit in minutes
+description: This guide will help you create your first AI agent with Axiomkit in under 5 minutes. We'll build a simple calculator bot that demonstrates the core concepts.
+icon: Play
 ---
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ## Prerequisites
+Before you begin, ensure you have:
 
-- Node.js 18+ or Bun
-- npm, yarn, or pnpm
-- Basic TypeScript knowledge
+- **Node.js** (v18 or higher)
+- **pnpm** package manager
+- A **Groq API key** (free tier available at [console.groq.com](https://console.groq.com))
+You can use any provider different to build
+## Step 1: Create a New Project
 
-## Installation
-
-### Option 1: Create a New Agent Project
-
-The easiest way to get started is using our CLI tool:
+### Option A: Using create-agent 
 
 ```bash
-npx @axiomkit/create-agent my-first-agent
+# Install create-agent globally
+pnpm add -g @axiomkit/create-agent
+
+# Create a new agent project
+create-agent my-first-agent --cli --model groq
+
+# Navigate to your project
 cd my-first-agent
-npm install
 ```
 
-### Option 2: Manual Installation
-
-If you prefer to set up manually:
+### Option B: Manual Setup
 
 ```bash
 # Create a new directory
-mkdir my-axiomkit-project
-cd my-axiomkit-project
+mkdir my-first-agent
+cd my-first-agent
 
 # Initialize package.json
-npm init -y
+pnpm init
 
-# Install Axiomkit core
-npm install @axiomkit/core
+# Install dependencies
+pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod
+pnpm add -D typescript @types/node
 
-# Install a language model provider (choose one)
-npm install @ai-sdk/groq
-# or
-npm install @ai-sdk/openai
-# or
-npm install @ai-sdk/anthropic
 ```
-
-## Your First Agent
-
-Create a file called `agent.ts`:
-
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { groq } from "@ai-sdk/groq";
-
-// Create a simple agent
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  modelSettings: {
-    maxTokens: 1000,
-    temperature: 0.7,
-  },
-});
-
-async function main() {
-  // Start the agent
-  await agent.start();
-  
-  console.log("🤖 Agent started successfully!");
-  console.log("Type 'exit' to quit");
-  
-  // Simple CLI interface
-  process.stdin.on('data', async (data) => {
-    const input = data.toString().trim();
-    
-    if (input === 'exit') {
-      await agent.stop();
-      process.exit(0);
-    }
-    
-    try {
-      const result = await agent.run({
-        context: {
-          type: "chat",
-          instructions: "You are a helpful assistant. Respond concisely and clearly.",
-        },
-        args: { message: input },
-      });
-      
-      console.log("🤖 Agent:", result.output);
-    } catch (error) {
-      console.error("❌ Error:", error);
-    }
-  });
-}
-
-main().catch(console.error);
-```
-
-## Running Your Agent
+### Install in Existing Project
+<Tabs groupId="language" items={["pnpm", "npm", "bun", "yarn"]} persist>
+  <Tab value="pnpm">
+  ```bash
+   pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod
+   ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
+    ```
+  </Tab>
+  <Tab value="bun">
+   ```bash
+    bun add @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
+    ```
+  </Tab>
+  <Tab value="yarn">
+   ```bash
+    yarn add @axiomkit/core @axiomkit/cli @ai-sdk/openai zod
+    ```
+  </Tab>
+</Tabs>
+## Step 2: Configure Environment
+Create a `.env` file in your project root:
 
 ```bash
-# If using TypeScript, compile first
-npx tsc agent.ts
-
-# Run the agent
-node agent.js
+# .env
+GROQ_API_KEY=your_groq_api_key_here
+NODE_ENV=development
 ```
 
-## Adding Extensions
+## Step 3: Create Your First Agent
 
-Axiomkit becomes powerful when you add extensions. Here's how to add the CLI extension:
+Create an `index.ts` file:
 
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { cliExtension } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-// Create a CLI extension
-const cliExtension = createCliExtension({
-  name: "assistant",
-  instructions: [
-    "You are a helpful command-line assistant.",
-    "Help users with their questions and tasks.",
-    "Provide clear, actionable advice.",
-  ],
-});
-
-const agent = createAgent({
+// Create a simple calculator agent
+const calculatorAgent = createAgent({
   model: groq("gemma2-9b-it"),
   extensions: [cliExtension],
 });
 
 async function main() {
-  await agent.start();
-  console.log("🚀 CLI Agent ready!");
+  try {
+    await calculatorAgent.start();
+    console.log("🧮 Calculator Agent started!");
+    console.log("Try asking: 'What is 2 + 2?' or 'Calculate 15% of 200'");
+  } catch (error) {
+    console.error("Failed to start agent:", error);
+  }
 }
 
 main();
 ```
 
+## Step 4: Run Your Agent
+
+```bash
+# Run the agent
+pnpm start
+
+# Or if using Bun
+bun run index.ts
+```
+
+You should see output like:
+```
+🧮 Calculator Agent started!
+Try asking: 'What is 2 + 2?' or 'Calculate 15% of 200'
+> 
+```
+
+## Step 5: Test Your Agent
+
+Try these example interactions:
+
+```
+> What is 2 + 2?
+Agent: 2 + 2 = 4
+
+> Calculate 15% of 200
+Agent: 15% of 200 = 30
+
+> What is the square root of 16?
+Agent: The square root of 16 is 4
+
+> exit
+```
+
+## Understanding the Code
+
+Let's break down what we just created:
+
+### 1. **Agent Configuration**
+```typescript
+const calculatorAgent = createAgent({
+  model: groq("gemma2-9b-it"),  // Language model
+  extensions: [cliExtension],   // CLI interface
+});
+```
+
+### 2. **Model Selection**
+- `groq("gemma2-9b-it")` - Fast, free model
+- Alternative: `openai("gpt-4")` for OpenAI
+- Alternative: `anthropic("claude-3-sonnet")` for Anthropic
+
+### 3. **Extensions**
+- `cliExtension` - Provides command-line interface
+- Other options: `discord`, `telegram`, custom extensions
+
 ## Next Steps
 
-Now that you have a basic agent running, explore these areas:
+### Add Custom Actions
 
-<Cards>
-  <Card title="First AI Agent" href="/docs/first-ai-agent" />
-  <Card title="Agent Architecture" href="/docs/agent-architecture" />
-  <Card title="Memory Management" href="/docs/memory" />
-  <Card title="Custom Actions" href="/docs/actions" />
-</Cards>
+Enhance your agent with custom functionality:
 
-## Common Issues
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
 
-### Model Provider Issues
+const weatherAction = action({
+  name: "get-weather",
+  description: "Get weather information for a location",
+  schema: z.object({
+    location: z.string().describe("City or location name"),
+  }),
+  handler: async (args, ctx, agent) => {
+    const { location } = args;
+    
+    // Call weather API (example)
+    const weather = await fetchWeather(location);
+    
+    return {
+      location,
+      temperature: weather.temperature,
+      condition: weather.condition,
+    };
+  },
+});
 
-If you encounter issues with model providers:
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  actions: [weatherAction],
+});
+```
 
-1. **Check API Keys**: Ensure your API keys are properly set in environment variables
-2. **Rate Limits**: Some providers have rate limits - check your usage
-3. **Model Availability**: Verify the model name is correct and available
+### Add Memory
 
-### TypeScript Issues
+Enable your agent to remember conversations:
 
+```typescript
+import { MemorySystem } from "@axiomkit/core";
+
+const memory = new MemorySystem({
+  providers: {
+    episodic: new InMemoryKeyValueProvider(),
+  },
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  memory,
+});
+```
+
+### Add Custom Context
+
+Create domain-specific behavior:
+
+```typescript
+import { context } from "@axiomkit/core";
+import { z } from "zod";
+
+const userContext = context({
+  type: "user-session",
+  schema: z.object({
+    userId: z.string(),
+  }),
+  key: ({ userId }) => userId,
+  create: (state) => ({
+    preferences: {},
+    history: [],
+  }),
+  render: ({ memory }) => `
+    User Session:
+    Preferences: ${Object.keys(memory.preferences).length}
+    History: ${memory.history.length} interactions
+  `,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  contexts: [userContext],
+});
+```
+
+## Common Issues & Solutions
+
+### 1. **API Key Errors**
 ```bash
-# Install TypeScript if not already installed
-npm install -D typescript @types/node
+# Check if environment variable is set
+echo $GROQ_API_KEY
 
-# Create tsconfig.json
+# If not set, add to your shell profile
+export GROQ_API_KEY=your_key_here
+```
+
+### 2. **Module Resolution Errors**
+```bash
+# Ensure TypeScript is configured
 npx tsc --init
+
+# Add to tsconfig.json
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  }
+}
 ```
 
-### Memory Issues
-
-For production use, consider adding persistent memory:
-
+### 3. **Permission Errors**
 ```bash
-npm install @axiomkit/mongodb
+# Fix file permissions
+chmod +x index.ts
+
+# Or run with node
+node --loader ts-node/esm index.ts
 ```
 
-## Examples
+## Project Structure
 
-Check out our examples for more advanced usage:
+As your agent grows, organize it like this:
 
-- [Calculator Bot](/docs/examples/calculator-bot)
-- [Translator Bot](/docs/examples/translator-bot)
-- [Writing Assistant](/docs/examples/writing-assistant)
-- [Telegram Bot](/docs/examples/telegram-bot)
+```
+my-first-agent/
+├── index.ts              # Main entry point
+├── package.json          # Dependencies
+├── .env                  # Environment variables
+├── tsconfig.json         # TypeScript config
+├── src/
+│   ├── contexts/         # Custom contexts
+│   ├── actions/          # Custom actions
+│   ├── services/         # External services
+│   └── utils/            # Utility functions
+├── tests/                # Test files
+└── README.md            # Documentation
+```
+
+## Advanced Configuration
+
+### Model Settings
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  modelSettings: {
+    maxTokens: 1000,        // Maximum response length
+    temperature: 0.7,       // Creativity (0-1)
+    topP: 0.9,             // Nucleus sampling
+    frequencyPenalty: 0.1,  // Reduce repetition
+    presencePenalty: 0.1,   // Encourage new topics
+  },
+  extensions: [cliExtension],
+});
+```
+
+### Error Handling
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  errorHandling: {
+    retryAttempts: 3,
+    retryDelay: 1000,
+    logErrors: true,
+    gracefulDegradation: true,
+  },
+});
+```
+
+### Logging
+
+```typescript
+import { Logger } from "@axiomkit/core";
+
+const logger = new Logger({
+  level: "info",
+  format: "json",
+  destination: "file",
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  logger,
+});
+```
+
+## What's Next?
+
+Now that you have a basic agent running, explore:
+
+1. **[Architecture Guide](/docs/framework/architecture)** - Understand core concepts
+2. **[Memory System](/docs/framework/architecture/memory)** - Add persistent memory
+3. **[Built-in Extensions](/docs/built-in-extensions)** - Integrate with platforms
+4. **[Examples](/docs/examples)** - See more complex examples
+5. **[API Reference](/docs/api)** - Detailed API documentation
+
+## Getting Help
+
+- **Documentation**: Browse the full documentation
+- **GitHub Issues**: Report bugs and request features
+- **Community Discord**: Get help from other developers
+- **Examples Repository**: Study working examples
+
+Congratulations! You've successfully created your first AI agent with Axiomkit. 🎉

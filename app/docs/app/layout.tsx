@@ -1,7 +1,14 @@
 import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider";
 import { Metadata } from "next";
-import { Fira_Code, Inter, Open_Sans, Space_Grotesk } from "next/font/google";
+import {
+  Fira_Code,
+  Geist,
+  Geist_Mono,
+  Inter,
+  Open_Sans,
+  Space_Grotesk,
+} from "next/font/google";
 
 import Favicon from "./favicon.ico";
 import Banner from "@/public/banner.png";
@@ -51,21 +58,21 @@ export const metadata: Metadata = {
 //   subsets: ["latin"],
 // });
 
-const inter = Inter({
-  subsets: ["latin"],
+const geist = Geist({
   variable: "--font-sans",
+  subsets: ["latin"],
 });
 
-const firaCode = Fira_Code({
-  subsets: ["latin"],
+const mono = Geist_Mono({
   variable: "--font-mono",
+  subsets: ["latin"],
 });
 
 export default function Layout({ children }: { children: any }) {
   return (
     <html
       lang="en"
-      className={`${inter.className} ${inter.variable} ${firaCode.variable}`}
+      className={`${geist.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
       <body className="flex flex-col min-h-screen font-sans">

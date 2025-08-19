@@ -1,0 +1,425 @@
+---
+title: Overview
+description: Comprehensive guide to Axiomkit's built-in extensions for platform integrations and specialized functionality
+date: 2025-08-19
+---
+
+# Built-in Extensions
+
+## Overview
+
+Axiomkit provides a rich ecosystem of built-in extensions that enable seamless integration with various platforms and services. These extensions bundle related contexts, actions, and services to provide ready-to-use functionality for common use cases.
+
+## Available Extensions
+
+### 🔧 **CLI Extension** (`@axiomkit/cli`)
+Command-line interface for terminal-based interactions.
+
+**Features:**
+- Interactive terminal interface
+- Real-time conversation handling
+- Configurable instructions and behavior
+- Built-in readline support
+
+**Installation:**
+```bash
+pnpm add @axiomkit/cli
+```
+
+**Usage:**
+```typescript
+import { cliExtension } from "@axiomkit/cli";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+});
+```
+
+### 💬 **Discord Extension** (`@axiomkit/discord`)
+Full Discord bot integration with message handling and server management.
+
+**Features:**
+- Message event handling
+- Slash command support
+- Server member management
+- Rich embed messages
+- Voice channel integration
+
+**Installation:**
+```bash
+pnpm add @axiomkit/discord discord.js
+```
+
+**Usage:**
+```typescript
+import { discord } from "@axiomkit/discord";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [discord],
+});
+```
+
+### 📱 **Telegram Extension** (`@axiomkit/telegram`)
+Telegram bot integration for messaging and notifications.
+
+**Features:**
+- Message and callback query handling
+- Inline keyboard support
+- File and media sharing
+- Group chat management
+- Webhook and polling modes
+
+**Installation:**
+```bash
+pnpm add @axiomkit/telegram telegraf
+```
+
+**Usage:**
+```typescript
+import { telegram } from "@axiomkit/telegram";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [telegram],
+});
+```
+
+### 🗄️ **MongoDB Extension** (`@axiomkit/mongodb`)
+MongoDB integration for persistent memory storage.
+
+**Features:**
+- Document-based memory storage
+- Automatic indexing
+- Connection pooling
+- Backup and restore capabilities
+- Aggregation pipeline support
+
+**Installation:**
+```bash
+pnpm add @axiomkit/mongodb mongodb
+```
+
+**Usage:**
+```typescript
+import { MongoDBProvider } from "@axiomkit/mongodb";
+
+const memory = new MemorySystem({
+  providers: {
+    episodic: new MongoDBProvider({
+      connectionString: process.env.MONGODB_URI,
+      database: "agent_memory",
+      collection: "episodes"
+    }),
+  },
+});
+```
+
+### ☁️ **Supabase Extension** (`@axiomkit/supabase`)
+Supabase integration for vector storage and real-time features.
+
+**Features:**
+- Vector similarity search
+- Real-time subscriptions
+- Row-level security
+- Database triggers
+- Edge function integration
+
+**Installation:**
+```bash
+pnpm add @axiomkit/supabase @supabase/supabase-js
+```
+
+**Usage:**
+```typescript
+import { SupabaseProvider } from "@axiomkit/supabase";
+
+const memory = new MemorySystem({
+  providers: {
+    vector: new SupabaseProvider({
+      url: process.env.SUPABASE_URL,
+      key: process.env.SUPABASE_KEY,
+      table: "vector_memory"
+    }),
+  },
+});
+```
+
+### 🔗 **MCP Extension** (`@axiomkit/mcp`)
+Model Context Protocol integration for tool and resource access.
+
+**Features:**
+- MCP server and client support
+- Tool discovery and execution
+- Resource management
+- Protocol compliance
+- Custom tool development
+
+**Installation:**
+```bash
+pnpm add @axiomkit/mcp
+```
+
+**Usage:**
+```typescript
+import { MCPServer } from "@axiomkit/mcp";
+
+const mcpServer = new MCPServer({
+  tools: [myCustomTool],
+  resources: [myResource],
+});
+```
+
+### ⛓️ **SEI Extension** (`@axiomkit/sei`)
+SEI blockchain integration for decentralized applications.
+
+**Features:**
+- Smart contract interaction
+- Wallet management
+- Transaction signing
+- Event listening
+- Gas optimization
+
+**Installation:**
+```bash
+pnpm add @axiomkit/sei
+```
+
+**Usage:**
+```typescript
+import { SEIProvider } from "@axiomkit/sei";
+
+const seiProvider = new SEIProvider({
+  rpcUrl: process.env.SEI_RPC_URL,
+  wallet: process.env.WALLET_PRIVATE_KEY,
+});
+```
+
+## Extension Configuration
+
+### Environment Variables
+
+Each extension requires specific environment variables for configuration:
+
+```bash
+# Discord
+DISCORD_TOKEN=your_discord_bot_token
+DISCORD_CLIENT_ID=your_client_id
+
+# Telegram
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/agent_memory
+
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your_supabase_anon_key
+
+# SEI
+SEI_RPC_URL=https://sei-rpc-endpoint
+WALLET_PRIVATE_KEY=your_wallet_private_key
+```
+
+### Extension Options
+
+Most extensions support configuration options:
+
+```typescript
+// CLI Extension with custom configuration
+const customCliExtension = createCliExtension({
+  name: "custom-assistant",
+  instructions: [
+    "You are a specialized assistant for technical support.",
+    "Provide detailed, step-by-step solutions.",
+    "Always ask for clarification when needed."
+  ],
+  maxSteps: 10,
+  schema: z.object({
+    user: z.string(),
+    priority: z.enum(["low", "medium", "high"]).optional(),
+  }),
+});
+
+// Discord Extension with custom settings
+const discordExtension = discord({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+  prefix: "!",
+  allowedChannels: ["bot-commands", "general"],
+});
+```
+
+## Creating Custom Extensions
+
+You can create custom extensions by bundling related functionality:
+
+```typescript
+import { extension, context, action, service } from "@axiomkit/core";
+
+// Custom context
+const customContext = context({
+  type: "custom-domain",
+  schema: z.object({
+    domain: z.string(),
+  }),
+  key: ({ domain }) => domain,
+  create: (state) => ({
+    data: [],
+    metadata: {},
+  }),
+  render: ({ memory }) => `Domain: ${memory.data.length} items`,
+});
+
+// Custom action
+const customAction = action({
+  name: "custom-operation",
+  description: "Perform a custom operation",
+  schema: z.object({
+    input: z.string(),
+  }),
+  handler: async (args, ctx, agent) => {
+    // Custom logic here
+    return { result: "success" };
+  },
+});
+
+// Custom service
+const customService = service({
+  register(container) {
+    container.singleton("customService", () => new CustomService());
+  },
+});
+
+// Bundle into extension
+export const customExtension = extension({
+  name: "custom",
+  contexts: {
+    custom: customContext,
+  },
+  actions: [customAction],
+  services: [customService],
+});
+```
+
+## Extension Best Practices
+
+### 1. **Modular Design**
+```typescript
+// Good: Separate concerns
+const discordContext = context({ /* context config */ });
+const discordActions = [action1, action2, action3];
+const discordServices = [service1, service2];
+
+export const discordExtension = extension({
+  name: "discord",
+  contexts: { discord: discordContext },
+  actions: discordActions,
+  services: discordServices,
+});
+
+// Avoid: Monolithic extension
+export const discordExtension = extension({
+  name: "discord",
+  // Everything mixed together
+});
+```
+
+### 2. **Error Handling**
+```typescript
+// Good: Comprehensive error handling
+const robustAction = action({
+  name: "robust-operation",
+  handler: async (args, ctx, agent) => {
+    try {
+      const result = await externalService.call(args);
+      return { success: true, data: result };
+    } catch (error) {
+      // Log error for debugging
+      console.error("Operation failed:", error);
+      
+      // Return structured error response
+      return {
+        success: false,
+        error: error.message,
+        retryable: error.retryable || false,
+      };
+    }
+  },
+});
+```
+
+### 3. **Configuration Management**
+```typescript
+// Good: Flexible configuration
+interface ExtensionConfig {
+  enabled: boolean;
+  options: Record<string, any>;
+  limits: {
+    maxRequests: number;
+    timeout: number;
+  };
+}
+
+const configurableExtension = (config: ExtensionConfig) => extension({
+  name: "configurable",
+  // Use config in extension setup
+});
+```
+
+### 4. **Testing Extensions**
+```typescript
+// Test extension functionality
+describe("Custom Extension", () => {
+  it("should handle context creation", async () => {
+    const agent = createAgent({
+      model: mockModel,
+      extensions: [customExtension],
+    });
+    
+    const result = await agent.run({
+      context: customContext,
+      args: { domain: "test" },
+      input: "test input",
+    });
+    
+    expect(result).toBeDefined();
+  });
+});
+```
+
+## Extension Ecosystem
+
+### Community Extensions
+- **@axiomkit/twitter**: Twitter/X integration
+- **@axiomkit/slack**: Slack workspace integration
+- **@axiomkit/email**: Email sending and receiving
+- **@axiomkit/calendar**: Calendar and scheduling
+- **@axiomkit/crm**: Customer relationship management
+
+### Enterprise Extensions
+- **@axiomkit/salesforce**: Salesforce integration
+- **@axiomkit/hubspot**: HubSpot CRM integration
+- **@axiomkit/zendesk**: Zendesk support integration
+- **@axiomkit/jira**: Jira project management
+- **@axiomkit/notion**: Notion workspace integration
+
+## Performance Considerations
+
+### Extension Loading
+- **Lazy Loading**: Load extensions only when needed
+- **Dependency Management**: Minimize external dependencies
+- **Memory Usage**: Monitor extension memory consumption
+- **Startup Time**: Optimize extension initialization
+
+### Scalability
+- **Connection Pooling**: Reuse database connections
+- **Rate Limiting**: Respect API rate limits
+- **Caching**: Cache frequently accessed data
+- **Monitoring**: Track extension performance metrics
+
+This comprehensive extension system enables Axiomkit to integrate seamlessly with virtually any platform or service while maintaining the framework's core principles of modularity and extensibility.
