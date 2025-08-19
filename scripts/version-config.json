@@ -1,19 +1,19 @@
 {
   "packages": {
     "@axiomkit/core": {
-      "version": "2.0.4",
+      "version": "2.0.5",
       "autoUpdate": true
     },
     "@axiomkit/cli": {
-      "version": "0.0.10",
+      "version": "0.0.11",
       "autoUpdate": true
     },
     "@axiomkit/telegram": {
-      "version": "0.0.7",
+      "version": "0.0.8",
       "autoUpdate": true
     },
     "@axiomkit/mongodb": {
-      "version": "0.0.2",
+      "version": "0.0.3",
       "autoUpdate": true
     },
     "@axiomkit/sei": {
@@ -21,7 +21,7 @@
       "autoUpdate": true
     },
     "@axiomkit/create-agent": {
-      "version": "0.1.5",
+      "version": "0.1.6",
       "autoUpdate": true
     },
     "@axiomkit/supabase": {
