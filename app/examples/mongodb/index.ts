@@ -1,16 +1,13 @@
 import { createCliExtension } from "@axiomkit/cli";
+
 import { createGroq } from "@ai-sdk/groq";
 import * as z from "zod/v4";
-import {
-  createAgent,
-  validateEnv,
-  context,
-} from "@axiomkit/core";
+import { createAgent, validateEnv, context } from "@axiomkit/core";
 import { createMongoMemory } from "@axiomkit/mongodb";
 
 /**
  * MongoDB Memory Example with Translation Bot
- * 
+ *
  * This example demonstrates how to use MongoDB as a persistent memory store
  * for an AI agent. The agent is configured as a translator that stores
  * conversation history and translation results in MongoDB.
@@ -73,10 +70,10 @@ class TranslationService {
     };
 
     await this.memorySystem.kv.set(translationKey, result);
-    
+
     // Store locally for quick access
     this.translationResults.set(translationKey, result);
-    
+
     console.log(`✅ Translation stored: "${input}" → "${output}"`);
   }
 
@@ -84,14 +81,14 @@ class TranslationService {
   async getTranslationHistory(limit: number = 10): Promise<any[]> {
     const keys = await this.memorySystem.kv.keys("translation:");
     const history = [];
-    
+
     for (const key of keys.slice(-limit)) {
       const result = await this.memorySystem.kv.get(key);
       if (result) {
         history.push(result);
       }
     }
-    
+
     return history.sort((a: any, b: any) => b.timestamp - a.timestamp);
   }
 
@@ -99,14 +96,14 @@ class TranslationService {
   async getConversationHistory(limit: number = 10): Promise<any[]> {
     const keys = await this.memorySystem.kv.keys("conversation:");
     const history = [];
-    
+
     for (const key of keys.slice(-limit)) {
       const result = await this.memorySystem.kv.get(key);
       if (result) {
         history.push(result);
       }
     }
-    
+
     return history.sort((a: any, b: any) => b.timestamp - a.timestamp);
   }
 
@@ -122,19 +119,22 @@ const translateAction = {
   description: "Translate text from one language to another",
   schema: z.object({
     text: z.string().describe("The text to translate"),
-    sourceLanguage: z.string().optional().describe("Source language (auto-detect if not specified)"),
+    sourceLanguage: z
+      .string()
+      .optional()
+      .describe("Source language (auto-detect if not specified)"),
     targetLanguage: z.string().describe("Target language for translation"),
   }),
   handler: async (args: any, ctx: any, agent: any) => {
     const { text, sourceLanguage, targetLanguage } = args;
-    
+
     // Store the translation request
     const translationService = new TranslationService(agent.memory);
-    
+
     // For now, we'll use a simple translation approach
     // In a real implementation, you might use a translation API
     const translation = `[${targetLanguage}] ${text}`;
-    
+
     // Store the translation result
     await translationService.storeTranslationResult(
       text,
@@ -142,14 +142,14 @@ const translateAction = {
       sourceLanguage,
       targetLanguage
     );
-    
+
     // Store the conversation
     await translationService.storeConversation(
       `Translate "${text}" to ${targetLanguage}`,
       translation,
       { sourceLanguage, targetLanguage }
     );
-    
+
     return {
       originalText: text,
       translatedText: translation,
@@ -158,6 +158,19 @@ const translateAction = {
     };
   },
 };
+
+// // Create CLI extension with proper configuration
+const translatorCliExtension = createCliExtension({
+  name: "translator",
+  instructions: [
+    "You are a professional translator assistant.",
+    "Your task is to help users translate text between different languages.",
+    "When users provide text and a target language, use the translate action to perform the translation.",
+    "Always be helpful and provide clear explanations when needed.",
+    "If the target language is unclear, ask the user for clarification.",
+    "You can translate between many languages including English, Spanish, French, German, Vietnamese, Chinese, Japanese, and more.",
+  ],
+});
 
 // Create a context for the translator
 const translatorContext = context({
@@ -170,23 +183,14 @@ const translatorContext = context({
     "You are a professional translator assistant.",
     "Your task is to help users translate text between different languages.",
     "When users provide text and a target language, use the translate action to perform the translation.",
-    "Always be helpful and provide clear explanations when needed.",
+    "After calling the translate action, respond with ONLY the translated text from the action result.",
+    "Do not use any template variables like {{calls[0].result.translatedText}} in your response.",
+    "Do not add any extra formatting, explanations, or greetings.",
     "If the target language is unclear, ask the user for clarification.",
     "You can translate between many languages including English, Spanish, French, German, Vietnamese, Chinese, Japanese, and more.",
   ],
-});
-
-// Create CLI extension with proper configuration
-const translatorCliExtension = createCliExtension({
-  name: "translator",
-  instructions: [
-    "You are a professional translator assistant.",
-    "Your task is to help users translate text between different languages.",
-    "When users provide text and a target language, use the translate action to perform the translation.",
-    "Always be helpful and provide clear explanations when needed.",
-    "If the target language is unclear, ask the user for clarification.",
-    "You can translate between many languages including English, Spanish, French, German, Vietnamese, Chinese, Japanese, and more.",
-  ],
+  extension: [translatorCliExtension],
+  maxSteps: 1,
 });
 
 async function main() {
@@ -208,14 +212,13 @@ async function main() {
   // Create the agent with MongoDB memory and translation action
   const agent = createAgent({
     model: groq("deepseek-r1-distill-llama-70b"),
-    extensions: [translatorCliExtension],
     actions: [translateAction],
     memory: mongoMemorySystem,
-    exportTrainingData: true,
-    trainingDataPath: "./train/data.json",
   });
 
-  await agent.start();
+  await agent.start({
+    id: "test-mongodb",
+  });
   console.log("🌍 Translator Bot started. Type 'exit' to quit.");
   console.log("I can translate between many languages!");
   console.log("Examples:");

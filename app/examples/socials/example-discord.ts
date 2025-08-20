@@ -45,5 +45,7 @@ const agent = createAgent({
 });
 
 console.log("Starting Axiomkit Discord Bot...");
-await agent.start();
+await agent.start({
+  id: "discord-example",
+});
 console.log("Axiomkit Discord Bot started");
