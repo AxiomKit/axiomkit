@@ -6,11 +6,7 @@
     "scripts": {
         "start": "tsx index.ts",
         "dev": "tsx watch index.ts",
-        "build": "tsc",
-        "test": "tsx test-memory.ts",
-        "test:memory": "tsx test-memory.ts",
-        "test:translation": "tsx test-translation.ts",
-        "simple": "tsx simple-example.ts"
+        "build": "tsc"
     },
     "dependencies": {
         "@ai-sdk/anthropic": "catalog:",
