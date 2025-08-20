@@ -12,6 +12,7 @@ import {
 
 import Favicon from "./favicon.ico";
 import Banner from "@/public/banner.png";
+import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://axiomkit.altlab.space"),

@@ -1,11 +1,15 @@
 @import "tailwindcss";
-/* @import "fumadocs-ui/css/dusk.css"; */
+
 @import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
 @import "fumadocs-openapi/css/preset.css";
 @import "fumadocs-twoslash/twoslash.css";
 
 @import "fumadocs-ui/css/shadcn.css";
+@source ".";
+@source "../components";
+@source "../content";
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.2 0.04 265);

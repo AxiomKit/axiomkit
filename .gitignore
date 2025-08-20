@@ -59,3 +59,4 @@ redis.conf
 
 .vercel
 .next
+.test
