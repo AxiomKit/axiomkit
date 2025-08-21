@@ -89,7 +89,6 @@ axiomkit/
 | **⛓️ @axiomkit/sei** | Sei blockchain integration for DeFi and trading | [`packages/sei/`](./packages/sei/) |
 | **📱 @axiomkit/telegram** | Telegram bot integration for messaging | [`packages/telegram/`](./packages/telegram/) |
 | **🎮 @axiomkit/discord** | Discord bot integration for gaming and community | [`packages/discord/`](./packages/discord/) |
-| **🗄️ @axiomkit/supabase** | Supabase integration for database operations | [`packages/supabase/`](./packages/supabase/) |
 | **🔗 @axiomkit/mcp** | Model Context Protocol integration | [`packages/mcp/`](./packages/mcp/) |
 
 ## 🚀 Quick Start
@@ -142,7 +141,6 @@ npx @axiomkit/create-agent my-agent
 - **Sei Extension**: [`packages/sei/Readme.md`](./packages/sei/Readme.md)
 - **Telegram Extension**: [`packages/telegram/README.md`](./packages/telegram/README.md)
 - **Discord Extension**: [`packages/discord/README.md`](./packages/discord/README.md)
-- **Supabase Extension**: [`packages/supabase/README.md`](./packages/supabase/README.md)
 - **MCP Extension**: [`packages/mcp/README.md`](./packages/mcp/README.md)
 
 ## 🤝 Contributing
