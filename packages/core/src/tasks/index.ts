@@ -13,7 +13,6 @@ import type {
   AnyAgent,
   AnyContext,
   WorkingMemory,
-  ContextState,
   Log,
   LogChunk,
   AnyRef,

@@ -3,7 +3,6 @@ import { createCliExtension } from "@axiomkit/cli";
 import * as z from "zod";
 import { groq } from "@ai-sdk/groq";
 
-// Enhanced calculator context with memory and advanced features
 const calculatorContext = context({
   type: "advanced-calculator",
   schema: z.object({
