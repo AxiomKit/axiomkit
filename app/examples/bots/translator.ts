@@ -1,4 +1,4 @@
-import { createAgent, context, action, output } from "@axiomkit/core";
+import { createAgent, context, action } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
 import * as z from "zod";
 import { groq } from "@ai-sdk/groq";

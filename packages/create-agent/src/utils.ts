@@ -1,26 +1,6 @@
 import chalk from "chalk";
 
 /**
- * Fetches the latest version of a package from npm registry
- * @param packageName The name of the npm package
- * @returns Promise resolving to the latest version or null if failed
- */
-async function fetchLatestVersion(packageName: string): Promise<string | null> {
-  try {
-    const response = await fetch(
-      `https://registry.npmjs.org/${packageName}/latest`
-    );
-    if (!response.ok) {
-      return null;
-    }
-    const data = await response.json();
-    return data.version ? `^${data.version}` : null;
-  } catch (error) {
-    return null;
-  }
-}
-
-/**
  * Gets the configured versions for all dependencies from config.ts
  * @param selectedExtensions Array of selected extensions to determine which packages to include
  * @param selectedModel The selected model provider to determine which AI SDK to include
@@ -222,25 +202,56 @@ export function generateTemplateContent(
     processedContent = processedContent.replace(placeholder, value);
   });
 
+  // Replace the goal placeholder with a default value
+  processedContent = processedContent.replace(
+    /\{\{goal\}\}/g,
+    "Manage your tasks efficiently"
+  );
+
   // Replace extension imports if specified
   if (extensionImports.length > 0) {
-    processedContent = processedContent.replace(
-      `import { cliExtension } from "@axiomkit/cli";`,
-      extensionImports.join("\n")
-    );
+    // Find and replace the CLI extension import line
+    const cliImportRegex =
+      /import\s*\{\s*createCliExtension\s*\}\s*from\s*["']@axiomkit\/cli["'];?/;
+    if (cliImportRegex.test(processedContent)) {
+      processedContent = processedContent.replace(
+        cliImportRegex,
+        extensionImports.join("\n")
+      );
+    } else {
+      // If no CLI import found, add the extension imports at the top
+      const importSection = processedContent.match(/import.*?from.*?;?\n/g);
+      if (importSection && importSection.length > 0) {
+        const lastImport = importSection[importSection.length - 1];
+        if (lastImport) {
+          const lastImportIndex = processedContent.lastIndexOf(lastImport);
+          processedContent =
+            processedContent.slice(0, lastImportIndex + lastImport.length) +
+            "\n" +
+            extensionImports.join("\n") +
+            processedContent.slice(lastImportIndex + lastImport.length);
+        }
+      }
+    }
   }
 
-  // Replace extensions list in createAxiomkit if specified
+  // Replace extensions list in createAgent if specified
   if (extensionsList.length > 0) {
-    processedContent = processedContent.replace(
-      "extensions: [cli]",
-      `extensions: [${extensionsList.join(", ")}]`
-    );
+    // Find the extensions array in createAgent call
+    const extensionsRegex = /extensions:\s*\[[^\]]*\]/;
+    if (extensionsRegex.test(processedContent)) {
+      processedContent = processedContent.replace(
+        extensionsRegex,
+        `extensions: [${extensionsList.join(", ")}]`
+      );
+    }
   }
 
   // Add header comment
   const headerComment = `/**
- * Axiomkit agent with ${extensionsList.join(", ")} extension(s)
+ * Axiomkit agent with ${
+   extensionsList.length > 0 ? extensionsList.join(", ") : "CLI"
+ } extension(s)
  * Using ${modelConfig.MODEL_NAME} as the model provider
  */`;
 

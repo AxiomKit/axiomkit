@@ -135,7 +135,7 @@ export async function main(
   console.log();
 
   // Determine selected extensions
-  const availableExtensions = ["cli", "twitter", "discord", "telegram"];
+  const availableExtensions = ["cli", "discord", "telegram"];
   let selectedExtensions = [];
 
   if (options.all) {
@@ -445,9 +445,7 @@ jspm_packages/
     if (ext === "cli") {
       extensionImports.push(`import { cliExtension } from "@axiomkit/cli";`);
       extensionsList.push("cliExtension");
-    } else if (ext === "twitter") {
-      extensionImports.push(`import { twitter } from "@axiomkit/twitter";`);
-      extensionsList.push("twitter");
+
     } else if (ext === "discord") {
       extensionImports.push(`import { discord } from "@axiomkit/discord";`);
       extensionsList.push("discord");

@@ -1,4 +1,4 @@
-import { createAgent, context, action, output } from "@axiomkit/core";
+import { createAgent, context, action } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
 import * as z from "zod";
 import { groq } from "@ai-sdk/groq";
@@ -47,14 +47,14 @@ const calculatorContext = context({
 
   // Enhanced rendering with calculator context
   render: (state) => {
-    const { 
-      userName, 
-      calculationHistory, 
-      statistics, 
+    const {
+      userName,
+      calculationHistory,
+      statistics,
       userPreferences,
       conversationCount,
       recentConversations,
-      savedVariables
+      savedVariables,
     } = state.memory;
 
     return `
@@ -66,25 +66,50 @@ Conversations: ${conversationCount}
 📊 Calculation Statistics:
 - Total calculations: ${statistics.totalCalculations}
 - Average result: ${statistics.averageResult.toFixed(2)}
-- Largest number: ${statistics.largestNumber === -Infinity ? "None" : statistics.largestNumber}
-- Smallest number: ${statistics.smallestNumber === Infinity ? "None" : statistics.smallestNumber}
+- Largest number: ${
+      statistics.largestNumber === -Infinity ? "None" : statistics.largestNumber
+    }
+- Smallest number: ${
+      statistics.smallestNumber === Infinity
+        ? "None"
+        : statistics.smallestNumber
+    }
 
 🎯 User Preferences:
 - Decimal places: ${userPreferences.decimalPlaces}
 - Scientific notation: ${userPreferences.scientificNotation ? "Yes" : "No"}
 - Show calculation steps: ${userPreferences.showSteps ? "Yes" : "No"}
-- Preferred operations: ${userPreferences.preferredOperations.join(", ") || "None set"}
+- Preferred operations: ${
+      userPreferences.preferredOperations.join(", ") || "None set"
+    }
 
-💾 Saved Variables: ${Array.from(savedVariables.entries()).map(([name, value]) => 
-  `${name} = ${value}`).join(", ") || "None"}
+💾 Saved Variables: ${
+      Array.from(savedVariables.entries())
+        .map(([name, value]) => `${name} = ${value}`)
+        .join(", ") || "None"
+    }
 
 📝 Recent calculations (last 5):
-${calculationHistory.slice(-5).map(calc => 
-  `${calc.expression} = ${calc.result} (${calc.operation})`).join("\n") || "None"}
+${
+  calculationHistory
+    .slice(-5)
+    .map((calc) => `${calc.expression} = ${calc.result} (${calc.operation})`)
+    .join("\n") || "None"
+}
 
 🗣️ Recent conversations (last 5):
-${recentConversations.slice(-5).map(conv => 
-  `User: "${conv.userInput.substring(0, 30)}..." → Bot: "${conv.botResponse.substring(0, 30)}..."`).join("\n") || "No conversations yet"}
+${
+  recentConversations
+    .slice(-5)
+    .map(
+      (conv) =>
+        `User: "${conv.userInput.substring(
+          0,
+          30
+        )}..." → Bot: "${conv.botResponse.substring(0, 30)}..."`
+    )
+    .join("\n") || "No conversations yet"
+}
     `.trim();
   },
 
@@ -101,7 +126,7 @@ ${recentConversations.slice(-5).map(conv =>
     "- Step-by-step calculation explanations",
     "- Learning from user feedback and corrections",
     "- Remembering the last 10 conversations for context",
-    
+
     "Calculation Guidelines:",
     "- Always use the calculate action for mathematical operations",
     "- Respect user preferences for decimal places and notation",
@@ -109,7 +134,7 @@ ${recentConversations.slice(-5).map(conv =>
     "- Store results in variables when appropriate",
     "- Handle edge cases gracefully (division by zero, invalid expressions)",
     "- Use appropriate precision based on user preferences",
-    
+
     "User Interaction:",
     "- Be warm, friendly, and mathematically precise",
     "- Remember user's calculation history and preferences",
@@ -119,7 +144,7 @@ ${recentConversations.slice(-5).map(conv =>
     "- Provide helpful explanations for complex calculations",
     "- Learn from user feedback to improve future responses",
     "- Keep track of the last 10 conversations for better context",
-    
+
     "Available Actions:",
     "- calculate: Perform mathematical calculations with detailed results",
     "- set-preferences: Update user calculation preferences",
@@ -128,7 +153,7 @@ ${recentConversations.slice(-5).map(conv =>
     "- define-function: Create custom mathematical functions",
     "- analyze-expression: Provide detailed analysis of mathematical expressions",
     "- clear-memory: Clear calculation history and variables",
-    
+
     "Response Style:",
     "- Be precise, friendly, and mathematically accurate",
     "- Provide clear, well-formatted results",
@@ -151,16 +176,22 @@ calculatorContext.setActions([
     description: "Perform mathematical calculations with detailed results",
     schema: z.object({
       expression: z.string().describe("Mathematical expression to evaluate"),
-      showSteps: z.boolean().optional().describe("Show step-by-step calculation"),
-      precision: z.number().optional().describe("Number of decimal places for result"),
+      showSteps: z
+        .boolean()
+        .optional()
+        .describe("Show step-by-step calculation"),
+      precision: z
+        .number()
+        .optional()
+        .describe("Number of decimal places for result"),
       saveAs: z.string().optional().describe("Save result as a variable name"),
     }),
     handler: async (args, ctx) => {
-      const { 
-        expression, 
+      const {
+        expression,
         showSteps = ctx.memory.userPreferences.showSteps,
         precision = ctx.memory.userPreferences.decimalPlaces,
-        saveAs 
+        saveAs,
       } = args;
 
       try {
@@ -174,10 +205,12 @@ calculatorContext.setActions([
 
         // Update statistics
         ctx.memory.statistics.totalCalculations++;
-        ctx.memory.statistics.averageResult = 
-          (ctx.memory.statistics.averageResult * (ctx.memory.statistics.totalCalculations - 1) + result.value) / 
+        ctx.memory.statistics.averageResult =
+          (ctx.memory.statistics.averageResult *
+            (ctx.memory.statistics.totalCalculations - 1) +
+            result.value) /
           ctx.memory.statistics.totalCalculations;
-        
+
         if (result.value > ctx.memory.statistics.largestNumber) {
           ctx.memory.statistics.largestNumber = result.value;
         }
@@ -187,9 +220,10 @@ calculatorContext.setActions([
 
         // Track operation usage
         const operation = result.operation;
-        const currentCount = ctx.memory.statistics.operationsUsed.get(operation) || 0;
+        const currentCount =
+          ctx.memory.statistics.operationsUsed.get(operation) || 0;
         ctx.memory.statistics.operationsUsed.set(operation, currentCount + 1);
-        
+
         // Store in history
         ctx.memory.calculationHistory.push({
           expression,
@@ -209,12 +243,16 @@ calculatorContext.setActions([
           savedAs: saveAs || null,
           statistics: {
             totalCalculations: ctx.memory.statistics.totalCalculations,
-            operationCount: ctx.memory.statistics.operationsUsed.get(operation) || 0,
+            operationCount:
+              ctx.memory.statistics.operationsUsed.get(operation) || 0,
           },
         };
       } catch (error) {
         return {
-          error: error instanceof Error ? error.message : "Invalid mathematical expression",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Invalid mathematical expression",
           expression,
           suggestions: [
             "Check for balanced parentheses",
@@ -231,14 +269,26 @@ calculatorContext.setActions([
     name: "set-preferences",
     description: "Update user calculation preferences",
     schema: z.object({
-      decimalPlaces: z.number().optional().describe("Number of decimal places for results"),
-      scientificNotation: z.boolean().optional().describe("Use scientific notation for large numbers"),
-      showSteps: z.boolean().optional().describe("Show step-by-step calculations by default"),
-      preferredOperations: z.array(z.string()).optional().describe("User's preferred mathematical operations"),
+      decimalPlaces: z
+        .number()
+        .optional()
+        .describe("Number of decimal places for results"),
+      scientificNotation: z
+        .boolean()
+        .optional()
+        .describe("Use scientific notation for large numbers"),
+      showSteps: z
+        .boolean()
+        .optional()
+        .describe("Show step-by-step calculations by default"),
+      preferredOperations: z
+        .array(z.string())
+        .optional()
+        .describe("User's preferred mathematical operations"),
     }),
     handler: async (args, ctx) => {
       Object.assign(ctx.memory.userPreferences, args);
-      
+
       return {
         updated: true,
         preferences: ctx.memory.userPreferences,
@@ -252,11 +302,13 @@ calculatorContext.setActions([
     description: "Store a value in a named variable for later use",
     schema: z.object({
       name: z.string().describe("Variable name"),
-      value: z.union([z.number(), z.string()]).describe("Value to store (number or expression)"),
+      value: z
+        .union([z.number(), z.string()])
+        .describe("Value to store (number or expression)"),
     }),
     handler: async (args, ctx) => {
       const { name, value } = args;
-      
+
       let numericValue: number;
       if (typeof value === "string") {
         // Evaluate the expression
@@ -270,9 +322,9 @@ calculatorContext.setActions([
       } else {
         numericValue = value;
       }
-      
+
       ctx.memory.savedVariables.set(name, numericValue);
-      
+
       return {
         saved: true,
         variable: name,
@@ -286,7 +338,10 @@ calculatorContext.setActions([
     name: "get-history",
     description: "Get calculation history and statistics",
     schema: z.object({
-      limit: z.number().optional().describe("Number of recent calculations to show"),
+      limit: z
+        .number()
+        .optional()
+        .describe("Number of recent calculations to show"),
       operation: z.string().optional().describe("Filter by specific operation"),
     }),
     handler: async (args, ctx) => {
@@ -294,15 +349,17 @@ calculatorContext.setActions([
       let history = ctx.memory.calculationHistory;
 
       if (operation) {
-        history = history.filter(calc => calc.operation === operation);
+        history = history.filter((calc) => calc.operation === operation);
       }
 
       return {
         history: history.slice(-limit),
         statistics: ctx.memory.statistics,
         savedVariables: Object.fromEntries(ctx.memory.savedVariables),
-        mostUsedOperations: Array.from(ctx.memory.statistics.operationsUsed.entries())
-          .sort(([,a], [,b]) => b - a)
+        mostUsedOperations: Array.from(
+          ctx.memory.statistics.operationsUsed.entries()
+        )
+          .sort(([, a], [, b]) => b - a)
           .slice(0, 5)
           .map(([op, count]) => ({ operation: op, count })),
       };
@@ -314,19 +371,25 @@ calculatorContext.setActions([
     description: "Create custom mathematical functions",
     schema: z.object({
       name: z.string().describe("Function name"),
-      expression: z.string().describe("Function expression (use x as variable)"),
-      description: z.string().optional().describe("Description of what the function does"),
+      expression: z
+        .string()
+        .describe("Function expression (use x as variable)"),
+      description: z
+        .string()
+        .optional()
+        .describe("Description of what the function does"),
     }),
     handler: async (args, ctx) => {
       const { name, expression, description } = args;
-      
+
       ctx.memory.customFunctions.set(name, expression);
-      
+
       return {
         defined: true,
         function: name,
         expression,
-        description: description || `Custom function ${name}(x) = ${expression}`,
+        description:
+          description || `Custom function ${name}(x) = ${expression}`,
         message: `Function '${name}' has been defined successfully!`,
       };
     },
@@ -339,7 +402,10 @@ calculatorContext.setActions([
       expression: z.string().describe("Expression to analyze"),
     }),
     handler: async (args, ctx) => {
-      const analysis = await analyzeMathematicalExpression(args.expression, ctx.memory);
+      const analysis = await analyzeMathematicalExpression(
+        args.expression,
+        ctx.memory
+      );
       return analysis;
     },
   }),
@@ -348,13 +414,16 @@ calculatorContext.setActions([
     name: "clear-memory",
     description: "Clear calculation history and saved variables",
     schema: z.object({
-      clearHistory: z.boolean().optional().describe("Clear calculation history"),
+      clearHistory: z
+        .boolean()
+        .optional()
+        .describe("Clear calculation history"),
       clearVariables: z.boolean().optional().describe("Clear saved variables"),
       clearAll: z.boolean().optional().describe("Clear everything"),
     }),
     handler: async (args, ctx) => {
       const { clearHistory, clearVariables, clearAll } = args;
-      
+
       if (clearAll || clearHistory) {
         ctx.memory.calculationHistory = [];
         ctx.memory.statistics = {
@@ -365,11 +434,11 @@ calculatorContext.setActions([
           smallestNumber: Infinity,
         };
       }
-      
+
       if (clearAll || clearVariables) {
         ctx.memory.savedVariables.clear();
       }
-      
+
       return {
         cleared: true,
         message: "Memory cleared successfully!",
@@ -388,19 +457,20 @@ calculatorContext.setActions([
     }),
     handler: async (args, ctx) => {
       const { userInput, botResponse } = args;
-      
+
       // Add to recent conversations (keep only last 10)
       ctx.memory.recentConversations.push({
         userInput,
         botResponse,
         timestamp: new Date().toISOString(),
       });
-      
+
       // Keep only the last 10 conversations
       if (ctx.memory.recentConversations.length > 10) {
-        ctx.memory.recentConversations = ctx.memory.recentConversations.slice(-10);
+        ctx.memory.recentConversations =
+          ctx.memory.recentConversations.slice(-10);
       }
-      
+
       return {
         remembered: true,
         conversationCount: ctx.memory.recentConversations.length,
@@ -424,28 +494,28 @@ async function performAdvancedCalculation({
 }) {
   // Enhanced calculation with variable substitution
   let processedExpression = expression;
-  
+
   // Replace variables with their values
   for (const [name, value] of savedVariables.entries()) {
-    const regex = new RegExp(`\\b${name}\\b`, 'g');
+    const regex = new RegExp(`\\b${name}\\b`, "g");
     processedExpression = processedExpression.replace(regex, value.toString());
   }
-  
+
   // Replace ^ with ** for JavaScript exponentiation
-  processedExpression = processedExpression.replace(/\^/g, '**');
-  
+  processedExpression = processedExpression.replace(/\^/g, "**");
+
   // Mathematical functions
   const functions: Record<string, (x: number) => number> = {
-    'sin': Math.sin,
-    'cos': Math.cos,
-    'tan': Math.tan,
-    'log': Math.log10,
-    'ln': Math.log,
-    'sqrt': Math.sqrt,
-    'abs': Math.abs,
-    'floor': Math.floor,
-    'ceil': Math.ceil,
-    'round': Math.round,
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+    log: Math.log10,
+    ln: Math.log,
+    sqrt: Math.sqrt,
+    abs: Math.abs,
+    floor: Math.floor,
+    ceil: Math.ceil,
+    round: Math.round,
   };
 
   // Create a safe evaluation context with mathematical functions
@@ -464,7 +534,7 @@ async function performAdvancedCalculation({
   try {
     // Check for functions
     for (const [funcName] of Object.entries(functions)) {
-      const regex = new RegExp(`${funcName}\\(([^)]+)\\)`, 'g');
+      const regex = new RegExp(`${funcName}\\(([^)]+)\\)`, "g");
       if (regex.test(processedExpression)) {
         complexity = "intermediate";
         operation = funcName;
@@ -475,15 +545,18 @@ async function performAdvancedCalculation({
     }
 
     // Check for advanced operations
-    if (processedExpression.includes('**')) {
+    if (processedExpression.includes("**")) {
       complexity = "intermediate";
       operation = "exponentiation";
     }
 
     // Safe evaluation with mathematical functions available
-    const evalFunction = new Function(...Object.keys(evalContext), `return ${processedExpression}`);
+    const evalFunction = new Function(
+      ...Object.keys(evalContext),
+      `return ${processedExpression}`
+    );
     result = evalFunction(...Object.values(evalContext));
-    
+
     // Check for division by zero and other edge cases
     if (!isFinite(result)) {
       if (result === Infinity || result === -Infinity) {
@@ -491,7 +564,7 @@ async function performAdvancedCalculation({
       }
       throw new Error("Result is not a valid number");
     }
-    
+
     if (showSteps) {
       steps.push(`Evaluated: ${processedExpression} = ${result}`);
     }
@@ -508,7 +581,11 @@ async function performAdvancedCalculation({
       precision,
     };
   } catch (error) {
-    throw new Error(`Calculation error: ${error instanceof Error ? error.message : 'Invalid expression'}`);
+    throw new Error(
+      `Calculation error: ${
+        error instanceof Error ? error.message : "Invalid expression"
+      }`
+    );
   }
 }
 
@@ -525,11 +602,11 @@ async function analyzeMathematicalExpression(expression: string, memory: any) {
 
   // Analyze operations
   const operationPatterns = {
-    '+': 'addition',
-    '-': 'subtraction',
-    '*': 'multiplication',
-    '/': 'division',
-    '^': 'exponentiation',
+    "+": "addition",
+    "-": "subtraction",
+    "*": "multiplication",
+    "/": "division",
+    "^": "exponentiation",
   };
 
   for (const [symbol, name] of Object.entries(operationPatterns)) {
@@ -539,7 +616,18 @@ async function analyzeMathematicalExpression(expression: string, memory: any) {
   }
 
   // Analyze functions
-  const functionNames = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'abs', 'floor', 'ceil', 'round'];
+  const functionNames = [
+    "sin",
+    "cos",
+    "tan",
+    "log",
+    "ln",
+    "sqrt",
+    "abs",
+    "floor",
+    "ceil",
+    "round",
+  ];
   for (const func of functionNames) {
     if (expression.includes(func)) {
       analysis.functions.push(func);
@@ -549,13 +637,28 @@ async function analyzeMathematicalExpression(expression: string, memory: any) {
   // Analyze variables
   const variableRegex = /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g;
   const matches = expression.match(variableRegex) || [];
-  analysis.variables = matches.filter(match => 
-    !functionNames.includes(match) && 
-    !['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'abs', 'floor', 'ceil', 'round'].includes(match)
+  analysis.variables = matches.filter(
+    (match) =>
+      !functionNames.includes(match) &&
+      ![
+        "sin",
+        "cos",
+        "tan",
+        "log",
+        "ln",
+        "sqrt",
+        "abs",
+        "floor",
+        "ceil",
+        "round",
+      ].includes(match)
   );
 
   // Determine complexity
-  if (analysis.functions.length > 0 || analysis.operations.includes('exponentiation')) {
+  if (
+    analysis.functions.length > 0 ||
+    analysis.operations.includes("exponentiation")
+  ) {
     analysis.complexity = "intermediate";
   }
   if (analysis.functions.length > 2 || analysis.variables.length > 3) {
@@ -567,9 +670,11 @@ async function analyzeMathematicalExpression(expression: string, memory: any) {
     analysis.suggestions.push("Consider defining variables before calculation");
   }
   if (analysis.complexity === "advanced") {
-    analysis.suggestions.push("Break down complex expressions into smaller parts");
+    analysis.suggestions.push(
+      "Break down complex expressions into smaller parts"
+    );
   }
-  if (analysis.operations.includes('division')) {
+  if (analysis.operations.includes("division")) {
     analysis.suggestions.push("Check for potential division by zero");
   }
 
@@ -625,7 +730,7 @@ async function main() {
 
   const userId = process.argv[2] || "default-user";
   const sessionId = `session-${Date.now()}`;
-  
+
   console.log(`Starting session for user: ${userId} (${sessionId})\n`);
 
   await agent.run({

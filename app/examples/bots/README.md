@@ -307,3 +307,4 @@ These examples serve as templates for building your own agents. Feel free to:
 - Create new specialized agent types
 
 The modular design makes it easy to adapt and extend these examples for your specific use cases.
+
