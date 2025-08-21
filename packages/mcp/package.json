@@ -1,6 +1,6 @@
 {
     "name": "@axiomkit/mcp",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "type": "module",
     "description": "AxiomKit MCP Integration",
     "main": "./dist/index.js",
