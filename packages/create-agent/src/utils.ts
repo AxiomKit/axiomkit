@@ -39,9 +39,6 @@ export async function getConfiguredDependencies(
   if (selectedExtensions.includes("cli")) {
     extensionDependencies["@axiomkit/cli"] = "^0.0.14";
   }
-  if (selectedExtensions.includes("twitter")) {
-    extensionDependencies["@axiomkit/twitter"] = "^0.0.6";
-  }
   if (selectedExtensions.includes("discord")) {
     extensionDependencies["@axiomkit/discord"] = "^0.0.9";
     extensionDependencies["discord.js"] = "^14.17.3";
