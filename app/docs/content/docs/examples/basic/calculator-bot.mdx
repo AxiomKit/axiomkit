@@ -1,0 +1,599 @@
+---
+title: Calculator Bot
+description: A mathematical calculator bot demonstrating basic Axiomkit concepts
+---
+
+# Calculator Bot
+
+## Overview
+
+The Calculator Bot is a simple yet powerful example that demonstrates core Axiomkit concepts including contexts, actions, and basic agent configuration. This bot can perform mathematical calculations, solve equations, and provide step-by-step solutions.
+
+## Features
+
+- **Basic Arithmetic**: Addition, subtraction, multiplication, division
+- **Advanced Math**: Powers, roots, logarithms, trigonometry
+- **Equation Solving**: Linear and quadratic equations
+- **Step-by-Step Solutions**: Educational explanations
+- **Unit Conversions**: Temperature, length, weight conversions
+- **Error Handling**: Graceful handling of invalid inputs
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- pnpm package manager
+- Groq API key (free tier available)
+
+### Installation
+
+```bash
+# Navigate to the example directory
+cd app/examples/bots
+
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your GROQ_API_KEY
+
+# Run the calculator bot
+pnpm run calculator-bot
+```
+
+## Complete Code
+
+### Main Agent File
+
+```typescript
+// index.ts
+import { createAgent } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+import { calculatorContext } from "./src/contexts/calculator-context";
+import { mathActions } from "./src/actions/math-actions";
+
+// Create a specialized calculator CLI extension
+const calculatorCliExtension = createCliExtension({
+  name: "calculator",
+  instructions: [
+    "You are a mathematical calculator assistant.",
+    "When users provide mathematical expressions or problems, calculate the result.",
+    "Show your work step by step when solving complex problems.",
+    "Support basic operations: +, -, *, /, ^, sqrt, etc.",
+    "For word problems, extract the mathematical operations and solve them.",
+    "Always provide the final answer clearly.",
+    "If the input is not mathematical, politely ask for a math problem.",
+    "Use proper mathematical notation and formatting.",
+  ],
+  maxSteps: 10,
+  schema: z.object({
+    user: z.string(),
+    operation: z.enum(["calculate", "solve", "convert"]).optional(),
+  }),
+});
+
+// Create the agent with calculator-specific configuration
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  modelSettings: {
+    maxTokens: 600,
+    temperature: 0.1, // Low temperature for precise calculations
+  },
+  extensions: [calculatorCliExtension],
+  contexts: [calculatorContext],
+  actions: mathActions,
+});
+
+async function main() {
+  try {
+    await agent.start();
+    console.log("🧮 Calculator Bot started successfully!");
+    console.log("I can help you with:");
+    console.log("• Basic arithmetic: 2 + 2, 10 * 5");
+    console.log("• Advanced math: sqrt(16), 2^10, sin(45)");
+    console.log("• Equations: solve 3x + 5 = 20");
+    console.log("• Word problems: 'What is 15% of 200?'");
+    console.log("• Unit conversions: 32°F to Celsius");
+    console.log("\nType 'exit' to quit.");
+  } catch (error) {
+    console.error("Failed to start calculator bot:", error);
+    process.exit(1);
+  }
+}
+
+main();
+```
+
+### Calculator Context
+
+```typescript
+// src/contexts/calculator-context.ts
+import { context } from "@axiomkit/core";
+import { z } from "zod";
+
+export const calculatorContext = context({
+  type: "calculator-session",
+  schema: z.object({
+    userId: z.string(),
+    sessionId: z.string().optional(),
+  }),
+  key: ({ userId, sessionId }) => `${userId}:${sessionId || "default"}`,
+  create: (state) => ({
+    calculations: [],
+    userPreferences: {
+      decimalPlaces: 2,
+      angleUnit: "degrees", // degrees or radians
+      notation: "standard", // standard or scientific
+    },
+    sessionStats: {
+      totalCalculations: 0,
+      correctAnswers: 0,
+      averageTime: 0,
+    },
+  }),
+  render: ({ memory, state }) => `
+    Calculator Session Context:
+    User: ${state.userId}
+    Session: ${state.sessionId || "default"}
+    
+    Recent Calculations: ${memory.calculations.length}
+    Total Calculations: ${memory.sessionStats.totalCalculations}
+    Accuracy: ${memory.sessionStats.correctAnswers}/${memory.sessionStats.totalCalculations}
+    
+    Preferences:
+    - Decimal Places: ${memory.userPreferences.decimalPlaces}
+    - Angle Unit: ${memory.userPreferences.angleUnit}
+    - Notation: ${memory.userPreferences.notation}
+  `,
+});
+```
+
+### Math Actions
+
+```typescript
+// src/actions/math-actions.ts
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+// Basic arithmetic action
+export const calculateAction = action({
+  name: "calculate",
+  description: "Perform basic mathematical calculations",
+  schema: z.object({
+    expression: z.string().describe("Mathematical expression to evaluate"),
+    precision: z.number().optional().describe("Number of decimal places"),
+  }),
+  handler: async (args, ctx, agent) => {
+    const { expression, precision = 2 } = args;
+    const startTime = Date.now();
+    
+    try {
+      // Use a safe math evaluation library
+      const result = await evaluateExpression(expression, precision);
+      const endTime = Date.now();
+      
+      // Update session memory
+      ctx.agentMemory.calculations.push({
+        expression,
+        result,
+        timestamp: new Date(),
+        executionTime: endTime - startTime,
+      });
+      
+      ctx.agentMemory.sessionStats.totalCalculations++;
+      ctx.agentMemory.sessionStats.correctAnswers++;
+      
+      return {
+        success: true,
+        result: result.toFixed(precision),
+        expression,
+        executionTime: endTime - startTime,
+        steps: generateCalculationSteps(expression, result),
+      };
+    } catch (error) {
+      ctx.agentMemory.sessionStats.totalCalculations++;
+      
+      return {
+        success: false,
+        error: error.message,
+        expression,
+        suggestion: "Please check your expression and try again.",
+      };
+    }
+  },
+});
+
+// Equation solving action
+export const solveEquationAction = action({
+  name: "solve-equation",
+  description: "Solve mathematical equations",
+  schema: z.object({
+    equation: z.string().describe("Equation to solve (e.g., '3x + 5 = 20')"),
+    variable: z.string().optional().describe("Variable to solve for"),
+  }),
+  handler: async (args, ctx, agent) => {
+    const { equation, variable = "x" } = args;
+    
+    try {
+      const solution = await solveEquation(equation, variable);
+      
+      return {
+        success: true,
+        equation,
+        variable,
+        solution,
+        steps: generateSolutionSteps(equation, solution),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        equation,
+        suggestion: "Please provide a valid equation.",
+      };
+    }
+  },
+});
+
+// Unit conversion action
+export const convertUnitsAction = action({
+  name: "convert-units",
+  description: "Convert between different units",
+  schema: z.object({
+    value: z.number().describe("Value to convert"),
+    fromUnit: z.string().describe("Source unit"),
+    toUnit: z.string().describe("Target unit"),
+  }),
+  handler: async (args, ctx, agent) => {
+    const { value, fromUnit, toUnit } = args;
+    
+    try {
+      const convertedValue = await convertUnits(value, fromUnit, toUnit);
+      
+      return {
+        success: true,
+        original: { value, unit: fromUnit },
+        converted: { value: convertedValue, unit: toUnit },
+        conversion: `${value} ${fromUnit} = ${convertedValue} ${toUnit}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        suggestion: "Please provide valid units for conversion.",
+      };
+    }
+  },
+});
+
+export const mathActions = [
+  calculateAction,
+  solveEquationAction,
+  convertUnitsAction,
+];
+```
+
+### Utility Functions
+
+```typescript
+// src/utils/math-utils.ts
+import { evaluate } from "mathjs";
+
+export async function evaluateExpression(expression: string, precision: number): Promise<number> {
+  try {
+    // Clean and validate expression
+    const cleanExpression = expression.replace(/[^0-9+\-*/().,^√πe]/g, "");
+    
+    // Use mathjs for safe evaluation
+    const result = evaluate(cleanExpression);
+    
+    if (typeof result !== "number" || !isFinite(result)) {
+      throw new Error("Invalid mathematical expression");
+    }
+    
+    return Number(result.toFixed(precision));
+  } catch (error) {
+    throw new Error(`Calculation error: ${error.message}`);
+  }
+}
+
+export function generateCalculationSteps(expression: string, result: number): string[] {
+  const steps = [];
+  
+  // Add basic steps for demonstration
+  steps.push(`Expression: ${expression}`);
+  steps.push(`Evaluating...`);
+  steps.push(`Result: ${result}`);
+  
+  return steps;
+}
+
+export async function solveEquation(equation: string, variable: string): Promise<number> {
+  // Simple linear equation solver
+  const cleanEquation = equation.replace(/\s/g, "");
+  
+  // Extract coefficients (simplified)
+  const match = cleanEquation.match(new RegExp(`(\\d+)${variable}\\s*([+-])\\s*(\\d+)\\s*=\\s*(\\d+)`));
+  
+  if (!match) {
+    throw new Error("Unable to parse equation format");
+  }
+  
+  const [, coefficient, operator, constant, result] = match;
+  const a = parseInt(coefficient);
+  const b = parseInt(constant);
+  const c = parseInt(result);
+  
+  if (operator === "+") {
+    return (c - b) / a;
+  } else {
+    return (c + b) / a;
+  }
+}
+
+export function generateSolutionSteps(equation: string, solution: number): string[] {
+  return [
+    `Original equation: ${equation}`,
+    `Isolate ${equation.includes("x") ? "x" : "variable"}`,
+    `Solution: ${solution}`,
+  ];
+}
+
+export async function convertUnits(value: number, fromUnit: string, toUnit: string): Promise<number> {
+  // Simple unit conversion (temperature example)
+  if (fromUnit.toLowerCase() === "fahrenheit" && toUnit.toLowerCase() === "celsius") {
+    return (value - 32) * 5/9;
+  } else if (fromUnit.toLowerCase() === "celsius" && toUnit.toLowerCase() === "fahrenheit") {
+    return value * 9/5 + 32;
+  }
+  
+  throw new Error(`Unsupported unit conversion: ${fromUnit} to ${toUnit}`);
+}
+```
+
+### Package Configuration
+
+```json
+// package.json
+{
+  "name": "calculator-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch run index.ts",
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@axiomkit/core": "workspace:*",
+    "@axiomkit/cli": "workspace:*",
+    "@ai-sdk/groq": "latest",
+    "mathjs": "^11.11.0",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
+```
+
+### Environment Configuration
+
+```bash
+# .env.example
+GROQ_API_KEY=your_groq_api_key_here
+NODE_ENV=development
+LOG_LEVEL=info
+```
+
+## Usage Examples
+
+### Basic Calculations
+
+```
+> 2 + 2
+🧮 Calculator: 4
+
+> 10 * 5
+🧮 Calculator: 50
+
+> sqrt(16)
+🧮 Calculator: 4
+
+> 2^10
+🧮 Calculator: 1024
+```
+
+### Advanced Math
+
+```
+> solve 3x + 5 = 20
+🧮 Calculator: 
+Original equation: 3x + 5 = 20
+Isolate x
+Solution: 5
+
+> What is 15% of 200?
+🧮 Calculator: 30
+
+> Convert 32°F to Celsius
+🧮 Calculator: 0°C
+```
+
+### Error Handling
+
+```
+> invalid expression
+🧮 Calculator: I'm sorry, but "invalid expression" doesn't appear to be a mathematical problem. Could you please provide a mathematical expression or calculation you'd like me to help you with?
+
+> 1 / 0
+🧮 Calculator: Error: Division by zero is not allowed. Please check your expression and try again.
+```
+
+## Customization
+
+### Adding New Math Functions
+
+```typescript
+// Add trigonometric functions
+export const trigAction = action({
+  name: "trigonometry",
+  description: "Calculate trigonometric functions",
+  schema: z.object({
+    function: z.enum(["sin", "cos", "tan"]),
+    angle: z.number(),
+    unit: z.enum(["degrees", "radians"]).default("degrees"),
+  }),
+  handler: async (args, ctx, agent) => {
+    const { function: func, angle, unit } = args;
+    
+    // Convert to radians if needed
+    const angleInRadians = unit === "degrees" ? angle * Math.PI / 180 : angle;
+    
+    let result;
+    switch (func) {
+      case "sin":
+        result = Math.sin(angleInRadians);
+        break;
+      case "cos":
+        result = Math.cos(angleInRadians);
+        break;
+      case "tan":
+        result = Math.tan(angleInRadians);
+        break;
+    }
+    
+    return {
+      success: true,
+      function: func,
+      angle,
+      unit,
+      result: result.toFixed(6),
+    };
+  },
+});
+```
+
+### Customizing Instructions
+
+```typescript
+const advancedCalculatorExtension = createCliExtension({
+  name: "advanced-calculator",
+  instructions: [
+    "You are an advanced mathematical calculator with expertise in:",
+    "- Calculus: derivatives, integrals, limits",
+    "- Statistics: mean, median, standard deviation",
+    "- Linear algebra: matrices, vectors, eigenvalues",
+    "- Number theory: prime factorization, GCD, LCM",
+    "Always show detailed steps and explanations.",
+    "Use mathematical notation when appropriate.",
+    "Provide multiple solution methods when possible.",
+  ],
+});
+```
+
+## Testing
+
+```typescript
+// test/calculator.test.ts
+import { describe, it, expect } from "vitest";
+import { evaluateExpression, solveEquation, convertUnits } from "../src/utils/math-utils";
+
+describe("Calculator Bot", () => {
+  describe("Basic Calculations", () => {
+    it("should perform addition", async () => {
+      const result = await evaluateExpression("2 + 2", 2);
+      expect(result).toBe(4);
+    });
+    
+    it("should perform multiplication", async () => {
+      const result = await evaluateExpression("5 * 3", 2);
+      expect(result).toBe(15);
+    });
+  });
+  
+  describe("Equation Solving", () => {
+    it("should solve linear equations", async () => {
+      const result = await solveEquation("3x + 5 = 20", "x");
+      expect(result).toBe(5);
+    });
+  });
+  
+  describe("Unit Conversion", () => {
+    it("should convert Fahrenheit to Celsius", async () => {
+      const result = await convertUnits(32, "fahrenheit", "celsius");
+      expect(result).toBe(0);
+    });
+  });
+});
+```
+
+## Best Practices
+
+### 1. **Input Validation**
+```typescript
+// Always validate mathematical expressions
+function validateExpression(expression: string): boolean {
+  const validChars = /^[0-9+\-*/().,^√πe\s]+$/;
+  return validChars.test(expression);
+}
+```
+
+### 2. **Error Handling**
+```typescript
+// Provide helpful error messages
+try {
+  const result = await evaluateExpression(expression, precision);
+  return { success: true, result };
+} catch (error) {
+  return {
+    success: false,
+    error: error.message,
+    suggestion: "Please check your expression and try again.",
+  };
+}
+```
+
+### 3. **Performance Optimization**
+```typescript
+// Cache frequently used calculations
+const calculationCache = new Map<string, number>();
+
+export async function evaluateWithCache(expression: string): Promise<number> {
+  if (calculationCache.has(expression)) {
+    return calculationCache.get(expression)!;
+  }
+  
+  const result = await evaluateExpression(expression, 2);
+  calculationCache.set(expression, result);
+  return result;
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **API Key Errors**
+   ```bash
+   # Check environment variables
+   echo $GROQ_API_KEY
+   ```
+
+2. **Math Evaluation Errors**
+   - Ensure expressions use valid mathematical syntax
+   - Check for division by zero
+   - Validate input before evaluation
+
+3. **Performance Issues**
+   - Use caching for repeated calculations
+   - Limit expression complexity
+   - Implement timeout for long calculations
+
+This calculator bot example demonstrates how to build a practical, user-friendly AI agent using Axiomkit's core features while maintaining code quality and providing comprehensive error handling.

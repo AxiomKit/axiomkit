@@ -1,0 +1,10 @@
+{
+    "title": "Examples",
+    "description": "Comprehensive collection of Axiomkit examples and templates for building AI agents",
+    "icon": "code",
+    "root": true,
+    "pages": [
+        "index",
+        "basic/calculator-bot"
+    ]
+}

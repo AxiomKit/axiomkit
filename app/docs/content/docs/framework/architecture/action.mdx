@@ -1,0 +1,72 @@
+---
+title: Output
+description:
+  A core objective is to comprehend the fundamental building blocks that
+  constitute the Axiomkit framework.
+---
+
+## Example
+
+#### CLI
+
+```typescript
+import { context, input, output } from "@axiomkit/core";
+import z from "zod/v4";
+import * as readline from "readline/promises";
+const outputCLI = output({
+  description: "Send messages to the user",
+  instructions: "Respond to the user's message according to your instructions",
+  schema: z.string(),
+  handler(data) {
+    console.log("Agent:", data);
+    return { data };
+  },
+});
+
+// And configure into context
+export const cliContext = context({
+  type: "cli",
+  // A schema to identify a specific CLI session. Here, we use a simple string.
+  schema: z.object({
+    sessionId: z.string(),
+  }),
+
+  // The 'inputs' block defines how the agent receives data from the outside world.
+  inputs: {
+    // We name our input 'cli:message'
+    "cli:message": input({
+      // The subscribe function is where the listening happens. It's async.
+      async subscribe(send, { container }) {
+        const rl = container.resolve<readline.Interface>("readline");
+        const controller = new AbortController();
+
+        // This loop waits for the user to type something and press Enter.
+        while (!controller.signal.aborted) {
+          const userInput = await rl.question("> ");
+
+          // Typing 'exit' will break the loop and end the program.
+          if (userInput.toLowerCase() === "exit") {
+            break;
+          }
+
+          // Send the user's input to the agent for processing.
+          // 1. context: Tells the agent which context to use (this one).
+          // 2. args: Identifies the specific session (e.g., { sessionId: "user123" }).
+          // 3. data: The actual message from the user.
+          send(cliContext, { sessionId: "main_session" }, userInput);
+        }
+
+        // This function is called to clean up and stop listening.
+        return () => {
+          controller.abort();
+          rl.close();
+        };
+      },
+    }),
+  },
+
+  outputs: {
+    outputCLI,
+  },
+});
+```

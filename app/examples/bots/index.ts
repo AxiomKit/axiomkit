@@ -1,3 +1,4 @@
+import { action } from "@axiomkit/core";
 // Example with a chat context - cli
 import { groq } from "@ai-sdk/groq";
 import { context, createAgent, validateEnv } from "@axiomkit/core";

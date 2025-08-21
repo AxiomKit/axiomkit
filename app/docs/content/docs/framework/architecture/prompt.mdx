@@ -1,0 +1,140 @@
+---
+title: Prompt
+description: How Axiom structures prompts to guide LLM reasoning and actions.
+---
+
+# Prompt
+
+## What is a Prompt?
+
+A **prompt** is the structured input sent to an LLM to instruct it on what to do. In the context of Axiomkit, prompts go beyond basic user queries - they include full context, memory, tool access, and expected response formats.
+
+## Simple Prompts vs. Structured Agent Prompts
+
+### **❌ Basic Prompt (Like ChatGPT)**
+
+```
+User: I’m having trouble with my order.
+Assistant: Sorry to hear that. Can you give me more details?
+```
+
+This response is passive - no action is taken, no context is stored, and the system doesn’t move forward.
+
+✅ Axiomkit Agent Prompt (Structured for Action)
+
+```
+You are a support agent with access to:
+- Create support tickets
+- Send chat replies
+- Email customers
+- Recall user history
+
+Current state:
+- User asked: "My order hasn't arrived."
+- Available actions: createTicket, sendChat, sendEmail
+- Context: user321 in live chat
+
+Respond with:
+<action_call name="createTicket">{"issue": "Delayed order", "userId": "user321"}</action_call>
+<output type="chat:send">I’ve created a support ticket for your delayed order. We’ll follow up via email.</output>
+```
+
+### Why Structured Prompts Matter
+
+Unstructured LLMs:
+
+* Don’t know what tools (actions) are available
+* Forget prior user preferences or history
+* Can’t reliably follow multi-step instructions
+* Only generate text - they don’t execute behavior
+
+Structured prompts solve this by giving the LLM clear, machine-readable guidance on what it can do, what context it's in, and how to respond.
+
+
+
+Every time your agent thinks, Axiomkit automatically builds a prompt like this:
+
+#### **1. Instructions**
+
+```
+You are a customer support agent. Analyze the incoming message, decide what action to take, and respond appropriately.
+```
+
+#### 2. Available Tools
+
+```xml
+<available-actions>
+  <action name="createTicket">
+    <description>Creates a new support ticket for a reported issue</description>
+    <schema>{"type":"object","properties":{"issue":{"type":"string"},"userId":{"type":"string"}}}</schema>
+  </action>
+</available-actions>
+
+<available-outputs>
+  <output type="chat:send">
+    <description>Sends a real-time message to the user</description>
+    <schema>{"type":"string"}</schema>
+  </output>
+</available-outputs>
+
+```
+
+#### 3. Context State
+
+```xml
+<contexts>
+  <context type="chat" key="user321">
+    user321: "My order hasn't arrived."
+    agent: "I’m sorry to hear that—checking now."
+  </context>
+</contexts>
+```
+
+#### **4. Updates**
+
+```xml
+<updates>
+  <input type="chat:message" timestamp="2025-07-27T10:30:00Z">
+    My order hasn’t arrived.
+  </input>
+</updates>
+```
+
+#### 5. Expected Response Format
+
+```xml
+<response>
+  <reasoning>Your internal logic</reasoning>
+  <action_call name="createTicket">{"issue": "Delayed order", "userId": "user321"}</action_call>
+  <output type="chat:send">Response to the user</output>
+</response>
+
+```
+
+### LLM Response Example
+
+```xml
+<response>
+  <reasoning>
+    The user reports a delayed order. I should create a support ticket and notify them in chat.
+  </reasoning>
+  <action_call name="createTicket">{"issue": "Delayed order", "userId": "user321"}</action_call>
+  <output type="chat:send">I’ve opened a support ticket. You’ll receive updates by email.</output>
+</response>
+```
+
+AxiomKit automatically:
+
+* Executes the `createTicket` handler
+* Sends the chat message using the `sendChat` output
+* Logs the LLM’s reasoning for traceability
+
+#### Benefits of Axiomkit Prompting
+
+* ✅ **Actionable Intelligence**: The LLM doesn’t just reply-it decides and acts.
+* ✅ **Consistency**: All agents follow a shared, structured schema.
+* ✅ **Contextual Awareness**: Prompts include relevant memory and history.
+* ✅ **Debuggable**: Every reasoning chain and decision is traceable.
+* ✅ **Flexible**: You can easily plug in new actions, outputs, and context types.
+
+The structured prompting system is what transforms an LLM from a passive text generator into an intelligent, autonomous agent capable of taking actions.
