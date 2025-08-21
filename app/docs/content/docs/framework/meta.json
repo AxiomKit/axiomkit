@@ -1,0 +1,22 @@
+{
+    "title": "Framework",
+    "description": "The docs framework",
+    "icon": "building",
+    "root": true,
+    "pages": [
+        "index",
+        "---GETTING STARTED---",
+        "getting-started/quick-start",
+        "getting-started/first-ai-agent",
+        "---ARCHITECTURE---",
+        "architecture/index",
+        "architecture/agent-lifecycle",
+        "architecture/context",
+        "architecture/prompt",
+        "architecture/input",
+        "architecture/output",
+        "architecture/action",
+        "architecture/task",
+        "architecture/memory"
+    ]
+}

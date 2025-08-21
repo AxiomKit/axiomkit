@@ -1,26 +1,6 @@
 import chalk from "chalk";
 
 /**
- * Fetches the latest version of a package from npm registry
- * @param packageName The name of the npm package
- * @returns Promise resolving to the latest version or null if failed
- */
-async function fetchLatestVersion(packageName: string): Promise<string | null> {
-  try {
-    const response = await fetch(
-      `https://registry.npmjs.org/${packageName}/latest`
-    );
-    if (!response.ok) {
-      return null;
-    }
-    const data = await response.json();
-    return data.version ? `^${data.version}` : null;
-  } catch (error) {
-    return null;
-  }
-}
-
-/**
  * Gets the configured versions for all dependencies from config.ts
  * @param selectedExtensions Array of selected extensions to determine which packages to include
  * @param selectedModel The selected model provider to determine which AI SDK to include
@@ -39,7 +19,9 @@ export async function getConfiguredDependencies(
   };
 
   // Import the configured dependencies from config.ts
-  const { BASEDEPS_AXIOMKIT, MODEL_DEPS_AXIOMKIT } = await import("./config.js");
+  const { BASEDEPS_AXIOMKIT, MODEL_DEPS_AXIOMKIT } = await import(
+    "./config.js"
+  );
 
   // Base dependencies from config
   const baseDependencies = { ...BASEDEPS_AXIOMKIT };
@@ -55,17 +37,14 @@ export async function getConfiguredDependencies(
   const extensionDependencies: Record<string, string> = {};
 
   if (selectedExtensions.includes("cli")) {
-    extensionDependencies["@axiomkit/cli"] = "^0.0.6";
-  }
-  if (selectedExtensions.includes("twitter")) {
-    extensionDependencies["@axiomkit/twitter"] = "^0.0.6";
+    extensionDependencies["@axiomkit/cli"] = "^0.0.14";
   }
   if (selectedExtensions.includes("discord")) {
-    extensionDependencies["@axiomkit/discord"] = "^0.0.6";
+    extensionDependencies["@axiomkit/discord"] = "^0.0.9";
     extensionDependencies["discord.js"] = "^14.17.3";
   }
   if (selectedExtensions.includes("telegram")) {
-    extensionDependencies["@axiomkit/telegram"] = "^0.0.6";
+    extensionDependencies["@axiomkit/telegram"] = "^0.0.9";
     extensionDependencies["telegraf"] = "^4.16.3";
   }
 
@@ -76,7 +55,11 @@ export async function getConfiguredDependencies(
   };
 
   log(
-    `Using configured versions for ${Object.keys(allDependencies).length} packages (${selectedModel} model + ${selectedExtensions.length} extensions)...`
+    `Using configured versions for ${
+      Object.keys(allDependencies).length
+    } packages (${selectedModel} model + ${
+      selectedExtensions.length
+    } extensions)...`
   );
 
   // Use configured versions directly without fetching from registry

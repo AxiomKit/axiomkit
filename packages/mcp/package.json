@@ -1,38 +1,38 @@
 {
-    "name": "@axiomkit/mcp",
-    "version": "0.0.7",
-    "type": "module",
-    "description": "AxiomKit MCP Integration",
-    "main": "./dist/index.js",
-    "module": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "publishConfig": {
-        "access": "public"
-    },
-    "exports": {
-        "./package.json": "./package.json",
-        ".": {
-            "types": "./dist/index.d.ts",
-            "require": "./dist/index.js",
-            "import": "./dist/index.js"
-        }
-    },
-    "devDependencies": {
-        "@types/bun": "latest",
-        "tsup": "catalog:",
-        "vitest": "catalog:"
-    },
-    "scripts": {
-        "test": "vitest --passWithNoTests",
-        "build": "tsup --dts-resolve",
-        "prepublishOnly": "pnpm run build"
-    },
-    "peerDependencies": {
-        "typescript": "catalog:"
-    },
-    "dependencies": {
-        "@axiomkit/core": "workspace:*",
-        "@modelcontextprotocol/sdk": "^1.17.2",
-        "zod": "catalog:"
+  "name": "@axiomkit/mcp",
+  "version": "0.0.9",
+  "type": "module",
+  "description": "AxiomKit MCP Integration",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
     }
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "catalog:",
+    "vitest": "catalog:"
+  },
+  "scripts": {
+    "test": "vitest --passWithNoTests",
+    "build": "tsup --dts-resolve",
+    "prepublishOnly": "pnpm run build"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@axiomkit/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.17.2",
+    "zod": "catalog:"
+  }
 }

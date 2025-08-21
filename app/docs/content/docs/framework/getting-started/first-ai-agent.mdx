@@ -1,0 +1,541 @@
+---
+title: First AI Agent
+description: Build your first AI agent with Axiomkit - A comprehensive guide to creating autonomous AI agents
+icon: HousePlug
+date: 2025-01-20
+---
+
+## Overview
+
+### What is it?
+An **AI Agent** in Axiomkit is an autonomous software system that can perceive its environment, make decisions, and take actions to achieve specific goals. Unlike traditional programs that follow predetermined instructions, AI agents use large language models (LLMs) to reason about inputs, decide what actions to take, and learn from their experiences.
+
+At its core, each Axiomkit agent follows a continuous execution loop called the **Agent Lifecycle**:
+
+1. **Analyze** - Process inputs from users, external systems, or sensors
+2. **Reason** - Use an LLM to understand context and determine the best course of action
+3. **Decide** - Choose between generating a response or triggering an action
+4. **Reflect** - Learn from outcomes and update internal state for future interactions
+
+### Why use it?
+- **🤖 Autonomous Decision Making** - Agents can handle complex, multi-step tasks without human intervention
+- **🧠 Contextual Intelligence** - Remember conversations, user preferences, and past interactions
+- **🔧 Extensible Architecture** - Easy to add new capabilities through extensions and actions
+- **🌐 Multi-Platform Support** - Deploy agents on CLI, Discord, Telegram, or custom interfaces
+- **📊 Built-in Memory Systems** - Persistent storage for conversations, user data, and learning
+
+### When to use it?
+- **Customer Support Bots** - Handle inquiries, remember user history, and provide personalized responses
+- **Task Automation** - Automate complex workflows that require reasoning and decision-making
+- **Data Processing** - Analyze, transform, and act on data with natural language instructions
+- **Interactive Applications** - Create conversational interfaces for web apps, games, or tools
+- **Educational Systems** - Build tutoring agents that adapt to student progress and preferences
+
+### What it contains
+- **Agent Core** - The main execution engine that manages the lifecycle
+- **Context System** - Defines agent personality, memory, and behavior patterns
+- **Action Framework** - Extensible system for defining what agents can do
+- **Memory Management** - Persistent storage for conversations and user data
+- **Extension System** - Plugins for different interfaces (CLI, Discord, etc.)
+
+---
+
+## Installation
+
+### Prerequisites
+- **Node.js** (v18 or higher) - For running JavaScript/TypeScript code
+- **pnpm** package manager - For efficient dependency management
+- **Groq API key** - Free tier available at [console.groq.com](https://console.groq.com)
+- **TypeScript knowledge** - Basic understanding of TypeScript syntax and concepts
+
+### Step-by-Step Setup
+
+1. **Create a new project directory**
+   ```bash
+   mkdir my-first-agent
+   cd my-first-agent
+   ```
+
+2. **Initialize the project**
+   ```bash
+   pnpm init
+   pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod
+   pnpm add -D typescript @types/node
+   ```
+
+3. **Create TypeScript configuration**
+   ```json
+   // tsconfig.json
+   {
+     "compilerOptions": {
+       "target": "ES2022",
+       "module": "ESNext",
+       "moduleResolution": "node",
+       "esModuleInterop": true,
+       "strict": true,
+       "outDir": "./dist",
+       "rootDir": "./src"
+     },
+     "include": ["src/**/*"],
+     "exclude": ["node_modules"]
+   }
+   ```
+
+4. **Set up environment variables**
+   ```bash
+   # .env
+   GROQ_API_KEY=your_groq_api_key_here
+   NODE_ENV=development
+   ```
+
+---
+
+## Core Concepts
+
+### Agent Lifecycle
+Every Axiomkit agent follows a continuous loop of four phases:
+
+```typescript
+// The agent lifecycle in code
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [cliExtension],
+  contexts: [myContext],
+});
+```
+
+**Analyze Phase**: The agent receives input and processes it through its context system
+**Reason Phase**: The LLM analyzes the input and determines the best response
+**Decide Phase**: The agent chooses between generating text or executing an action
+**Reflect Phase**: Results are stored in memory for future reference
+
+### Context System
+Contexts define what your agent knows, remembers, and how it behaves:
+
+```typescript
+const myContext = context({
+  type: "my-agent-type",
+  schema: z.object({
+    userId: z.string(),
+    sessionId: z.string().optional(),
+  }),
+  
+  // Initialize agent memory
+  create: () => ({
+    userName: "",
+    conversationCount: 0,
+    preferences: {},
+  }),
+  
+  // Define agent personality and capabilities
+  instructions: [
+    "You are a helpful AI assistant...",
+    "You can perform these actions...",
+  ],
+});
+```
+
+### Action Framework
+Actions are the building blocks of what your agent can do:
+
+```typescript
+myContext.setActions([
+  action({
+    name: "perform-task",
+    description: "Execute a specific task",
+    schema: z.object({
+      task: z.string(),
+      parameters: z.record(z.any()).optional(),
+    }),
+    handler: async (args, ctx) => {
+      // Implementation here
+      return { result: "task completed" };
+    },
+  }),
+]);
+```
+
+---
+
+## Implementation Examples
+
+### Basic Example: Simple Calculator Agent
+
+```typescript
+import { createAgent, context, action, output } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+import * as z from "zod";
+
+// Define the calculator context
+const calculatorContext = context({
+  type: "calculator",
+  schema: z.object({
+    userId: z.string(),
+  }),
+
+  create: () => ({
+    calculationHistory: [] as Array<{
+      expression: string;
+      result: number;
+      timestamp: string;
+    }>,
+    totalCalculations: 0,
+  }),
+
+  render: (state) => {
+    const { calculationHistory, totalCalculations } = state.memory;
+    return `
+🧮 Calculator Agent
+User: ${state.args.userId}
+Total calculations: ${totalCalculations}
+Recent calculations: ${calculationHistory.slice(-3).map(c => 
+  `${c.expression} = ${c.result}`).join(", ") || "None"}
+    `.trim();
+  },
+
+  instructions: [
+    "You are a helpful calculator assistant.",
+    "You can perform mathematical calculations and remember the history.",
+    "Always use the calculate action for mathematical operations.",
+    "Be friendly and explain your calculations when helpful.",
+  ],
+});
+
+// Define the calculate action
+calculatorContext.setActions([
+  action({
+    name: "calculate",
+    description: "Perform mathematical calculations",
+    schema: z.object({
+      expression: z.string().describe("Mathematical expression to evaluate"),
+    }),
+    handler: async (args, ctx) => {
+      const { expression } = args;
+      
+      try {
+        // Safe evaluation (in production, use a proper math library)
+        const result = eval(expression);
+        
+        // Store in history
+        ctx.memory.calculationHistory.push({
+          expression,
+          result,
+          timestamp: new Date().toISOString(),
+        });
+        ctx.memory.totalCalculations++;
+        
+        return {
+          expression,
+          result,
+          message: `Calculated: ${expression} = ${result}`,
+        };
+      } catch (error) {
+        return {
+          error: "Invalid mathematical expression",
+          expression,
+        };
+      }
+    },
+  }),
+]);
+
+// Create the agent
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [createCliExtension()],
+  contexts: [calculatorContext],
+});
+
+async function main() {
+  await agent.start();
+  console.log("🧮 Calculator Agent started!");
+  
+  await agent.run({
+    context: calculatorContext,
+    args: { userId: "user-123" },
+  });
+}
+
+main().catch(console.error);
+```
+
+### Advanced Example: Translator Agent (Based on Real Codebase)
+
+```typescript
+import { createAgent, context, action } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+import * as z from "zod";
+
+// Advanced translator context with memory
+const translatorContext = context({
+  type: "advanced-translator",
+  schema: z.object({
+    userId: z.string(),
+    sessionId: z.string().optional(),
+  }),
+
+  create: () => ({
+    translationHistory: [] as Array<{
+      original: string;
+      translated: string;
+      from: string;
+      to: string;
+      timestamp: string;
+    }>,
+    userPreferences: {
+      formalStyle: false,
+      preserveFormatting: true,
+      includePronunciation: false,
+    },
+    conversationCount: 0,
+  }),
+
+  render: (state) => {
+    const { translationHistory, userPreferences, conversationCount } = state.memory;
+    return `
+🌍 Advanced Translator
+User: ${state.args.userId}
+Conversations: ${conversationCount}
+Recent translations: ${translationHistory.slice(-3).map(t => 
+  `${t.from} → ${t.to}: "${t.original.substring(0, 30)}..."`).join("\n") || "None"}
+    `.trim();
+  },
+
+  instructions: [
+    "You are a professional AI translator with cultural knowledge.",
+    "You can translate between 100+ languages with context preservation.",
+    "Remember user preferences and translation history.",
+    "Provide pronunciation guides and cultural notes when helpful.",
+  ],
+});
+
+// Define translation actions
+translatorContext.setActions([
+  action({
+    name: "translate",
+    description: "Perform professional translation",
+    schema: z.object({
+      text: z.string(),
+      sourceLanguage: z.string(),
+      targetLanguage: z.string(),
+      style: z.enum(["formal", "informal"]).optional(),
+    }),
+    handler: async (args, ctx) => {
+      const { text, sourceLanguage, targetLanguage, style } = args;
+      
+      // Simulate translation (in production, use a translation API)
+      const translatedText = `[${targetLanguage}] ${text}`;
+      
+      // Store in history
+      ctx.memory.translationHistory.push({
+        original: text,
+        translated: translatedText,
+        from: sourceLanguage,
+        to: targetLanguage,
+        timestamp: new Date().toISOString(),
+      });
+      
+      return {
+        original: text,
+        translated: translatedText,
+        from: sourceLanguage,
+        to: targetLanguage,
+        style: style || "neutral",
+      };
+    },
+  }),
+]);
+
+// Create the agent
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [createCliExtension()],
+  contexts: [translatorContext],
+});
+
+async function main() {
+  await agent.start();
+  console.log("🌍 Translator Agent started!");
+  
+  await agent.run({
+    context: translatorContext,
+    args: { userId: "user-123", sessionId: "session-456" },
+  });
+}
+
+main().catch(console.error);
+```
+
+### Real-World Example: Customer Support Agent
+
+```typescript
+import { createAgent, context, action } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+import * as z from "zod";
+
+const supportContext = context({
+  type: "customer-support",
+  schema: z.object({
+    userId: z.string(),
+    customerId: z.string().optional(),
+  }),
+
+  create: () => ({
+    customerInfo: {
+      name: "",
+      email: "",
+      subscription: "",
+      lastContact: null as string | null,
+    },
+    conversationHistory: [] as Array<{
+      userMessage: string;
+      agentResponse: string;
+      timestamp: string;
+      actionTaken: string;
+    }>,
+    supportTickets: [] as Array<{
+      id: string;
+      issue: string;
+      status: "open" | "resolved" | "escalated";
+      createdAt: string;
+    }>,
+  }),
+
+  render: (state) => {
+    const { customerInfo, conversationHistory, supportTickets } = state.memory;
+    return `
+🎧 Customer Support Agent
+Customer: ${customerInfo.name || "Unknown"}
+Email: ${customerInfo.email || "Not provided"}
+Subscription: ${customerInfo.subscription || "Not set"}
+Open tickets: ${supportTickets.filter(t => t.status === "open").length}
+Recent conversations: ${conversationHistory.length}
+    `.trim();
+  },
+
+  instructions: [
+    "You are a professional customer support agent.",
+    "You can help with account issues, billing, and technical problems.",
+    "Always be polite, patient, and solution-oriented.",
+    "Create support tickets for complex issues.",
+    "Remember customer information and conversation history.",
+  ],
+});
+
+supportContext.setActions([
+  action({
+    name: "create-ticket",
+    description: "Create a support ticket for customer issues",
+    schema: z.object({
+      issue: z.string(),
+      priority: z.enum(["low", "medium", "high", "urgent"]),
+    }),
+    handler: async (args, ctx) => {
+      const ticketId = `TICKET-${Date.now()}`;
+      ctx.memory.supportTickets.push({
+        id: ticketId,
+        issue: args.issue,
+        status: "open",
+        createdAt: new Date().toISOString(),
+      });
+      
+      return {
+        ticketId,
+        message: `Support ticket ${ticketId} created successfully.`,
+        priority: args.priority,
+      };
+    },
+  }),
+
+  action({
+    name: "update-customer-info",
+    description: "Update customer information",
+    schema: z.object({
+      name: z.string().optional(),
+      email: z.string().optional(),
+      subscription: z.string().optional(),
+    }),
+    handler: async (args, ctx) => {
+      Object.assign(ctx.memory.customerInfo, args);
+      ctx.memory.customerInfo.lastContact = new Date().toISOString();
+      
+      return {
+        updated: true,
+        customerInfo: ctx.memory.customerInfo,
+      };
+    },
+  }),
+]);
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [createCliExtension()],
+  contexts: [supportContext],
+});
+
+async function main() {
+  await agent.start();
+  console.log("🎧 Customer Support Agent started!");
+  
+  await agent.run({
+    context: supportContext,
+    args: { userId: "support-agent-1", customerId: "cust-123" },
+  });
+}
+
+main().catch(console.error);
+```
+
+---
+
+## Key Takeaways
+
+**🤖 Agents are Autonomous Decision Makers**
+Unlike traditional programs, AI agents can reason about complex situations and make decisions based on context. They don't just follow predetermined rules - they understand, adapt, and learn from interactions.
+
+**🧠 Context is Everything**
+The context system defines your agent's personality, memory, and capabilities. A well-designed context makes your agent feel intelligent and personalized, while a poor one makes it feel robotic and limited.
+
+**🔧 Actions Define Capabilities**
+Actions are the building blocks of what your agent can do. Design them to be specific, well-documented, and handle edge cases gracefully. Each action should have a clear purpose and return meaningful results.
+
+**📊 Memory Enables Intelligence**
+Persistent memory allows your agent to remember conversations, user preferences, and past interactions. This creates a sense of continuity and enables truly personalized experiences.
+
+💡 **Pro Tip**: Start with a simple agent and gradually add complexity. Focus on making your first agent work well before adding advanced features like memory, multiple actions, or complex reasoning.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**"Module not found" errors** → **Missing dependencies**
+**Fix**: Ensure you've installed all required packages with `pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq zod`
+
+**"Invalid API key" errors** → **Environment variable not set**
+**Fix**: Create a `.env` file with `GROQ_API_KEY=your_actual_api_key` and ensure it's being loaded
+
+**"Context not found" errors** → **Context not properly registered**
+**Fix**: Make sure your context is included in the `contexts` array when creating the agent
+
+**"Action not available" errors** → **Action not properly defined**
+**Fix**: Ensure actions are defined using `context.setActions()` and the action name matches what the LLM is trying to call
+
+**"Memory not persisting" errors** → **Memory not properly initialized**
+**Fix**: Check that your context's `create()` function returns the correct memory structure and that you're accessing it correctly in actions
+
+---
+
+## Next Steps
+
+- **[Quick Start Guide](../quick-start)** - Get up and running in under 5 minutes
+- **[Agent Architecture](../../architecture)** - Deep dive into how agents work internally
+- **[Context System](../../architecture/context)** - Learn how to design effective contexts
+- **[Action Framework](../../architecture/action)** - Master the art of creating powerful actions
+- **[Memory Systems](../../architecture/memory)** - Build agents that remember and learn
+- **[Extensions](../../extensions)** - Connect your agent to different platforms and services
+

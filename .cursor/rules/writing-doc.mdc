@@ -1,0 +1,182 @@
+# AxiomKit Documentation Standards
+
+## Documentation Structure
+
+### Required Sections (in order)
+
+#### 1. Frontmatter
+```yaml
+---
+title: {Clear, descriptive title}
+description: {One-line description of what this covers}
+icon: {Relevant icon name}
+date: {YYYY-MM-DD format}
+---
+```
+
+#### 2. Overview Section
+```markdown
+## Overview
+
+### What is it?
+{A clear, comprehensive definition in plain language. Don't assume prior knowledge. Explain the concept, its purpose, and how it fits into the AxiomKit ecosystem.}
+
+### Why use it?
+{Explain the specific problems it solves or benefits it provides to developers. Use 3-4 bullet points with concrete examples.}
+
+### When to use it?
+{Describe specific scenarios, use cases, and contexts where this feature makes sense. Include both simple and complex use cases.}
+
+### What it contains
+- {Component/concept 1} - {brief description}
+- {Component/concept 2} - {brief description}
+- {Component/concept 3} - {brief description}
+```
+
+#### 3. Installation & Setup
+```markdown
+## Installation
+
+### Prerequisites
+- {Requirement 1} - {version/description}
+- {Requirement 2} - {version/description}
+
+### Step-by-Step Setup
+1. **Step 1**: {Detailed instruction}
+   ```bash
+   {command}
+   ```
+   {Explanation of what this does}
+
+2. **Step 2**: {Detailed instruction}
+   ```typescript
+   {code example}
+   ```
+   {Explanation of what this does}
+```
+
+#### 4. Core Concepts
+```markdown
+## Core Concepts
+
+### {Concept 1}
+{Detailed explanation with examples}
+
+### {Concept 2}
+{Detailed explanation with examples}
+```
+
+#### 5. Implementation Examples
+```markdown
+## Implementation Examples
+
+### Basic Example
+{Complete, working code example with explanations}
+
+### Advanced Example
+{More complex example showing advanced features}
+
+### Real-World Example
+{Example based on actual use case from the codebase}
+```
+
+#### 6. Key Takeaways
+```markdown
+## Key Takeaways
+
+**{Main thing dev should remember #1}**
+{Detailed explanation with context}
+
+**{Main thing dev should remember #2}**
+{Detailed explanation with context}
+
+**{Main thing dev should remember #3}**
+{Detailed explanation with context}
+
+💡 **Pro Tip**: {Optional advanced tip or best practice}
+```
+
+#### 7. Troubleshooting
+```markdown
+## Troubleshooting
+
+### Common Issues
+
+**{Symptom}** → **{Cause}**
+**Fix**: {Step-by-step resolution}
+
+**{Symptom}** → **{Cause}**
+**Fix**: {Step-by-step resolution}
+
+**{Symptom}** → **{Cause}**
+**Fix**: {Step-by-step resolution}
+```
+
+#### 8. Next Steps
+```markdown
+## Next Steps
+
+- **[Link 1]** - {Related topic or concept}
+- **[Link 2]** - {Extension or deeper dive}
+- **[Link 3]** - {Example project or tutorial}
+```
+
+## Writing Guidelines
+
+### Code Examples
+- Always include complete, runnable code examples
+- Use TypeScript with proper type annotations
+- Include comments explaining complex parts
+- Show both simple and advanced usage patterns
+- Reference actual examples from the codebase when possible
+
+### Explanations
+- Write for developers with varying experience levels
+- Use concrete examples and analogies
+- Explain the "why" behind design decisions
+- Include performance considerations when relevant
+- Mention limitations and trade-offs
+
+### Structure
+- Use clear, descriptive headings
+- Break complex topics into digestible sections
+- Use numbered lists for step-by-step instructions
+- Use bullet points for feature lists and options
+- Include visual cues (emojis, icons) for better readability
+
+### Technical Accuracy
+- All code examples must be tested and working
+- API references must match the actual implementation
+- Version numbers and dependencies must be current
+- Cross-reference related documentation when appropriate
+
+## Documentation Types
+
+### Getting Started Guides
+- Focus on first-time users
+- Include complete setup instructions
+- Provide immediate value with working examples
+- Build confidence through progressive complexity
+
+### API Documentation
+- Comprehensive parameter descriptions
+- Include all possible return types
+- Show error handling patterns
+- Provide real-world usage examples
+
+### Tutorials
+- Step-by-step progression
+- Clear learning objectives
+- Intermediate checkpoints
+- Complete working examples
+
+### Reference Guides
+- Comprehensive coverage of features
+- Advanced usage patterns
+- Performance considerations
+- Best practices and anti-patterns
+Link 2
+ – Extension or deeper dive
+
+Link 3
+ – Example project

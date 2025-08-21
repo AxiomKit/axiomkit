@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/discord",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "type": "module",
   "description": "AxiomKit Discord Integration",
   "main": "./dist/index.js",

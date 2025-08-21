@@ -1,0 +1,242 @@
+---
+title: Architecture Overview
+description: 
+  Understanding the fundamental building blocks that constitute the Axiomkit framework
+
+---
+
+# Architecture Overview
+
+Axiomkit is built on a foundation of core principles that enable autonomous agent behavior. Understanding these key concepts is essential for effectively creating and customizing intelligent agents.
+
+## Core Components
+
+Axiomkit consists of several interconnected components that work together to create a powerful AI agent system:
+
+### 🧠 **Agent Runtime**
+The central orchestrator that manages the agent's lifecycle, coordinates between components, and handles the execution flow.
+
+### 📦 **Contexts**
+Isolated state containers that manage memory and behavior for specific domains or conversations. Each context maintains its own:
+- **Memory State**: Persistent data storage
+- **Schema**: Type-safe initialization parameters
+- **Rendering Logic**: How the context presents itself to the LLM
+
+### ⚡ **Actions**
+Typed function interfaces that enable agents to interact with external systems. Actions provide:
+- **Type Safety**: Zod schemas for parameter validation
+- **Error Handling**: Built-in error management
+- **Logging**: Automatic execution tracking
+
+### 🧠 **Memory System**
+A multi-layered memory architecture that provides:
+- **Working Memory**: Short-term context for active conversations
+- **Episodic Memory**: Long-term storage of experiences
+- **Vector Memory**: Semantic search capabilities
+- **Graph Memory**: Relationship-based knowledge storage
+
+### 🔌 **Extensions**
+Pluggable modules that bundle related functionality:
+- **Platform Integrations**: Discord, Telegram, CLI
+- **Database Connectors**: MongoDB, Supabase
+- **Custom Extensions**: Domain-specific functionality
+
+## Component Relationships
+
+```mermaid
+graph TB
+    subgraph "Agent Runtime"
+        A[Agent] --> B[Task Runner]
+        A --> C[Context Manager]
+        A --> D[Memory Manager]
+        A --> E[Extension Manager]
+    end
+    
+    subgraph "Contexts"
+        C --> F[Context 1]
+        C --> G[Context 2]
+        C --> H[Context N]
+        
+        F --> F1[Working Memory]
+        F --> F2[State]
+        F --> F3[Renderer]
+    end
+    
+    subgraph "Actions"
+        B --> I[Action 1]
+        B --> J[Action 2]
+        B --> K[Action N]
+        
+        I --> I1[Schema]
+        I --> I2[Handler]
+        I --> I3[Validation]
+    end
+    
+    subgraph "Memory System"
+        D --> L[Episodic Memory]
+        D --> M[Vector Memory]
+        D --> N[Graph Memory]
+        D --> O[Export Manager]
+    end
+    
+    subgraph "Extensions"
+        E --> P[Discord]
+        E --> Q[Telegram]
+        E --> R[CLI]
+        E --> S[Custom]
+    end
+```
+
+## Context System
+
+Contexts are the primary building blocks of Axiomkit agents. They provide isolated state management and behavior encapsulation:
+
+```typescript
+import { context } from "@axiomkit/core";
+import { z } from "zod";
+
+const userContext = context({
+  // Unique identifier for this context type
+  type: "user-conversation",
+ 
+  // Schema for initialization parameters
+  schema: z.object({
+    userId: z.string(),
+    userName: z.string().optional(),
+  }),
+ 
+  // Generate unique key for context instances
+  key({ userId }) {
+    return `user:${userId}`;
+  },
+ 
+  // Initialize context memory state
+  create(state) {
+    return {
+      messages: [],
+      preferences: {},
+      lastActive: new Date(),
+    };
+  },
+ 
+  // Render context for LLM consumption
+  render({ memory, state }) {
+    return `
+      User: ${state.userName || state.userId}
+      Messages: ${memory.messages.length}
+      Last Active: ${memory.lastActive.toISOString()}
+    `;
+  },
+});
+```
+
+## Action System
+
+Actions provide type-safe interfaces for external interactions:
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+const sendEmailAction = action({
+  name: "send-email",
+  description: "Send an email to a specified recipient",
+  
+  // Parameter schema with validation
+  schema: z.object({
+    to: z.string().email(),
+    subject: z.string(),
+    body: z.string(),
+  }),
+  
+  // Action handler with full context
+  async handler(args, ctx, agent) {
+    const { to, subject, body } = args;
+    
+    // Access context memory
+    const userMemory = ctx.agentMemory;
+    
+    // Execute the action
+    const result = await emailService.send({ to, subject, body });
+    
+    // Update memory
+    userMemory.sentEmails.push({
+      to,
+      subject,
+      timestamp: new Date(),
+    });
+    
+    return {
+      success: true,
+      messageId: result.id,
+    };
+  },
+});
+```
+
+## Memory Architecture
+
+The memory system provides multiple layers of storage and retrieval:
+
+### Working Memory
+Short-term storage for active conversations and immediate context.
+
+### Episodic Memory
+Long-term storage of conversations, experiences, and events with temporal organization.
+
+### Vector Memory
+Semantic storage enabling similarity-based retrieval and search.
+
+### Graph Memory
+Relationship-based storage for complex knowledge graphs and connections.
+
+```typescript
+import { MemorySystem } from "@axiomkit/core";
+
+const memory = new MemorySystem({
+  providers: {
+    episodic: new EpisodicMemoryProvider(),
+    vector: new VectorMemoryProvider(),
+    graph: new GraphMemoryProvider(),
+  },
+});
+```
+
+## Extension System
+
+Extensions bundle related functionality into reusable modules:
+
+```typescript
+import { extension } from "@axiomkit/core";
+import { discordContext } from "./discord-context";
+import { discordActions } from "./discord-actions";
+
+export const discordExtension = extension({
+  name: "discord",
+  contexts: {
+    discord: discordContext,
+  },
+  actions: discordActions,
+  services: [discordService],
+});
+```
+
+## Execution Flow
+
+1. **Initialization**: Agent loads contexts, actions, and extensions
+2. **Input Processing**: External events trigger context activation
+3. **Memory Retrieval**: Relevant memories are loaded into working memory
+4. **Reasoning**: LLM analyzes context and decides on actions
+5. **Action Execution**: Selected actions are executed with proper error handling
+6. **Memory Update**: Results are stored in appropriate memory layers
+7. **Output Generation**: Responses are formatted and sent to output channels
+
+## Scalability Considerations
+
+- **Context Isolation**: Each context operates independently
+- **Memory Optimization**: Automatic memory cleanup and summarization
+- **Extension Loading**: Lazy loading of extensions as needed
+- **Error Recovery**: Graceful handling of failures and retries
+- **Performance Monitoring**: Built-in metrics and logging
+
+This architecture provides a solid foundation for building complex, production-ready AI agents while maintaining simplicity and developer productivity.
