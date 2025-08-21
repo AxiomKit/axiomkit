@@ -11,7 +11,7 @@ import {
     validateEnv,
 } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
-import { string, z } from "zod/v4";
+import {  z } from "zod";
 
 // Initialize {{MODEL_NAME}} client
 const env = validateEnv(

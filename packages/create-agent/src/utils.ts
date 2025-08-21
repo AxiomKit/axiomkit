@@ -57,17 +57,15 @@ export async function getConfiguredDependencies(
   const extensionDependencies: Record<string, string> = {};
 
   if (selectedExtensions.includes("cli")) {
-    extensionDependencies["@axiomkit/cli"] = "^0.0.6";
+    extensionDependencies["@axiomkit/cli"] = "^0.0.13";
   }
-  if (selectedExtensions.includes("twitter")) {
-    extensionDependencies["@axiomkit/twitter"] = "^0.0.6";
-  }
+
   if (selectedExtensions.includes("discord")) {
-    extensionDependencies["@axiomkit/discord"] = "^0.0.6";
-    extensionDependencies["discord.js"] = "^14.17.3";
+    extensionDependencies["@axiomkit/discord"] = "^0.0.8";
+    extensionDependencies["discord.js"] = "^14.18.0";
   }
   if (selectedExtensions.includes("telegram")) {
-    extensionDependencies["@axiomkit/telegram"] = "^0.0.6";
+    extensionDependencies["@axiomkit/telegram"] = "^0.0.8";
     extensionDependencies["telegraf"] = "^4.16.3";
   }
 
