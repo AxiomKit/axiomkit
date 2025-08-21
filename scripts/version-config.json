@@ -5,7 +5,7 @@
       "autoUpdate": true
     },
     "@axiomkit/cli": {
-      "version": "0.0.11",
+      "version": "0.0.13",
       "autoUpdate": true
     },
     "@axiomkit/telegram": {
@@ -21,7 +21,7 @@
       "autoUpdate": true
     },
     "@axiomkit/create-agent": {
-      "version": "0.1.6",
+      "version": "0.1.7",
       "autoUpdate": true
     },
     "@axiomkit/supabase": {

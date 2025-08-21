@@ -33,6 +33,7 @@ const program = new Command()
   )
   .option("--cli", "🔧 Add CLI extension for command-line interface support")
   .option("--telegram", "💬 Add Telegram extension for messaging integration")
+  .option("--discord", "💬 Add Discord extension for messaging integration")
   .option("--all", "📦 Add all available extensions")
   .option(
     "--model <model>",
@@ -52,6 +53,7 @@ Examples:
 Available Extensions:
   cli       Command-line interface for terminal interactions
   telegram  Telegram bot for messaging and notifications
+  discord   Discord bot 
 
 Supported Models:
   groq      Groq's fast inference (free tier available)
@@ -161,6 +163,11 @@ export async function main(
             value: "telegram",
             description: "Telegram bot for messaging",
           },
+          {
+            title: "Discord",
+            value: "discord",
+            description: "Discord bot for server ",
+          },
         ],
         hint: "Use space to select, enter to confirm",
       });
@@ -265,12 +272,14 @@ export async function main(
   const packageJson: {
     name: string;
     version: string;
+    license: string;
     type: string;
     scripts: Record<string, string>;
     dependencies: Record<string, string>;
   } = {
     name: path.basename(targetPath),
     version: "0.1.0",
+    license: "MIT",
     type: "module",
     scripts: {
       start: "bun run index.ts",
