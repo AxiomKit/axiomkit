@@ -272,12 +272,11 @@ export class VerboseFormatter implements LogFormatter {
   }
 }
 
-// Enhanced color palette with more sophisticated styling
 const colors = {
   // Base colors
   reset: "\x1b[0m",
-  bright: "\x1b[1m",
-  dim: "\x1b[2m",
+  bright: "\x1b[38;2;255;255;255;1m",
+  dim: "\x1b[38;2;142;142;147m",
 
   // Foreground colors
   black: "\x1b[30m",
@@ -299,7 +298,7 @@ const colors = {
   bgCyan: "\x1b[46m",
 
   // RGB colors for better aesthetics
-  orange: "\x1b[38;5;208m",
+  orange: "\x1b[38;2;255;149;0m",
   purple: "\x1b[38;5;135m",
   pink: "\x1b[38;5;213m",
   teal: "\x1b[38;5;51m",
