@@ -1,0 +1,409 @@
+---
+title: Core Package
+description: The foundation of AxiomKit - agent runtime, memory system, and core functionality
+icon: Cpu
+---
+
+# @axiomkit/core
+
+The core package provides the essential building blocks for creating intelligent AI agents with advanced reasoning, memory management, and extensible architecture.
+
+## Overview
+
+`@axiomkit/core` is the foundation of the AxiomKit ecosystem, offering:
+
+- **Agent Runtime** - Complete agent lifecycle management
+- **Memory System** - Advanced memory with multiple storage types
+- **Context Management** - Isolated state containers with persistence
+- **Action System** - Type-safe function interfaces with validation
+- **Extension Framework** - Plugin architecture for custom functionality
+- **Monitoring & Logging** - Comprehensive observability tools
+
+## Installation
+
+```bash
+pnpm add @axiomkit/core
+```
+
+## Quick Start
+
+### Basic Agent
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  modelSettings: {
+    maxTokens: 1000,
+    temperature: 0.7,
+  },
+});
+
+await agent.start();
+```
+
+### Agent with Memory
+
+```typescript
+import { createAgent, createMemoryStore } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const memory = createMemoryStore({
+  type: "file",
+  path: "./memory",
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory,
+});
+
+await agent.start();
+```
+
+## Core Concepts
+
+### Agent Configuration
+
+```typescript
+const agent = createAgent({
+  // Language model
+  model: groq("gemma2-9b-it"),
+  
+  // Model settings
+  modelSettings: {
+    temperature: 0.7,
+    maxTokens: 1000,
+    topP: 0.9,
+  },
+  
+  // Memory configuration
+  memory: createMemoryStore(),
+  
+  // Actions available to the agent
+  actions: [
+    // Your custom actions here
+  ],
+  
+  // Extensions
+  extensions: [
+    // Plugin extensions
+  ],
+});
+```
+
+### Context Management
+
+```typescript
+import { context } from "@axiomkit/core";
+import { z } from "zod";
+
+const chatContext = context({
+  type: "chat",
+  schema: z.object({
+    userId: z.string(),
+    sessionId: z.string(),
+  }),
+  key: ({ userId, sessionId }) => `${userId}-${sessionId}`,
+  instructions: "You are a helpful assistant in a chat session.",
+});
+
+// Use context in agent
+const result = await agent.run({
+  context: chatContext,
+  args: { userId: "user123", sessionId: "session456" },
+  input: "Hello, how are you?",
+});
+```
+
+### Custom Actions
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+const searchAction = action({
+  name: "search",
+  description: "Search the web for information",
+  schema: z.object({
+    query: z.string(),
+    maxResults: z.number().optional(),
+  }),
+  handler: async (args, ctx, agent) => {
+    const { query, maxResults = 5 } = args;
+    
+    // Implement search logic
+    const results = await performSearch(query, maxResults);
+    
+    return {
+      results,
+      query,
+      count: results.length,
+    };
+  },
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  actions: [searchAction],
+});
+```
+
+## Memory System
+
+### Memory Types
+
+AxiomKit supports multiple memory types:
+
+```typescript
+import { createMemoryStore } from "@axiomkit/core";
+
+// File-based memory
+const fileMemory = createMemoryStore({
+  type: "file",
+  path: "./memory",
+});
+
+// In-memory storage
+const inMemory = createMemoryStore({
+  type: "memory",
+});
+
+// Custom memory provider
+const customMemory = createMemoryStore({
+  type: "custom",
+  provider: new CustomMemoryProvider(),
+});
+```
+
+### Memory Operations
+
+```typescript
+// Store memories
+await agent.memory.store("episodic", {
+  type: "conversation",
+  content: "User asked about weather",
+  timestamp: Date.now(),
+});
+
+// Retrieve memories
+const memories = await agent.memory.retrieve("episodic", {
+  type: "conversation",
+  limit: 10,
+});
+
+// Search memories
+const searchResults = await agent.memory.search("weather", {
+  type: "episodic",
+  limit: 5,
+});
+```
+
+## Advanced Features
+
+### Streaming Responses
+
+```typescript
+const result = await agent.run({
+  context: chatContext,
+  args: { userId: "user123" },
+  input: "Tell me a story",
+  handlers: {
+    onLogStream: (log, done) => {
+      if (log.ref === "thought") {
+        console.log("🤔 Thinking:", log.content);
+      }
+      if (log.ref === "output") {
+        console.log("💬 Response:", log.content);
+      }
+    },
+  },
+});
+```
+
+### Request Monitoring
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  requestTrackingConfig: {
+    enabled: true,
+    trackTokens: true,
+    trackLatency: true,
+  },
+});
+
+// Monitor requests
+agent.monitor.on("request", (data) => {
+  console.log("Request:", data);
+});
+```
+
+### Training Data Export
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  exportTrainingData: true,
+  trainingDataPath: "./training-data",
+});
+
+// Export all episodes as training data
+await agent.exportAllTrainingData("./episodes.json");
+```
+
+## API Reference
+
+### Core Types
+
+- `Agent<TContext>` - Main agent interface
+- `Config<TContext>` - Agent configuration
+- `Context<TMemory, Schema, Ctx, Actions, Events>` - Context definition
+- `Action<Schema, Result, TError, TContext, TAgent, TMemory>` - Action definition
+- `Memory<Data>` - Memory configuration
+
+### Key Methods
+
+- `createAgent(config)` - Create a new agent
+- `agent.start(args?)` - Start the agent
+- `agent.run(options)` - Run the agent with context
+- `agent.send(options)` - Send input to the agent
+- `agent.stop()` - Stop the agent
+
+### Memory Methods
+
+- `memory.store(type, data)` - Store memory
+- `memory.retrieve(type, query)` - Retrieve memories
+- `memory.search(query, options)` - Search memories
+- `memory.clear(type?)` - Clear memories
+
+## Examples
+
+### Calculator Bot
+
+```typescript
+import { createAgent, action } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const calculateAction = action({
+  name: "calculate",
+  description: "Perform mathematical calculations",
+  schema: z.object({
+    expression: z.string(),
+  }),
+  handler: async (args) => {
+    const { expression } = args;
+    const result = eval(expression); // In production, use a safe math library
+    return { result, expression };
+  },
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  actions: [calculateAction],
+  instructions: [
+    "You are a mathematical calculator.",
+    "Use the calculate action for mathematical expressions.",
+  ],
+});
+```
+
+### Chat Bot with Memory
+
+```typescript
+import { createAgent, context, createMemoryStore } from "@axiomkit/core";
+import { groq } from "@ai-sdk/groq";
+
+const chatContext = context({
+  type: "chat",
+  schema: z.object({
+    userId: z.string(),
+  }),
+  key: ({ userId }) => userId,
+  instructions: "You are a helpful chat assistant.",
+});
+
+const memory = createMemoryStore({
+  type: "file",
+  path: "./chat-memory",
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory,
+  contexts: [chatContext],
+});
+```
+
+## Best Practices
+
+### 1. Memory Management
+
+```typescript
+// Use appropriate memory types
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory: createMemoryStore({
+    type: "file", // For persistence
+    path: "./memory",
+    maxSize: 1000, // Limit memory size
+  }),
+});
+```
+
+### 2. Error Handling
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  errorHandling: {
+    retryAttempts: 3,
+    retryDelay: 1000,
+    logErrors: true,
+    gracefulDegradation: true,
+  },
+});
+```
+
+### 3. Performance Optimization
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  modelSettings: {
+    maxTokens: 500, // Limit response length
+    temperature: 0.7, // Balance creativity and consistency
+  },
+  memory: createMemoryStore({
+    type: "memory", // Use in-memory for speed
+  }),
+});
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Memory Leaks**
+   - Use memory limits and cleanup
+   - Monitor memory usage
+   - Implement proper cleanup in actions
+
+2. **Performance Issues**
+   - Optimize model settings
+   - Use appropriate memory types
+   - Implement caching where appropriate
+
+3. **Type Errors**
+   - Ensure proper TypeScript configuration
+   - Use Zod schemas for validation
+   - Check action and context types
+
+## Next Steps
+
+- [CLI Extension](/docs/packages/cli) - Add command-line interface
+- [Memory Providers](/docs/packages/mongodb) - Add persistent storage
+- [Platform Extensions](/docs/packages/discord) - Deploy to platforms
+- [Advanced Features](/docs/framework/architecture) - Learn advanced concepts

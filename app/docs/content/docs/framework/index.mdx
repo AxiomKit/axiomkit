@@ -43,49 +43,10 @@ Axiomkit is built on the principle that AI agents should be **composable**, **ex
 - Scalable architecture for high-load scenarios
 - Comprehensive testing utilities
 
-## Architecture Overview
-
-```mermaid
-graph TB
-    A[Agent] --> B[Contexts]
-    A --> C[Actions]
-    A --> D[Memory System]
-    A --> E[Extensions]
-    
-    B --> B1[Working Memory]
-    B --> B2[State Management]
-    
-    C --> C1[API Calls]
-    C --> C2[External Services]
-    C --> C3[Custom Functions]
-    
-    D --> D1[Episodic Memory]
-    D --> D2[Vector Memory]
-    D --> D3[Graph Memory]
-    D --> D4[Export Manager]
-    
-    E --> E1[Discord]
-    E --> E2[Telegram]
-    E --> E3[CLI]
-    E --> E4[Custom Extensions]
-```
-
-## Quick Start
-
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { cliExtension } from "@axiomkit/cli";
-import { groq } from "@ai-sdk/groq";
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
-});
-
-await agent.start();
-```
 
 ## Package Structure
+
+AxiomKit is built as a modular ecosystem of packages, each designed to handle specific aspects of AI agent development.
 
 | Package | Purpose | Description |
 |---------|---------|-------------|
@@ -94,7 +55,6 @@ await agent.start();
 | `@axiomkit/discord` | Discord Integration | Discord bot functionality |
 | `@axiomkit/telegram` | Telegram Integration | Telegram bot functionality |
 | `@axiomkit/mongodb` | MongoDB Memory | MongoDB-based memory storage |
-| `@axiomkit/supabase` | Supabase Integration | Supabase database and vector storage |
 | `@axiomkit/mcp` | Model Context Protocol | MCP server and client utilities |
 | `@axiomkit/sei` | SEI Blockchain | SEI blockchain integration |
 | `@axiomkit/create-agent` | Project Scaffolding | CLI tool for creating new agents |
@@ -120,14 +80,6 @@ await agent.start();
 - Sales and marketing automation
 - Document processing and analysis
 - Decision support systems
-
-## Getting Started
-
-1. **Install Axiomkit**: `pnpm add @axiomkit/core`
-2. **Choose Extensions**: Add platform-specific extensions as needed
-3. **Configure Memory**: Set up your preferred memory storage
-4. **Define Actions**: Create typed actions for your use case
-5. **Deploy**: Run your agent with full production capabilities
 
 ## Community & Support
 

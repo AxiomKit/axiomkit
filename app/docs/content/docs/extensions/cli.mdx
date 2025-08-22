@@ -1,0 +1,421 @@
+---
+title: CLI Extension
+description: Command-line interface extension for building terminal-based AI agents
+icon: Terminal
+---
+
+# @axiomkit/cli
+
+The CLI extension provides a command-line interface for creating interactive terminal-based AI agents with real-time input/output handling.
+
+## Overview
+
+`@axiomkit/cli` enables you to build AI agents that run in the terminal, providing:
+
+- **Interactive Terminal** - Real-time command-line interactions
+- **Customizable Prompts** - Configurable instructions and behavior
+- **Input/Output Handling** - Structured message processing
+- **Flexible Configuration** - Customizable context and schemas
+
+## Installation
+
+```bash
+pnpm add @axiomkit/cli
+```
+
+## Quick Start
+
+### Basic CLI Agent
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { cliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+});
+
+await agent.start();
+```
+
+### Custom CLI Agent
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+const customCliExtension = createCliExtension({
+  name: "calculator",
+  instructions: [
+    "You are a mathematical calculator.",
+    "When users provide mathematical expressions, calculate the result.",
+    "Show your work step by step for complex problems.",
+  ],
+  maxSteps: 3,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [customCliExtension],
+});
+
+await agent.start();
+```
+
+## Configuration Options
+
+### CLI Context Configuration
+
+```typescript
+interface CliContextConfig {
+  name?: string;                    // Context name (default: "cli")
+  instructions?: Instruction;       // Agent instructions
+  maxSteps?: number;               // Maximum conversation steps
+  schema?: z.ZodObject<z.ZodRawShape>; // Input schema
+}
+```
+
+### Creating Custom CLI Extensions
+
+```typescript
+import { createCliExtension } from "@axiomkit/cli";
+import { z } from "zod";
+
+// Custom schema for structured input
+const customSchema = z.object({
+  user: z.string(),
+  command: z.string().optional(),
+  options: z.record(z.string()).optional(),
+});
+
+const customCliExtension = createCliExtension({
+  name: "custom-assistant",
+  instructions: [
+    "You are a specialized assistant.",
+    "Help users with their specific tasks.",
+    "Provide detailed explanations when needed.",
+  ],
+  maxSteps: 10,
+  schema: customSchema,
+});
+```
+
+## Built-in Extensions
+
+### Assistant CLI Extension
+
+```typescript
+import { assistantCliExtension } from "@axiomkit/cli";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [assistantCliExtension],
+});
+```
+
+The assistant extension provides:
+- Friendly and helpful responses
+- Concise but thorough explanations
+- Professional and polite communication
+
+### Default CLI Extension
+
+```typescript
+import { cliExtension } from "@axiomkit/cli";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+});
+```
+
+The default extension provides basic CLI functionality with minimal configuration.
+
+## Advanced Usage
+
+### Custom Input/Output Handling
+
+```typescript
+import { createCliExtension, readlineService } from "@axiomkit/cli";
+import { context, input, output } from "@axiomkit/core";
+
+const customCliContext = context({
+  type: "custom-cli",
+  schema: z.object({ user: z.string() }),
+  
+  inputs: {
+    "custom:message": input({
+      async subscribe(send, { container }) {
+        const rl = container.resolve<readline.Interface>("readline");
+        
+        while (true) {
+          const question = await rl.question("Custom > ");
+          if (question === "exit") break;
+          
+          send(customCliContext, { user: "admin" }, question);
+        }
+      },
+    }),
+  },
+  
+  outputs: {
+    "custom:response": output({
+      description: "Custom response handler",
+      schema: z.string(),
+      handler(data) {
+        console.log("🤖 Custom Agent:", data);
+        return { data };
+      },
+    }),
+  },
+});
+
+const customExtension = createCliExtension({
+  name: "custom",
+  contexts: { custom: customCliContext },
+  services: [readlineService],
+});
+```
+
+### Multi-Context CLI
+
+```typescript
+import { createCliExtension } from "@axiomkit/cli";
+import { context } from "@axiomkit/core";
+
+const calculatorContext = context({
+  type: "calculator",
+  schema: z.object({ user: z.string() }),
+  instructions: "You are a mathematical calculator.",
+});
+
+const translatorContext = context({
+  type: "translator",
+  schema: z.object({ user: z.string() }),
+  instructions: "You are a language translator.",
+});
+
+const multiExtension = createCliExtension({
+  name: "multi-tool",
+  contexts: {
+    calculator: calculatorContext,
+    translator: translatorContext,
+  },
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [multiExtension],
+});
+```
+
+## Examples
+
+### Calculator Bot
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+const calculatorExtension = createCliExtension({
+  name: "calculator",
+  instructions: [
+    "You are a mathematical calculator.",
+    "When users provide mathematical expressions, calculate the result.",
+    "Support basic operations: +, -, *, /, ^, sqrt, etc.",
+    "Show your work step by step for complex problems.",
+  ],
+  maxSteps: 5,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [calculatorExtension],
+});
+
+async function main() {
+  await agent.start();
+  console.log("🧮 Calculator Bot started!");
+  console.log("Try asking: 'What is 2 + 2?' or 'Calculate 15% of 200'");
+}
+
+main();
+```
+
+### Debugging Assistant
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+const debugExtension = createCliExtension({
+  name: "debug-assistant",
+  instructions: [
+    "You are a debugging assistant.",
+    "Help users debug code issues.",
+    "Ask clarifying questions when needed.",
+    "Provide step-by-step debugging guidance.",
+  ],
+  maxSteps: 8,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [debugExtension],
+});
+
+await agent.start();
+```
+
+### Writing Assistant
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createCliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+const writingExtension = createCliExtension({
+  name: "writing-assistant",
+  instructions: [
+    "You are a writing assistant.",
+    "Help users improve their writing.",
+    "Provide suggestions for grammar, style, and clarity.",
+    "Offer alternative phrasings when appropriate.",
+  ],
+  maxSteps: 6,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [writingExtension],
+});
+
+await agent.start();
+```
+
+## Best Practices
+
+### 1. Clear Instructions
+
+```typescript
+const extension = createCliExtension({
+  name: "specialized-assistant",
+  instructions: [
+    "You are a [specific role].",
+    "Your primary goal is to [specific goal].",
+    "When users ask questions, [specific behavior].",
+    "Always [specific requirement].",
+  ],
+});
+```
+
+### 2. Appropriate Step Limits
+
+```typescript
+const extension = createCliExtension({
+  name: "conversational",
+  maxSteps: 10, // Allow longer conversations
+});
+
+const quickExtension = createCliExtension({
+  name: "quick-tool",
+  maxSteps: 3, // Limit for quick tasks
+});
+```
+
+### 3. Error Handling
+
+```typescript
+const extension = createCliExtension({
+  name: "robust-assistant",
+  instructions: [
+    "You are a helpful assistant.",
+    "If you encounter an error, explain it clearly.",
+    "Suggest alternatives when possible.",
+  ],
+});
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Input Not Recognized**
+   - Check schema configuration
+   - Verify input/output handlers
+   - Ensure proper context setup
+
+2. **Agent Not Responding**
+   - Check model configuration
+   - Verify API keys
+   - Review error logs
+
+3. **Memory Issues**
+   - Monitor memory usage
+   - Implement cleanup in long-running sessions
+   - Use appropriate step limits
+
+### Debug Mode
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  debug: true, // Enable debug logging
+});
+```
+
+## Integration with Other Packages
+
+### CLI + Memory
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { cliExtension } from "@axiomkit/cli";
+import { createMongoMemory } from "@axiomkit/mongodb";
+
+const memory = createMongoMemory({
+  connectionString: process.env.MONGODB_URI,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  memory,
+});
+```
+
+### CLI + Actions
+
+```typescript
+import { createAgent, action } from "@axiomkit/core";
+import { cliExtension } from "@axiomkit/cli";
+
+const searchAction = action({
+  name: "search",
+  description: "Search the web",
+  schema: z.object({ query: z.string() }),
+  handler: async (args) => {
+    // Implement search logic
+    return { results: [] };
+  },
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  actions: [searchAction],
+});
+```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [Memory Providers](/docs/packages/mongodb) - Add persistent memory
+- [Platform Extensions](/docs/packages/discord) - Deploy to other platforms
+- [Advanced Features](/docs/framework/architecture) - Explore advanced concepts

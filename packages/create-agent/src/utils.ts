@@ -209,7 +209,6 @@ export function generateTemplateContent(
     );
   }
 
-  // Replace extensions list in createDreams if specified
   if (extensionsList.length > 0) {
     processedContent = processedContent.replace(
       "extensions: [cli]",

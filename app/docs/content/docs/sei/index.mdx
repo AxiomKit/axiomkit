@@ -1,6 +1,102 @@
 ---
-title: Sei Proof State
-description: Build
+title: SEI Extension
+description: SEI blockchain integration for Web3 AI agents
+icon: Coins
 ---
 
-## Getting Started
+# @axiomkit/sei
+
+SEI blockchain integration for creating Web3 AI agents with wallet management and smart contract interactions.
+
+## Installation
+
+```bash
+pnpm add @axiomkit/sei @sei-js/evm ethers viem
+```
+
+## Quick Start
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { seiExtension } from "@axiomkit/sei";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [seiExtension],
+  config: {
+    sei: {
+      rpcUrl: process.env.SEI_RPC_URL,
+      privateKey: process.env.PRIVATE_KEY,
+    },
+  },
+});
+
+await agent.start();
+```
+
+## Configuration
+
+```typescript
+interface SEIConfig {
+  rpcUrl: string;           // SEI RPC endpoint
+  privateKey: string;       // Wallet private key
+  network?: string;         // Network (mainnet/testnet)
+  gasLimit?: number;        // Gas limit for transactions
+}
+```
+
+## Examples
+
+### Wallet Operations
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [seiExtension],
+  config: {
+    sei: {
+      rpcUrl: process.env.SEI_RPC_URL,
+      privateKey: process.env.PRIVATE_KEY,
+    },
+  },
+});
+
+// Get wallet balance
+const balance = await agent.sei.getBalance();
+
+// Send transaction
+const tx = await agent.sei.sendTransaction({
+  to: "0x...",
+  value: "1000000000000000000", // 1 SEI
+});
+```
+
+### Smart Contract Interaction
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [seiExtension],
+  config: {
+    sei: {
+      rpcUrl: process.env.SEI_RPC_URL,
+      privateKey: process.env.PRIVATE_KEY,
+    },
+  },
+});
+
+// Call contract method
+const result = await agent.sei.callContract({
+  address: "0x...",
+  abi: [...],
+  method: "balanceOf",
+  args: ["0x..."],
+});
+```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [CLI Extension](/docs/packages/cli) - Build terminal-based agents
+- [Advanced Features](/docs/framework/architecture) - Explore advanced concepts
