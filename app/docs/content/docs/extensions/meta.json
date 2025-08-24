@@ -1,4 +1,6 @@
 {
+    "title": "Extensions",
+    "description": "The Extensions",
     "root": true,
     "pages": [
         "index",

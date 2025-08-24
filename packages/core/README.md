@@ -23,16 +23,6 @@ AxiomKit Core provides a robust foundation for creating AI agents that can:
 - **Comprehensive Logging**: Detailed logging with multiple levels and formats
 
 
-## Architecture
-### Memory System
-```mermaid
-graph LR
-    subgraph "Working Memory"
-        E1["Real-time State<br/>Current Session"] --> E2["Pressure Detection<br/>Memory Limits"]
-        E2 --> E3["Auto Pruning<br/>Smart Cleanup"]
-        E3 --> E4["Context Integration<br/>Multi-Memory Access"]
-    end
-```
 
 ## Installation
 
