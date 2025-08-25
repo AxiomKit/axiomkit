@@ -5,8 +5,8 @@ icon: MessageSquare
 ---
 
 # @axiomkit/telegram
-
-Telegram bot integration for creating AI-powered Telegram bots with message processing and command handling.
+[`@axiomkit/telegram`](https://github.com/AxiomKit/axiomkit/tree/main/packages/telegram)
+integration for creating AI-powered Telegram bots with message processing and command handling.
 
 ## Installation
 
@@ -16,90 +16,32 @@ pnpm add @axiomkit/telegram telegraf
 
 ## Quick Start
 
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { telegramExtension } from "@axiomkit/telegram";
-import { groq } from "@ai-sdk/groq";
+```typescript 
+import { createGroq } from "@ai-sdk/groq";
+import { createAgent, LogLevel, validateEnv } from "@axiomkit/core";
+import { telegram } from "@axiomkit/telegram";
 
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  extensions: [telegramExtension],
-  config: {
-    telegram: {
-      token: process.env.TELEGRAM_TOKEN,
-    },
-  },
+import * as z from "zod/v4";
+
+// Simple Chat
+
+const env = validateEnv(
+  z.object({
+    TELEGRAM_TOKEN: z.string().min(1, "TELEGRAM_TOKEN is required"),
+    GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
+  })
+);
+
+const groq = createGroq({
+  apiKey: env.GROQ_API_KEY!,
 });
 
-await agent.start();
-```
+createAgent({
+  logLevel: LogLevel.DEBUG,
+  model: groq("deepseek-r1-distill-llama-70b"),
+  extensions: [telegram],
+}).start();
 
-## Configuration
-
-```typescript
-interface TelegramConfig {
-  token: string;           // Telegram bot token
-  webhook?: {              // Webhook configuration
-    url: string;
-    port: number;
-  };
-  commands?: Command[];    // Custom commands
-  middleware?: any[];      // Telegraf middleware
-}
-```
-
-## Examples
-
-### Custom Commands
-
-```typescript
-import { createTelegramExtension } from "@axiomkit/telegram";
-
-const customExtension = createTelegramExtension({
-  name: "ai-assistant",
-  commands: [
-    {
-      command: "start",
-      description: "Start the bot",
-    },
-    {
-      command: "help",
-      description: "Get help",
-    },
-    {
-      command: "ask",
-      description: "Ask a question",
-    },
-  ],
-});
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  extensions: [customExtension],
-  config: {
-    telegram: {
-      token: process.env.TELEGRAM_TOKEN,
-    },
-  },
-});
-```
-
-### Webhook Setup
-
-```typescript
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  extensions: [telegramExtension],
-  config: {
-    telegram: {
-      token: process.env.TELEGRAM_TOKEN,
-      webhook: {
-        url: "https://your-domain.com/webhook",
-        port: 3000,
-      },
-    },
-  },
-});
 ```
 
 ## Next Steps
