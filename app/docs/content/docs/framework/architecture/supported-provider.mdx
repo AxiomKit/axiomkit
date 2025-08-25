@@ -1,0 +1,20 @@
+---
+title: Supported Provider
+description: You can seamlessly access models from OpenAI, Anthropic, Google, and other leading providers through a single integration.
+icon: Bot
+---
+## Setup Requirements
+Install Provider Package: You must install the specific AI SDK provider package for each provider you want to use:
+- **OpenAI**: pnpm add @ai-sdk/openai
+- **Anthropic**: pnpm add @ai-sdk/anthropic
+- **Google**: pnpm add @ai-sdk/google
+- Configure **API Keys**: Set environment variables for your chosen providers
+- Use in createAgent of Axiomkit
+
+## Benefits of Vercel AI SDK Integration
+- **Unified Interface** - A single, consistent API that works seamlessly across multiple providers.
+- **Type Safety** - Full TypeScript support with accurate type definitions for a reliable developer experience.
+- **Streaming Support** - Built-in streaming capabilities that enable real-time, responsive interactions.
+- **Tool Calling** - Native support for function calling across providers, making integrations more powerful.
+- **Active Maintenance** - Continuously updated with new providers, features, and improvements.
+- **Performance Optimized** - Designed for efficient request handling and fast response processing in production.
