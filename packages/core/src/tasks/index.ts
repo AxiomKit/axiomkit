@@ -576,7 +576,11 @@ export const runAction = task({
     try {
       const result =
         action.schema === undefined
-          ? await Promise.try((action as Action<undefined>).handler, ctx, agent)
+          ? await Promise.try(
+              (action as Action<undefined>).handler,
+              ctx as any,
+              agent
+            )
           : await Promise.try(action.handler as any, ctx.call.data, ctx, agent);
 
       logger.debug("agent:action_result:" + ctx.call.id, ctx.call.name, result);

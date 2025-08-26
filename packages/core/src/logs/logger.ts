@@ -319,7 +319,7 @@ const logLevelStyles: {
     badge: colors.bgYellow + colors.black + " WARN  " + colors.reset,
   },
   [LogLevel.INFO]: {
-    color: colors.cyan + colors.bright,
+    color: colors.cyan + colors.green,
     icon: "ℹ️ ",
     badge: colors.bgCyan + colors.black + " INFO  " + colors.reset,
   },

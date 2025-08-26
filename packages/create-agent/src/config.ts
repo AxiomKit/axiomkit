@@ -1,10 +1,10 @@
 export const BASEDEPS_AXIOMKIT = {
   "@axiomkit/core": "^2.0.6",
-  ai: "^5.0.5",
+  ai: "^5.0.22",
   chalk: "^5.4.1",
   typescript: "^5.3.3",
-  zod: "^3.24.1",
-  "@openrouter/ai-sdk-provider": "^1.1.0",
+  zod: "^4.0.16",
+  "@openrouter/ai-sdk-provider": "^1.1.2",
 };
 
 export const MODEL_DEPS_AXIOMKIT: Record<

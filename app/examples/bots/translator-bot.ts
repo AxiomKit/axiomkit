@@ -1,4 +1,4 @@
-import { createAgent, output } from "@axiomkit/core";
+import { createAgent } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 

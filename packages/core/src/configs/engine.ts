@@ -98,8 +98,8 @@ export function createEngine({
   __chunkSubscriptions,
 }: {
   agent: AnyAgent;
-  ctxState: ContextState;
-  agentCtxState?: ContextState;
+  ctxState: any;
+  agentCtxState?: any;
   workingMemory: WorkingMemory;
   subscriptions: Set<(log: AnyRef, done: boolean) => void>;
   handlers?: Partial<Handlers>;

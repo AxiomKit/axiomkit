@@ -1,4 +1,4 @@
-import * as z from "zod/v4";
+import { z } from "zod";
 import type {
   Agent,
   AnyContext,
@@ -244,7 +244,8 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     async getContextById<TContext extends AnyContext>(
       id: string
     ): Promise<ContextState<TContext> | null> {
-      if (contexts.has(id)) return contexts.get(id)! as ContextState<TContext>;
+      if (contexts.has(id))
+        return contexts.get(id)! as unknown as ContextState<TContext>;
 
       const [type] = id.split(":");
 
@@ -262,7 +263,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
             contexts: stateSnapshot.contexts,
           });
 
-          await this.saveContext(state);
+          await this.saveContext(state as unknown as ContextState);
 
           return state;
         }
@@ -289,28 +290,30 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
 
         if (stateSnapshot) {
           await this.saveContext(
-            await createContextState({
+            (await createContextState({
               agent,
               context: params.context,
               args: params.args,
               settings: stateSnapshot.settings,
               contexts: stateSnapshot.contexts,
-            })
+            })) as unknown as ContextState
           );
         }
       }
 
       if (!contexts.has(id)) {
         await this.saveContext(
-          await createContextState({
+          (await createContextState({
             agent,
             context: params.context,
             args: params.args,
-          })
+          })) as unknown as ContextState
         );
       }
 
-      return contexts.get(id)! as ContextState<typeof params.context>;
+      return contexts.get(id)! as unknown as ContextState<
+        typeof params.context
+      >;
     },
 
     async loadContext(params) {
@@ -330,18 +333,21 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
 
         if (stateSnapshot) {
           await this.saveContext(
-            await createContextState({
+            (await createContextState({
               agent,
               context: params.context,
               args: params.args,
               settings: stateSnapshot.settings,
               contexts: stateSnapshot.contexts,
-            })
+            })) as unknown as ContextState
           );
         }
       }
 
-      return (contexts.get(id) as ContextState<typeof params.context>) ?? null;
+      return (
+        (contexts.get(id) as unknown as ContextState<typeof params.context>) ??
+        null
+      );
     },
 
     async saveContext(ctxState, workingMemory) {
@@ -361,8 +367,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     },
 
     getContextId(params) {
-      // logger.trace("agent:getContextId", "Getting context id", params);
-      return getContextId(params.context, params.args);
+      return getContextId(params.context, params.args as any);
     },
 
     async getWorkingMemory(contextId) {
@@ -499,7 +504,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
           args: args!,
         });
 
-        contexts.set("agent:context", agentState);
+        contexts.set("agent:context", agentState as unknown as ContextState);
       }
 
       logger.info("agent:start", "Agent started successfully");

@@ -42,7 +42,7 @@ export async function createMcpClient(options: McpClientConfig) {
       transport = new StdioClientTransport({
         command: options.transport.command,
         args: options.transport.args || [],
-        env: options.env,
+        env: options.env as Record<string, string> | undefined,
       });
     } else if (options.transport.type === "sse") {
       // Create the SSE transport with the correct configuration

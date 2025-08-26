@@ -8,7 +8,7 @@ import {
 } from "@axiomkit/core";
 import { telegram } from "@axiomkit/telegram";
 
-import * as z from "zod/v4";
+import { z } from "zod";
 
 const env = validateEnv(
   z.object({
@@ -79,7 +79,7 @@ Ask for missing information and guide the user through the ordering process.
         userId: z.string().describe("the userId to send the message to"),
       },
       schema: z.string().describe("the content of the message to send"),
-      description: "use this to send a telegram message to user",
+      description: "use this to send a telegram message to user ",
       handler: async (data, ctx, { container }) => {
         const tg = container.resolve("telegraf").telegram;
         const chunks = data.match(/.{1,4096}/g) || [data];
@@ -99,11 +99,10 @@ Ask for missing information and guide the user through the ordering process.
   },
 });
 
-// Create agent with orderContext as the PRIMARY context
 createAgent({
   logLevel: LogLevel.DEBUG,
   model: groq("deepseek-r1-distill-llama-70b"),
-  context: orderContext, // Make this the primary context
+  context: orderContext,
   actions: [confirmOrder],
   extensions: [telegram],
-}).start({ confirmed: false }); // Pass required field
+}).start({ confirmed: false });

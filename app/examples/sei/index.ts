@@ -164,6 +164,20 @@ const seiAgentContext = context({
         }
       },
     }),
+
+    action({
+      name: "getSeiPrice",
+      description: "Fetch the latest real-time price of the SEI token in USD.",
+
+      async handler() {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=sei-network&vs_currencies=usd"
+        );
+        const data = await res.json();
+        console.log("SEI price (USD):", data["sei-network"].usd);
+        return `The current price of SEI is ${data["sei-network"].usd} USD.`;
+      },
+    }),
   ]);
 
 const seiExtension = extension({
