@@ -1,6 +1,6 @@
 import { createCliExtension } from "@axiomkit/cli";
 import { createGroq } from "@ai-sdk/groq";
-import * as z from "zod/v4";
+import { z } from "zod";
 import {
   createAgent,
   createMemory,
@@ -26,7 +26,6 @@ const groq = createGroq({
   apiKey: env.GROQ_API_KEY!,
 });
 
-// Custom memory store that only stores final translation results
 class TranslationMemoryStore implements MemoryStore {
   private mongoStore: MemoryStore;
   private translationResults: Map<string, any> = new Map();
