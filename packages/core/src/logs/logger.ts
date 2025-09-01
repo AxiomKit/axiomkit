@@ -3,6 +3,7 @@ import { formatCorrelationIds as formatCorrelationIdsUtil } from "../monitor";
 
 /** Enum defining available log levels */
 export enum LogLevel {
+  DISABLED = -1,
   ERROR = 0,
   WARN = 1,
   INFO = 2,
@@ -334,6 +335,7 @@ const logLevelStyles: {
     icon: "📍",
     badge: colors.gray + " TRACE " + colors.reset,
   },
+  [LogLevel.DISABLED]: { color: "", icon: "", badge: "" }, // Disabled Log
 };
 
 const contextColors = {
@@ -465,8 +467,7 @@ export class ConsoleTransport implements Transport {
   }
 
   log(formattedMessage: string, entry: LogEntry): void {
-    // The formatted message already includes colors and styling
-    // Use appropriate console method based on level
+    if (entry.level == LogLevel.DISABLED) return;
     switch (entry.level) {
       case LogLevel.ERROR:
         console.error(formattedMessage);
@@ -550,7 +551,9 @@ export class Logger {
   }
 
   configure(config: Pick<LoggerConfig, "level">) {
-    this.config.level = config.level;
+    if (config.level !== undefined) {
+      this.config.level = config.level;
+    }
   }
 
   error(context: string, message: string, data?: any) {
@@ -582,7 +585,7 @@ export class Logger {
     message: string,
     data: StructuredLogData
   ) {
-    if (level > this.config.level) return;
+    if (level > this.config.level||this.config.level==LogLevel.DISABLED) return;
 
     const entry: LogEntry = {
       level,
@@ -608,7 +611,8 @@ export class Logger {
   }
 
   private log(level: LogLevel, context: string, message: string, data?: any) {
-    if (level > this.config.level) return;
+    if (level > this.config.level || this.config.level == LogLevel.DISABLED)
+      return;
 
     const entry: LogEntry = {
       level,
