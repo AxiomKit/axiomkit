@@ -16,7 +16,7 @@ import type {
 } from "./types";
 import { Logger } from "./logs/logger";
 import { createContainer } from "./container";
-import { createServiceManager } from "./serviceProvider";
+import { createServiceManager } from "./service-provider";
 import { TaskRunner } from "./task";
 import {
   getContextId,

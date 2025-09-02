@@ -2,7 +2,7 @@ import { type Schema } from "ai";
 import { z, ZodObject, ZodType, type ZodRawShape } from "zod/v4";
 import { type LanguageModelV2 } from "@ai-sdk/provider";
 import type { Container } from "./container";
-import type { ServiceProvider } from "./serviceProvider";
+import type { ServiceProvider } from "./service-provider";
 import type { BaseMemory } from "./memory";
 import type { TaskRunner } from "./task";
 import type { Logger, LogLevel } from "./logs/logger";
