@@ -57,27 +57,6 @@ axiomkit/
 └── 📋 scripts/                    # Build and deployment scripts
 ```
 
-## 🎯 Examples & Use Cases
-
-| Category | Example | Description | Link |
-|----------|---------|-------------|------|
-| **🤖 Bot Agents** | Calculator Bot | Simple arithmetic operations with memory | [`app/examples/bots/calculator-bot.ts`](./app/examples/bots/calculator-bot.ts) |
-| | Translator Bot | Multi-language translation with context | [`app/examples/bots/translator-bot.ts`](./app/examples/bots/translator-bot.ts) |
-| | Writing Assistant | AI-powered writing and editing help | [`app/examples/bots/writing-assistant.ts`](./app/examples/bots/writing-assistant.ts) |
-| | Debugging Assistant | Code debugging and problem-solving | [`app/examples/bots/debugging-assistant.ts`](./app/examples/bots/debugging-assistant.ts) |
-| | Multi-Functional Agent | Complex agent with multiple capabilities | [`app/examples/bots/multi-functional-agent.ts`](./app/examples/bots/multi-functional-agent.ts) |
-| | Custom Chatbot | Basic conversational agent | [`app/examples/bots/custom-chatbot.ts`](./app/examples/bots/custom-chatbot.ts) |
-| | Echo Bot | Simple message echoing with memory | [`app/examples/bots/echo.ts`](./app/examples/bots/echo.ts) |
-| **💬 Chat Interface** | Next.js Chat App | Full-stack chat application with UI | [`app/examples/chat/`](./app/examples/chat/) |
-| **⛓️ Blockchain** | Sei Integration | Sei blockchain trading and wallet management | [`app/examples/sei/`](./app/examples/sei/) |
-| **📱 Messaging** | Telegram Bot | Telegram bot with AxiomKit integration | [`app/examples/telegram/`](./app/examples/telegram/) |
-| **🎮 Gaming** | Discord Bot | Discord bot integration | [`app/examples/discord/`](./app/examples/discord/) |
-| **🗄️ Database** | MongoDB Memory | Persistent memory storage with MongoDB | [`app/examples/mongodb/`](./app/examples/mongodb/) |
-| **🗄️ Database** | Supabase Integration | Supabase database integration | [`app/examples/supabase/`](./app/examples/supabase/) |
-| **🔗 MCP** | Model Context Protocol | MCP integration examples | [`app/examples/mcp/`](./app/examples/mcp/) |
-| **🌐 Socials** | Social Media | Social media platform integrations | [`app/examples/socials/`](./app/examples/socials/) |
-| **🎮 Gaming** | Game Examples | Gaming-related agent implementations | [`app/examples/games/`](./app/examples/games/) |
-
 ## 📦 Core Packages
 
 | Package | Description | Link |
