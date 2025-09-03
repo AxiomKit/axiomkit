@@ -6,13 +6,16 @@ icon: Album
 
 ## What is Axiomkit?
 
-**Axiomkit** is a next-generation TypeScript framework for building autonomous AI agents with advanced memory, reasoning, and action capabilities. It provides a comprehensive toolkit for creating intelligent systems that can:
+**Axiomkit** is a open-source **TypeScript** framework for building autonomous AI agents with advanced memory, reasoning, and action capabilities. It provides a comprehensive toolkit for creating intelligent systems that can:
 
 * **Think and Reason** - Use powerful language models to analyze, plan, and make decisions
 * **Remember and Learn** - Maintain structured memory across conversations and sessions
 * **Act and Interact** - Execute actions, call APIs, and interact with external systems
 * **Adapt and Scale** - Grow from simple scripts to complex production systems
-
+## Why Axiomkit for Typescript?
+Our vision is to give every developer the ability to build intelligent agents with the same confidence as they would any modern software. AxiomKit makes this possible through three core pillars:
+    - **Unparalleled Developer Experience**: Built **TypeScript-first**, it delivers full type-safety and autocompletion right out of the box, so you can create powerful agents with minimal, readable code.
+    - **Powerful & Flexible Architecture**: . Compose multiple agents, equip them with custom tools, and orchestrate complex workflows. Our provider-agnostic foundation means you're never locked into a single ecosystem.
 ## Core Philosophy
 
 Axiomkit is built on the principle that AI agents should be **composable**, **extensible**, and **developer-friendly**. Every component is designed to work together seamlessly while remaining independently useful.
@@ -43,49 +46,10 @@ Axiomkit is built on the principle that AI agents should be **composable**, **ex
 - Scalable architecture for high-load scenarios
 - Comprehensive testing utilities
 
-## Architecture Overview
 
-```mermaid
-graph TB
-    A[Agent] --> B[Contexts]
-    A --> C[Actions]
-    A --> D[Memory System]
-    A --> E[Extensions]
-    
-    B --> B1[Working Memory]
-    B --> B2[State Management]
-    
-    C --> C1[API Calls]
-    C --> C2[External Services]
-    C --> C3[Custom Functions]
-    
-    D --> D1[Episodic Memory]
-    D --> D2[Vector Memory]
-    D --> D3[Graph Memory]
-    D --> D4[Export Manager]
-    
-    E --> E1[Discord]
-    E --> E2[Telegram]
-    E --> E3[CLI]
-    E --> E4[Custom Extensions]
-```
+## Core Structure
 
-## Quick Start
-
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { cliExtension } from "@axiomkit/cli";
-import { groq } from "@ai-sdk/groq";
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
-});
-
-await agent.start();
-```
-
-## Package Structure
+AxiomKit is built as a modular ecosystem of packages, each designed to handle specific aspects of AI agent development.
 
 | Package | Purpose | Description |
 |---------|---------|-------------|
@@ -94,7 +58,6 @@ await agent.start();
 | `@axiomkit/discord` | Discord Integration | Discord bot functionality |
 | `@axiomkit/telegram` | Telegram Integration | Telegram bot functionality |
 | `@axiomkit/mongodb` | MongoDB Memory | MongoDB-based memory storage |
-| `@axiomkit/supabase` | Supabase Integration | Supabase database and vector storage |
 | `@axiomkit/mcp` | Model Context Protocol | MCP server and client utilities |
 | `@axiomkit/sei` | SEI Blockchain | SEI blockchain integration |
 | `@axiomkit/create-agent` | Project Scaffolding | CLI tool for creating new agents |
@@ -120,14 +83,6 @@ await agent.start();
 - Sales and marketing automation
 - Document processing and analysis
 - Decision support systems
-
-## Getting Started
-
-1. **Install Axiomkit**: `pnpm add @axiomkit/core`
-2. **Choose Extensions**: Add platform-specific extensions as needed
-3. **Configure Memory**: Set up your preferred memory storage
-4. **Define Actions**: Create typed actions for your use case
-5. **Deploy**: Run your agent with full production capabilities
 
 ## Community & Support
 

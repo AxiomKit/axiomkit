@@ -1,0 +1,301 @@
+---
+title: Create Agent
+description: CLI tool for scaffolding new AxiomKit agent projects
+icon: Plus
+---
+
+# @axiomkit/create-agent
+
+A CLI tool for quickly scaffolding new AxiomKit agent projects with pre-configured templates and dependencies.
+
+## Quick Start
+
+```bash
+npx @axiomkit/create-agent@latest my-agent
+```
+
+## Features
+
+- **Project Scaffolding** - Generate complete project structure
+- **Template System** - Pre-built templates for common use cases
+- **Dependency Management** - Automatic package installation
+- **Configuration** - Pre-configured TypeScript and build tools
+- **Documentation** - Generate project documentation
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Create a new agent project
+npx @axiomkit/create-agent my-ai-agent
+
+# Choose extensions interactively
+? Select extensions to include › 
+  ◯ CLI - Command-line interface
+  ◯ Discord - Discord bot integration
+  ◯ Telegram - Telegram bot integration
+  ◯ MongoDB - MongoDB memory storage
+  ◯ Supabase - Supabase integration
+
+# Start development
+cd my-ai-agent
+pnpm dev
+```
+
+### Available Templates
+
+```bash
+# Basic template (CLI only)
+npx @axiomkit/create-agent my-basic-agent --template basic
+
+# Discord bot template
+npx @axiomkit/create-agent my-discord-bot --template discord
+
+# Telegram bot template
+npx @axiomkit/create-agent my-telegram-bot --template telegram
+
+# Full-stack template (all extensions)
+npx @axiomkit/create-agent my-full-agent --template full
+```
+
+## Generated Project Structure
+
+```
+my-ai-agent/
+├── index.ts              # Main entry point
+├── package.json          # Dependencies
+├── .env.example          # Environment variables template
+├── tsconfig.json         # TypeScript config
+├── src/
+│   ├── contexts/         # Custom contexts
+│   ├── actions/          # Custom actions
+│   ├── services/         # External services
+│   └── utils/            # Utility functions
+├── tests/                # Test files
+└── README.md            # Documentation
+```
+
+## Configuration Options
+
+### Command Line Options
+
+```bash
+npx @axiomkit/create-agent <project-name> [options]
+
+Options:
+  --template <template>    Template to use (basic, discord, telegram, full)
+  --package-manager <pm>   Package manager (npm, pnpm, yarn, bun)
+  --typescript            Enable TypeScript (default: true)
+  --git                   Initialize git repository
+  --install               Install dependencies after creation
+```
+
+### Interactive Prompts
+
+The CLI will prompt you for:
+
+1. **Project Name** - Name of your agent project
+2. **Extensions** - Which AxiomKit extensions to include
+3. **Package Manager** - Preferred package manager
+4. **TypeScript** - Whether to use TypeScript
+5. **Git** - Whether to initialize git repository
+6. **Install** - Whether to install dependencies
+
+## Examples
+
+### Calculator Bot
+
+```bash
+npx @axiomkit/create-agent calculator-bot --template basic
+```
+
+Generated `index.ts`:
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { cliExtension } from "@axiomkit/cli";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [cliExtension],
+  instructions: [
+    "You are a mathematical calculator.",
+    "When users provide mathematical expressions, calculate the result.",
+    "Show your work step by step for complex problems.",
+  ],
+});
+
+async function main() {
+  await agent.start();
+  console.log("🧮 Calculator Bot started!");
+}
+
+main();
+```
+
+### Discord Bot
+
+```bash
+npx @axiomkit/create-agent discord-bot --template discord
+```
+
+Generated `index.ts`:
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { discordExtension } from "@axiomkit/discord";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [discordExtension],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+    },
+  },
+});
+
+async function main() {
+  await agent.start();
+  console.log("🤖 Discord Bot started!");
+}
+
+main();
+```
+
+## Environment Setup
+
+### Generated .env.example
+
+```bash
+# AI Model Configuration
+GROQ_API_KEY=your_groq_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Discord Configuration (if using Discord extension)
+DISCORD_TOKEN=your_discord_bot_token
+DISCORD_CLIENT_ID=your_discord_client_id
+
+# Telegram Configuration (if using Telegram extension)
+TELEGRAM_TOKEN=your_telegram_bot_token
+
+# MongoDB Configuration (if using MongoDB extension)
+MONGODB_URI=mongodb://localhost:27017/axiomkit
+
+# Supabase Configuration (if using Supabase extension)
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Environment
+NODE_ENV=development
+```
+
+## Next Steps
+
+After creating your project:
+
+1. **Install Dependencies**
+   ```bash
+   cd my-ai-agent
+   pnpm install
+   ```
+
+2. **Configure Environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+3. **Start Development**
+   ```bash
+   pnpm dev
+   ```
+
+4. **Add Custom Features**
+   - Create custom actions in `src/actions/`
+   - Add custom contexts in `src/contexts/`
+   - Implement external services in `src/services/`
+
+## Templates
+
+### Basic Template
+
+Includes:
+- Core AxiomKit package
+- CLI extension
+- Basic TypeScript configuration
+- Simple project structure
+
+### Discord Template
+
+Includes:
+- Core AxiomKit package
+- Discord extension
+- Discord.js dependencies
+- Discord-specific configuration
+
+### Telegram Template
+
+Includes:
+- Core AxiomKit package
+- Telegram extension
+- Telegraf dependencies
+- Telegram-specific configuration
+
+### Full Template
+
+Includes:
+- All AxiomKit packages
+- All extensions (CLI, Discord, Telegram)
+- MongoDB and Supabase memory
+- Complete project structure
+
+## Customization
+
+### Custom Templates
+
+You can create custom templates by:
+
+1. Creating a template directory
+2. Adding template files
+3. Configuring template options
+
+### Post-Install Scripts
+
+The generated project includes post-install scripts for:
+
+- Setting up TypeScript configuration
+- Installing dependencies
+- Initializing git repository
+- Creating initial documentation
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Permission Errors**
+   ```bash
+   # Fix file permissions
+   chmod +x index.ts
+   ```
+
+2. **Package Manager Issues**
+   ```bash
+   # Use specific package manager
+   npx @axiomkit/create-agent my-agent --package-manager pnpm
+   ```
+
+3. **Template Not Found**
+   ```bash
+   # Use basic template
+   npx @axiomkit/create-agent my-agent --template basic
+   ```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [CLI Extension](/docs/packages/cli) - Build terminal-based agents
+- [Discord Extension](/docs/packages/discord) - Create Discord bots
+- [Quick Start Guide](/docs/framework/getting-started/quick-start) - Get started with your first agent

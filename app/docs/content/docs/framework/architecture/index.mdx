@@ -1,8 +1,9 @@
 ---
-title: Architecture Overview
+title: Overview
 description: 
   Understanding the fundamental building blocks that constitute the Axiomkit framework
-
+icon: House
+date: 2025-01-20
 ---
 
 # Architecture Overview
@@ -40,52 +41,6 @@ Pluggable modules that bundle related functionality:
 - **Platform Integrations**: Discord, Telegram, CLI
 - **Database Connectors**: MongoDB, Supabase
 - **Custom Extensions**: Domain-specific functionality
-
-## Component Relationships
-
-```mermaid
-graph TB
-    subgraph "Agent Runtime"
-        A[Agent] --> B[Task Runner]
-        A --> C[Context Manager]
-        A --> D[Memory Manager]
-        A --> E[Extension Manager]
-    end
-    
-    subgraph "Contexts"
-        C --> F[Context 1]
-        C --> G[Context 2]
-        C --> H[Context N]
-        
-        F --> F1[Working Memory]
-        F --> F2[State]
-        F --> F3[Renderer]
-    end
-    
-    subgraph "Actions"
-        B --> I[Action 1]
-        B --> J[Action 2]
-        B --> K[Action N]
-        
-        I --> I1[Schema]
-        I --> I2[Handler]
-        I --> I3[Validation]
-    end
-    
-    subgraph "Memory System"
-        D --> L[Episodic Memory]
-        D --> M[Vector Memory]
-        D --> N[Graph Memory]
-        D --> O[Export Manager]
-    end
-    
-    subgraph "Extensions"
-        E --> P[Discord]
-        E --> Q[Telegram]
-        E --> R[CLI]
-        E --> S[Custom]
-    end
-```
 
 ## Context System
 

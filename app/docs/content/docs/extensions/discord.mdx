@@ -1,22 +1,22 @@
 ---
 title: Discord Extension
-description: Complete guide to integrating Axiomkit agents with Discord servers
+description: Discord bot integration for creating AI-powered Discord servers
+icon: MessageCircle
 ---
 
-# Discord Extension
+# @axiomkit/discord
+
+The Discord extension enables you to create AI-powered Discord bots with advanced message handling, slash commands, and server management capabilities.
 
 ## Overview
 
-The Discord extension enables Axiomkit agents to function as full-featured Discord bots with message handling, slash commands, and server management capabilities.
+[`@axiomkit/discord`](https://github.com/AxiomKit/axiomkit/tree/main/packages/discord) provides full Discord.js integration for building intelligent Discord bots:
 
-## Features
-
-- **Message Handling**: Process text messages, reactions, and interactions
-- **Slash Commands**: Create and manage Discord slash commands
-- **Server Management**: Handle guild events and member interactions
-- **Rich Embeds**: Send formatted messages with embeds and components
-- **Voice Integration**: Connect to voice channels (coming soon)
-- **Permission Management**: Respect Discord role permissions
+- **Discord Bot** - Full Discord.js integration with latest features
+- **Message Handling** - Process Discord messages and interactions
+- **Slash Commands** - Create interactive Discord commands
+- **Permission Management** - Role-based access control
+- **Server Analytics** - Track bot usage and interactions
 
 ## Installation
 
@@ -26,14 +26,70 @@ pnpm add @axiomkit/discord discord.js
 
 ## Quick Start
 
+### Basic Discord Bot
+
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { discord } from "@axiomkit/discord";
+import { discordExtension } from "@axiomkit/discord";
 import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discord],
+  extensions: [discordExtension],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+    },
+  },
+});
+
+await agent.start();
+```
+
+### Discord Bot with Custom Instructions
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createDiscordExtension } from "@axiomkit/discord";
+import { groq } from "@ai-sdk/groq";
+
+const customDiscordExtension = createDiscordExtension({
+  name: "ai-assistant",
+  instructions: [
+    "You are a helpful AI assistant in a Discord server.",
+    "Be friendly and engaging with users.",
+    "Provide helpful responses to questions.",
+  ],
+  commands: [
+    {
+      name: "help",
+      description: "Get help with bot commands",
+    },
+    {
+      name: "ask",
+      description: "Ask the AI a question",
+      options: [
+        {
+          name: "question",
+          description: "Your question",
+          type: "string",
+          required: true,
+        },
+      ],
+    },
+  ],
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [customDiscordExtension],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+    },
+  },
 });
 
 await agent.start();
@@ -41,346 +97,388 @@ await agent.start();
 
 ## Configuration
 
+### Discord Configuration
+
+```typescript
+interface DiscordConfig {
+  token: string;           // Discord bot token
+  clientId: string;        // Discord client ID
+  intents?: number[];      // Discord intents
+  prefix?: string;         // Command prefix (default: "!")
+  allowedChannels?: string[]; // Restrict to specific channels
+  allowedRoles?: string[];    // Restrict to specific roles
+}
+```
+
 ### Environment Variables
 
 ```bash
-# Required
+# .env
 DISCORD_TOKEN=your_discord_bot_token
-DISCORD_CLIENT_ID=your_client_id
-
-# Optional
-DISCORD_GUILD_ID=your_guild_id  # For guild-specific commands
-DISCORD_PREFIX=!                # Command prefix (default: !)
+DISCORD_CLIENT_ID=your_discord_client_id
 ```
 
-### Bot Setup
+## Discord Bot Setup
 
-1. **Create Discord Application**
-   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
-   - Create a new application
-   - Navigate to the "Bot" section
-   - Create a bot and copy the token
+### 1. Create Discord Application
 
-2. **Configure Bot Permissions**
-   ```typescript
-   const discordExtension = discord({
-     intents: [
-       GatewayIntentBits.Guilds,
-       GatewayIntentBits.GuildMessages,
-       GatewayIntentBits.MessageContent,
-       GatewayIntentBits.GuildMembers,
-     ],
-     permissions: [
-       PermissionFlagsBits.SendMessages,
-       PermissionFlagsBits.ReadMessageHistory,
-       PermissionFlagsBits.UseSlashCommands,
-     ],
-   });
-   ```
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click "New Application"
+3. Give your application a name
+4. Go to "Bot" section and create a bot
+5. Copy the bot token and client ID
 
-3. **Invite Bot to Server**
-   - Use the OAuth2 URL generator in Discord Developer Portal
-   - Select required scopes and permissions
-   - Use the generated URL to invite the bot
-
-## Usage Examples
-
-### Basic Message Handling
+### 2. Set Bot Permissions
 
 ```typescript
-import { discord, discordContext } from "@axiomkit/discord";
-
-const customDiscordContext = discordContext({
-  instructions: [
-    "You are a helpful Discord bot assistant.",
-    "Respond to user messages in a friendly manner.",
-    "Use Discord markdown formatting when appropriate.",
-  ],
-});
-
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [
-    discord({
-      contexts: {
-        discord: customDiscordContext,
-      },
-    }),
-  ],
+  extensions: [discordExtension],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+      intents: [
+        "Guilds",
+        "GuildMessages",
+        "MessageContent",
+        "DirectMessages",
+      ],
+    },
+  },
 });
 ```
+
+### 3. Invite Bot to Server
+
+Generate an invite link with appropriate permissions:
+
+```
+https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=2048&scope=bot%20applications.commands
+```
+
+## Advanced Usage
 
 ### Custom Slash Commands
 
 ```typescript
-import { action } from "@axiomkit/core";
-import { z } from "zod";
+import { createDiscordExtension } from "@axiomkit/discord";
 
-const weatherCommand = action({
-  name: "weather",
-  description: "Get weather information for a location",
-  schema: z.object({
-    location: z.string().describe("City or location name"),
-    units: z.enum(["celsius", "fahrenheit"]).optional().describe("Temperature units"),
-  }),
-  handler: async (args, ctx, agent) => {
-    const { location, units = "celsius" } = args;
-    
-    // Call weather API
-    const weather = await getWeather(location, units);
-    
-    return {
-      embeds: [{
-        title: `Weather in ${location}`,
-        description: `${weather.temperature}°${units === "celsius" ? "C" : "F"}, ${weather.condition}`,
-        color: 0x00ff00,
-        fields: [
-          { name: "Humidity", value: `${weather.humidity}%`, inline: true },
-          { name: "Wind", value: `${weather.windSpeed} km/h`, inline: true },
-        ],
-      }],
-    };
-  },
-});
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  extensions: [
-    discord({
-      actions: [weatherCommand],
-    }),
+const customExtension = createDiscordExtension({
+  name: "multi-tool-bot",
+  instructions: [
+    "You are a multi-purpose Discord bot.",
+    "Help users with various tasks.",
+  ],
+  commands: [
+    {
+      name: "calculate",
+      description: "Perform mathematical calculations",
+      options: [
+        {
+          name: "expression",
+          description: "Mathematical expression",
+          type: "string",
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "translate",
+      description: "Translate text to different languages",
+      options: [
+        {
+          name: "text",
+          description: "Text to translate",
+          type: "string",
+          required: true,
+        },
+        {
+          name: "language",
+          description: "Target language",
+          type: "string",
+          required: false,
+        },
+      ],
+    },
+    {
+      name: "weather",
+      description: "Get weather information",
+      options: [
+        {
+          name: "location",
+          description: "City or location",
+          type: "string",
+          required: true,
+        },
+      ],
+    },
   ],
 });
 ```
 
-### Server Management
+### Channel-Specific Behavior
 
 ```typescript
-const memberWelcomeAction = action({
-  name: "welcome-member",
-  description: "Welcome new server members",
-  schema: z.object({
-    memberId: z.string(),
-    memberName: z.string(),
-  }),
-  handler: async (args, ctx, agent) => {
-    const { memberId, memberName } = args;
-    
-    return {
-      embeds: [{
-        title: "Welcome! 🎉",
-        description: `Welcome ${memberName} to our server!`,
-        color: 0x00ff00,
-        thumbnail: { url: `https://cdn.discordapp.com/avatars/${memberId}/avatar.png` },
-        fields: [
-          { name: "Member Count", value: `${ctx.guild?.memberCount}`, inline: true },
-          { name: "Join Date", value: new Date().toLocaleDateString(), inline: true },
+const channelSpecificExtension = createDiscordExtension({
+  name: "channel-aware-bot",
+  instructions: [
+    "You are a Discord bot that adapts to different channels.",
+    "In #general: Be social and engaging",
+    "In #help: Provide technical assistance",
+    "In #random: Be fun and casual",
+  ],
+  config: {
+    channelInstructions: {
+      "general": "Be social and engaging with the community",
+      "help": "Provide technical assistance and troubleshooting",
+      "random": "Be fun, casual, and entertaining",
+    },
+  },
+});
+```
+
+### Role-Based Access
+
+```typescript
+const roleBasedExtension = createDiscordExtension({
+  name: "admin-bot",
+  instructions: "You are an admin assistant bot.",
+  config: {
+    allowedRoles: ["Admin", "Moderator"],
+    adminCommands: [
+      {
+        name: "ban",
+        description: "Ban a user",
+        options: [
+          {
+            name: "user",
+            description: "User to ban",
+            type: "user",
+            required: true,
+          },
+          {
+            name: "reason",
+            description: "Reason for ban",
+            type: "string",
+            required: false,
+          },
         ],
-      }],
-    };
+      },
+    ],
   },
 });
 ```
 
-## Advanced Configuration
+## Examples
 
-### Custom Discord Context
+### Support Bot
 
 ```typescript
-import { context } from "@axiomkit/core";
-import { z } from "zod";
+import { createAgent } from "@axiomkit/core";
+import { createDiscordExtension } from "@axiomkit/discord";
+import { groq } from "@ai-sdk/groq";
 
-const customDiscordContext = context({
-  type: "discord-server",
-  schema: z.object({
-    guildId: z.string(),
-    channelId: z.string().optional(),
-  }),
-  key: ({ guildId, channelId }) => `${guildId}:${channelId || "general"}`,
-  create: (state) => ({
-    messages: [],
-    activeUsers: new Set(),
-    serverStats: {
-      totalMessages: 0,
-      activeChannels: [],
+const supportExtension = createDiscordExtension({
+  name: "support-bot",
+  instructions: [
+    "You are a customer support bot.",
+    "Help users with common issues.",
+    "Escalate complex issues to human support.",
+    "Be patient and thorough in your responses.",
+  ],
+  commands: [
+    {
+      name: "ticket",
+      description: "Create a support ticket",
+      options: [
+        {
+          name: "issue",
+          description: "Describe your issue",
+          type: "string",
+          required: true,
+        },
+      ],
     },
-  }),
-  render: ({ memory, state }) => `
-    Discord Server Context:
-    Guild ID: ${state.guildId}
-    Channel ID: ${state.channelId || "general"}
-    Total Messages: ${memory.serverStats.totalMessages}
-    Active Users: ${memory.activeUsers.size}
-  `,
-});
-```
-
-### Message Filtering
-
-```typescript
-const discordExtension = discord({
-  messageFilters: {
-    // Only respond to messages in specific channels
-    allowedChannels: ["bot-commands", "general"],
-    
-    // Ignore messages from bots
-    ignoreBots: true,
-    
-    // Custom filter function
-    customFilter: (message) => {
-      // Only respond to messages starting with "!"
-      return message.content.startsWith("!");
+    {
+      name: "faq",
+      description: "Search frequently asked questions",
+      options: [
+        {
+          name: "topic",
+          description: "Topic to search",
+          type: "string",
+          required: true,
+        },
+      ],
     },
-  },
+  ],
 });
-```
 
-### Rate Limiting
-
-```typescript
-const discordExtension = discord({
-  rateLimits: {
-    messagesPerMinute: 10,
-    commandsPerMinute: 5,
-    cooldownMs: 1000,
-  },
-});
-```
-
-## Event Handling
-
-### Message Events
-
-```typescript
-const messageHandler = action({
-  name: "handle-message",
-  description: "Handle incoming Discord messages",
-  handler: async (args, ctx, agent) => {
-    const { message, channel, author } = args;
-    
-    // Log message
-    console.log(`${author.username}: ${message.content}`);
-    
-    // Update server stats
-    ctx.agentMemory.serverStats.totalMessages++;
-    ctx.agentMemory.activeUsers.add(author.id);
-    
-    // Process message content
-    if (message.content.includes("hello")) {
-      return {
-        content: `Hello ${author.username}! 👋`,
-      };
-    }
-    
-    return null; // No response
-  },
-});
-```
-
-### Reaction Events
-
-```typescript
-const reactionHandler = action({
-  name: "handle-reaction",
-  description: "Handle message reactions",
-  handler: async (args, ctx, agent) => {
-    const { reaction, user } = args;
-    
-    if (reaction.emoji.name === "👍") {
-      return {
-        content: `Thanks for the thumbs up, ${user.username}!`,
-      };
-    }
-  },
-});
-```
-
-## Error Handling
-
-```typescript
-const robustDiscordExtension = discord({
-  errorHandling: {
-    // Retry failed operations
-    retryAttempts: 3,
-    retryDelay: 1000,
-    
-    // Log errors
-    logErrors: true,
-    
-    // Custom error handler
-    onError: (error, context) => {
-      console.error("Discord error:", error);
-      
-      // Send error notification to admin channel
-      if (context.channel) {
-        context.channel.send({
-          embeds: [{
-            title: "Error Occurred",
-            description: "An error occurred while processing your request.",
-            color: 0xff0000,
-            timestamp: new Date().toISOString(),
-          }],
-        });
-      }
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [supportExtension],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
     },
   },
+});
+
+await agent.start();
+```
+
+### Gaming Bot
+
+```typescript
+const gamingExtension = createDiscordExtension({
+  name: "gaming-bot",
+  instructions: [
+    "You are a gaming assistant bot.",
+    "Help players with game-related questions.",
+    "Provide tips and strategies.",
+    "Be enthusiastic about gaming.",
+  ],
+  commands: [
+    {
+      name: "stats",
+      description: "Get player statistics",
+      options: [
+        {
+          name: "game",
+          description: "Game name",
+          type: "string",
+          required: true,
+        },
+        {
+          name: "player",
+          description: "Player name",
+          type: "string",
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "lfg",
+      description: "Looking for group",
+      options: [
+        {
+          name: "game",
+          description: "Game to play",
+          type: "string",
+          required: true,
+        },
+        {
+          name: "players",
+          description: "Number of players needed",
+          type: "integer",
+          required: false,
+        },
+      ],
+    },
+  ],
+});
+```
+
+### Educational Bot
+
+```typescript
+const educationalExtension = createDiscordExtension({
+  name: "edu-bot",
+  instructions: [
+    "You are an educational assistant.",
+    "Help students with homework and learning.",
+    "Explain concepts clearly and step-by-step.",
+    "Encourage learning and curiosity.",
+  ],
+  commands: [
+    {
+      name: "explain",
+      description: "Explain a concept",
+      options: [
+        {
+          name: "topic",
+          description: "Topic to explain",
+          type: "string",
+          required: true,
+        },
+        {
+          name: "level",
+          description: "Difficulty level",
+          type: "string",
+          choices: [
+            { name: "Beginner", value: "beginner" },
+            { name: "Intermediate", value: "intermediate" },
+            { name: "Advanced", value: "advanced" },
+          ],
+          required: false,
+        },
+      ],
+    },
+    {
+      name: "quiz",
+      description: "Start a quiz",
+      options: [
+        {
+          name: "subject",
+          description: "Quiz subject",
+          type: "string",
+          required: true,
+        },
+      ],
+    },
+  ],
 });
 ```
 
 ## Best Practices
 
-### 1. **Permission Management**
+### 1. Rate Limiting
+
 ```typescript
-// Check permissions before actions
-const permissionCheck = action({
-  name: "check-permissions",
-  handler: async (args, ctx, agent) => {
-    const { member, permissions } = args;
-    
-    if (!member.permissions.has(PermissionFlagsBits.ManageMessages)) {
-      return {
-        content: "You don't have permission to use this command.",
-        ephemeral: true,
-      };
-    }
-    
-    // Proceed with action
+const extension = createDiscordExtension({
+  name: "rate-limited-bot",
+  config: {
+    rateLimit: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // limit each IP to 100 requests per windowMs
+    },
   },
 });
 ```
 
-### 2. **Message Formatting**
+### 2. Error Handling
+
 ```typescript
-// Use Discord markdown and embeds
-const formattedResponse = {
-  embeds: [{
-    title: "Response Title",
-    description: "**Bold text** and *italic text*",
-    color: 0x00ff00,
-    fields: [
-      { name: "Field 1", value: "Value 1", inline: true },
-      { name: "Field 2", value: "Value 2", inline: true },
-    ],
-    footer: { text: "Powered by Axiomkit" },
-    timestamp: new Date().toISOString(),
-  }],
-};
+const extension = createDiscordExtension({
+  name: "robust-bot",
+  instructions: [
+    "You are a helpful Discord bot.",
+    "If you encounter an error, explain it clearly.",
+    "Always be polite and professional.",
+  ],
+  config: {
+    errorHandling: {
+      logErrors: true,
+      notifyAdmins: true,
+      gracefulDegradation: true,
+    },
+  },
+});
 ```
 
-### 3. **State Management**
+### 3. Security
+
 ```typescript
-// Maintain server state in context memory
-const serverContext = context({
-  type: "discord-server",
-  create: (state) => ({
-    activeCommands: new Map(),
-    userSessions: new Map(),
-    serverSettings: {
-      prefix: "!",
-      welcomeMessage: "Welcome to our server!",
-      autoModeration: true,
-    },
-  }),
+const secureExtension = createDiscordExtension({
+  name: "secure-bot",
+  config: {
+    allowedChannels: ["#bot-commands", "#general"],
+    allowedRoles: ["Admin", "Moderator", "Member"],
+    contentFilter: true,
+    spamProtection: true,
+  },
 });
 ```
 
@@ -390,27 +488,97 @@ const serverContext = context({
 
 1. **Bot Not Responding**
    - Check bot token and permissions
-   - Verify intents are properly configured
-   - Ensure bot is online and connected
+   - Verify intents are properly set
+   - Check if bot is online
 
-2. **Slash Commands Not Working**
-   - Register commands with Discord API
+2. **Commands Not Working**
+   - Ensure slash commands are registered
    - Check command permissions
    - Verify command structure
 
 3. **Rate Limiting**
    - Implement proper rate limiting
-   - Use cooldowns for commands
-   - Handle Discord API rate limits
+   - Monitor API usage
+   - Handle rate limit errors gracefully
 
 ### Debug Mode
 
 ```typescript
-const debugDiscordExtension = discord({
-  debug: true,
-  logLevel: "debug",
-  verbose: true,
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [discordExtension],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+      debug: true, // Enable debug logging
+    },
+  },
 });
 ```
 
-This comprehensive Discord integration enables Axiomkit agents to provide rich, interactive experiences within Discord servers while maintaining the framework's core capabilities.
+## Integration with Other Packages
+
+### Discord + Memory
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { discordExtension } from "@axiomkit/discord";
+import { createMongoMemory } from "@axiomkit/mongodb";
+
+const memory = createMongoMemory({
+  connectionString: process.env.MONGODB_URI,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [discordExtension],
+  memory,
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+    },
+  },
+});
+```
+
+### Discord + Actions
+
+```typescript
+import { createAgent, action } from "@axiomkit/core";
+import { discordExtension } from "@axiomkit/discord";
+
+const moderationAction = action({
+  name: "moderate",
+  description: "Moderate user content",
+  schema: z.object({
+    userId: z.string(),
+    action: z.enum(["warn", "mute", "kick", "ban"]),
+    reason: z.string(),
+  }),
+  handler: async (args) => {
+    // Implement moderation logic
+    return { success: true };
+  },
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [discordExtension],
+  actions: [moderationAction],
+  config: {
+    discord: {
+      token: process.env.DISCORD_TOKEN,
+      clientId: process.env.DISCORD_CLIENT_ID,
+    },
+  },
+});
+```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [CLI Extension](/docs/packages/cli) - Build terminal-based agents
+- [Memory Providers](/docs/packages/mongodb) - Add persistent memory
+- [Advanced Features](/docs/framework/architecture) - Explore advanced concepts

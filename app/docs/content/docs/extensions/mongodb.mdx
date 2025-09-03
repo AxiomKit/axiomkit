@@ -1,4 +1,103 @@
 ---
-title: MongoDB Extensions
-description: Complete guide to integrating Axiomkit agents with Discord servers
+title: MongoDB Memory
+description: MongoDB-based memory storage for persistent agent memory
+icon: Database
 ---
+
+# @axiomkit/mongodb
+
+MongoDB-based memory storage for persistent agent memory with encryption and analytics.
+
+## Installation
+
+```bash
+pnpm add @axiomkit/mongodb mongodb
+```
+
+## Quick Start
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createMongoMemory } from "@axiomkit/mongodb";
+import { groq } from "@ai-sdk/groq";
+
+const memory = createMongoMemory({
+  connectionString: process.env.MONGODB_URI,
+  database: "axiomkit",
+  collection: "memories",
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory,
+});
+
+await agent.start();
+```
+
+## Configuration
+
+```typescript
+interface MongoMemoryConfig {
+  connectionString: string;     // MongoDB connection string
+  database: string;             // Database name
+  collection: string;           // Collection name
+  encryption?: {                // Encryption settings
+    enabled: boolean;
+    key: string;
+  };
+  options?: {                   // Memory options
+    maxSize?: number;           // Maximum memories to store
+    ttl?: number;               // Time to live in milliseconds
+  };
+}
+```
+
+## Examples
+
+### Encrypted Memory
+
+```typescript
+const memory = createMongoMemory({
+  connectionString: process.env.MONGODB_URI,
+  database: "axiomkit",
+  collection: "memories",
+  encryption: {
+    enabled: true,
+    key: process.env.ENCRYPTION_KEY,
+  },
+  options: {
+    maxSize: 10000,
+    ttl: 30 * 24 * 60 * 60 * 1000, // 30 days
+  },
+});
+```
+
+### Memory Operations
+
+```typescript
+// Store memory
+await agent.memory.store("episodic", {
+  userId: "user123",
+  content: "User asked about weather",
+  timestamp: Date.now(),
+});
+
+// Retrieve memories
+const memories = await agent.memory.retrieve("episodic", {
+  userId: "user123",
+  limit: 10,
+});
+
+// Search memories
+const results = await agent.memory.search("weather", {
+  type: "episodic",
+  limit: 5,
+});
+```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [CLI Extension](/docs/packages/cli) - Build terminal-based agents
+- [Discord Extension](/docs/packages/discord) - Create Discord bots

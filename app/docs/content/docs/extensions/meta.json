@@ -1,15 +1,20 @@
 {
     "title": "Extensions",
-    "description": "Comprehensive guide to Axiomkit's built-in extensions for platform integrations and specialized functionality",
-    "icon": "puzzle",
+    "description": "The Extensions",
     "root": true,
     "pages": [
         "index",
-        "---BUILT IN EXTENSIONS---",
+        "---BUILT IN---",
+        "core",
+        "create-agent",
+        "cli",
+        "---SOCIAL EXTENSIONS---",
         "discord",
         "telegram",
-        "---MEMORY EXTENSIONS---",
+        "---MEMORY EXTESNSIONS---",
         "mongodb",
-        "supabase"
+        "supabase",
+        "---ADVANCE EXTESNSIONS---",
+        "mcp"
     ]
 }
