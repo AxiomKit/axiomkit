@@ -4,19 +4,7 @@
   "type": "module",
   "description": "Example demonstrating MCP (Model Context Protocol) integration with AxiomKit",
   "main": "index.ts",
-  "scripts": {
-    "start": "tsx index.ts",
-    "server": "tsx server.ts",
-    "client": "tsx client.ts",
-    "test-standalone": "node test-standalone.js",
-    "build": "tsc",
-    "test-mcp": "tsx test-mcp.ts",
-    "claude-test": "tsx claude-test.ts",
-    "working-demo": "tsx working-demo.ts",
-    "working-test": "tsx claude-working-test.ts",
-    "deep-demo": "tsx deep-mcp-demo.ts",
-    "deep-test": "tsx claude-deep-test.ts"
-  },
+  "scripts": {},
   "dependencies": {
     "@axiomkit/core": "workspace:*",
     "@axiomkit/mcp": "workspace:*",

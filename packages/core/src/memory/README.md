@@ -1,2 +1,0 @@
-# Axiomkit Memory System
-## Architecture

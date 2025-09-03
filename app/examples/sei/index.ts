@@ -12,6 +12,7 @@ import { formatEther, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";
 import * as z from "zod/v4";
+
 const env = validateEnv(
   z.object({
     SEI_PRIVATE_KEY: z.string().min(1, "SEI_PRIVATE_KEY is required"),
@@ -55,10 +56,12 @@ ${
 RPC Provider: Helius (High-performance Sei RPC with full archival data)
 Note: "Failed to query long-term storage" errors often indicate rate limiting. Please wait and retry. For persistent issues, respect the API limits.
 `;
+
 const actionResponse = (message: string) => ({
-  data: message,
+  data: { content: message },
   content: message,
 });
+
 const seiAgentContext = context({
   type: "sei",
   schema: {
@@ -77,9 +80,11 @@ const seiAgentContext = context({
   render({ memory }) {
     return template(memory);
   },
+  maxSteps: 10,
+  instructions: `You are a SEI blockchain assistant. When calling actions, always provide complete and valid JSON parameters. Never leave JSON incomplete or malformed.`,
 })
   .setOutputs({
-    message: {
+    text: {
       schema: z.string().describe("The message to send to the user"),
     },
   })
@@ -91,31 +96,76 @@ const seiAgentContext = context({
       schema: {
         address: z
           .string()
-          .optional() // Make address optional
+          .optional()
           .describe(
             "The sei wallet address to check balance for. Optional, defaults to the current active wallet."
           ),
       },
+      // Add deduplication metadata
+      metadata: {
+        deduplication: {
+          enabled: true,
+          strategy: "smart",
+          rules: {
+            timeWindow: 30 * 1000, // 30 seconds
+            ignoreFields: ["timestamp"],
+            requiredFields: ["address"],
+            contextSensitive: false,
+            sessionSensitive: false,
+            userSensitive: false,
+            allowRetries: true,
+            maxRetries: 3,
+            retryDelay: 1000,
+          }
+        },
+        business: {
+          idempotent: true, // Balance checks are idempotent
+          uniquenessCriteria: ["address"],
+          duplicateConditions: {
+            timeGap: 60 * 1000, // 1 minute
+            contextChange: false,
+            userConfirmation: false,
+          }
+        }
+      },
       async handler({ address }, { memory }) {
-        const targetAddress = address || memory.wallet;
-        console.log("What Current Address", targetAddress);
-        const balance = await seiChain.client.getBalance({
-          address: targetAddress as `0x${string}`,
-          blockTag: `safe`,
-        });
-        if (!targetAddress) {
+        try {
+          const targetAddress = address || memory.wallet;
+          console.log("What Current Address", targetAddress);
+          
+          if (!targetAddress) {
+            return actionResponse(
+              "Error: No wallet address provided and no primary wallet set in memory. Please provide an address or ensure your primary wallet is configured."
+            );
+          }
+          
+          const balance = await seiChain.client.getBalance({
+            address: targetAddress as `0x${string}`,
+            blockTag: `safe`,
+          });
+
+          const seiBalance = Number(formatEther(balance));
+          if (targetAddress.toLowerCase() === memory.wallet.toLowerCase()) {
+            memory.balance = seiBalance; // Update memory if it's the current wallet
+          }
+          
+          // If this is the current wallet and we have a recent transfer, use the updated balance from memory
+          let finalBalance = seiBalance;
+          if (targetAddress.toLowerCase() === memory.wallet.toLowerCase() && memory.balance !== seiBalance) {
+            finalBalance = memory.balance;
+            console.log(`📊 Using updated balance from memory: ${finalBalance} SEI (instead of ${seiBalance} SEI)`);
+          }
+          
           return actionResponse(
-            "Error: No wallet address provided and no primary wallet set in memory. Please provide an address or ensure your primary wallet is configured."
+            `Balance for ${address}: ${finalBalance} SEI`
+          );
+        } catch (error) {
+          return actionResponse(
+            `Error: Failed to get balance. ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`
           );
         }
-
-        const seiBalance = Number(formatEther(balance));
-        if (targetAddress.toLowerCase() === memory.wallet.toLowerCase()) {
-          memory.balance = seiBalance; // Update memory if it's the current wallet
-        }
-        return actionResponse(
-          `Balance for ${address}: ${seiBalance} SEI lamports)`
-        );
       },
     }),
 
@@ -129,16 +179,45 @@ const seiAgentContext = context({
           .min(0.000001, "Amount must be greater than 0")
           .describe("The amount of SEI to transfer."),
       },
+      // Add deduplication metadata for transfers
+      metadata: {
+        deduplication: {
+          enabled: true,
+          strategy: "strict",
+          rules: {
+            timeWindow: 5 * 60 * 1000, // 5 minutes
+            ignoreFields: ["timestamp", "requestId"],
+            requiredFields: ["to", "amount"],
+            contextSensitive: true,
+            sessionSensitive: true,
+            userSensitive: true,
+            allowRetries: false, // Transfers should not be retried automatically
+            maxRetries: 0,
+            retryDelay: 0,
+          }
+        },
+        business: {
+          idempotent: false, // Transfers are NOT idempotent
+          uniquenessCriteria: ["to", "amount", "wallet"],
+          duplicateConditions: {
+            timeGap: 24 * 60 * 60 * 1000, // 24 hours
+            contextChange: true,
+            userConfirmation: true,
+          }
+        }
+      },
       async handler({ to, amount }, { memory }) {
         try {
           const addressTo = to as `0x${string}`;
           console.log("Address to transfer to:", addressTo);
           console.log("Amount to transfer:", amount);
+          
           if (!addressTo) {
             return actionResponse(
               "Error: No recipient address provided. Please provide a valid Sei wallet address."
             );
           }
+          
           const balance = await seiChain.client.getBalance({
             address: memory.wallet as `0x${string}`,
             blockTag: `safe`,
@@ -149,15 +228,80 @@ const seiAgentContext = context({
               `Error: Insufficient balance. Current balance is ${seiBalance} SEI.`
             );
           }
+          
           const wallet = seiChain.getWalletClient();
           const transaction = await wallet.sendTransaction({
             to: addressTo as `0x${string}`,
             value: parseEther(amount.toString()),
           });
           console.log("Transaction sent:", transaction);
+          
+          // Update memory with transaction details
+          const transferId = `transfer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          memory.transactions.unshift(`Transfer: ${amount} SEI to ${addressTo} (${transaction}) [ID: ${transferId}]`);
+          memory.lastTransaction = transaction;
+          
+          // Update the balance in memory after the transfer
+          memory.balance = memory.balance - amount;
+          
+          console.log(`✅ Transfer completed with ID: ${transferId}`);
+          console.log(`   Amount: ${amount} SEI`);
+          console.log(`   To: ${addressTo}`);
+          console.log(`   Hash: ${transaction}`);
+          console.log(`   New balance: ${memory.balance} SEI`);
+          
+          return actionResponse(`Successfully transferred ${amount} SEI to ${addressTo}. Transaction hash: ${transaction}. New balance: ${memory.balance} SEI`);
         } catch (error) {
           return actionResponse(
             `Error: Failed to transfer tokens. ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`
+          );
+        }
+      },
+    }),
+
+    action({
+      name: "getSeiPrice",
+      description: "Fetch the latest real-time price of the SEI token in USD.",
+      // Add deduplication metadata for price checks
+      metadata: {
+        deduplication: {
+          enabled: true,
+          strategy: "smart",
+          rules: {
+            timeWindow: 60 * 1000, // 1 minute
+            ignoreFields: ["timestamp"],
+            requiredFields: [],
+            contextSensitive: false,
+            sessionSensitive: false,
+            userSensitive: false,
+            allowRetries: true,
+            maxRetries: 2,
+            retryDelay: 5000, // 5 seconds
+          }
+        },
+        business: {
+          idempotent: true, // Price checks are idempotent
+          uniquenessCriteria: [],
+          duplicateConditions: {
+            timeGap: 30 * 1000, // 30 seconds
+            contextChange: false,
+            userConfirmation: false,
+          }
+        }
+      },
+      async handler() {
+        try {
+          const res = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=sei-network&vs_currencies=usd"
+          );
+          const data = await res.json();
+          console.log("SEI price (USD):", data["sei-network"].usd);
+          return actionResponse(`The current price of SEI is ${data["sei-network"].usd} USD.`);
+        } catch (error) {
+          return actionResponse(
+            `Error: Failed to fetch SEI price. ${
               error instanceof Error ? error.message : "Unknown error"
             }`
           );
@@ -187,28 +331,70 @@ const seiExtension = extension({
           rl.question("> ", async (text: string) => {
             if (text.trim()) {
               console.log(`User: ${text}`);
-              const logs = await agent.send({
-                context: seiAgentContext,
-                // Pass the initialWalletAddress to the context creation args
-                args: { wallet: initialWalletAddress },
-                input: { type: "cli", data: { text } },
-                handlers: {
-                  onLogStream(log, done) {
-                    if (done) {
-                      if (log.ref === "output") {
-                        const content = log.content || log.data;
-                        if (content && !content.includes("attributes_schema")) {
-                          console.log(`Assistant: ${content}`);
+              try {
+                const logs = await agent.send({
+                  context: seiAgentContext,
+                  args: { wallet: initialWalletAddress },
+                  input: { type: "cli", data: { text } },
+                  handlers: {
+                    onLogStream(log, done) {
+                      try {
+                        if (done) {
+                          if (log.ref === "output") {
+                            const content = log.content || log.data;
+                            if (content && !content.includes("attributes_schema")) {
+                              console.log(`Assistant: ${content}`);
+                            }
+                          } else if (log.ref === "thought") {
+                            // Handle thought logs if needed
+                          } else if (log.ref === "action_call") {
+                            // Handle action calls with validation
+                            console.log(`🔵 Action called: ${log.name} with ID: ${log.id}`);
+                            console.log(`   Content: ${log.content}`);
+                            console.log(`   Data: ${JSON.stringify(log.data)}`);
+                            
+                            // Validate action call content
+                            if (log.content && log.content.trim()) {
+                              try {
+                                // Try to parse the content to catch JSON errors early
+                                if (log.content.includes('{') || log.content.includes('[')) {
+                                  JSON.parse(log.content);
+                                }
+                              } catch (parseError) {
+                                console.warn(`Warning: Action call ${log.name} has malformed JSON content:`, log.content);
+                              }
+                            }
+                          } else if (log.ref === "action_result") {
+                            // Handle action results
+                            console.log(`🟢 Action result for: ${log.name} with ID: ${log.id}`);
+                            if (log.data && log.data.content) {
+                              console.log(`   Result: ${log.data.content}`);
+                            }
+                          }
                         }
-                      } else if (log.ref === "thought") {
+                      } catch (error) {
+                        console.error("Error processing log:", error);
                       }
-                    }
+                    },
+                    onThinking(thought) {
+                      console.log(`Thinking: ${thought.content}`);
+                    },
                   },
-                  onThinking(thought) {
-                    console.log(`Thinking: ${thought.content}`);
-                  },
-                },
-              });
+                });
+              } catch (error) {
+                console.error("Error sending message to agent:", error);
+                
+                // Handle specific JSON parsing errors
+                if (error instanceof Error && error.message.includes("Request timeout")) {
+                  console.log("Assistant: The request timed out. Please try again with a simpler request.");
+                } else if (error instanceof Error && error.message.includes("JSON Parse error")) {
+                  console.log("Assistant: I encountered a JSON parsing error. This usually means the response was incomplete. Please try again with a simpler request.");
+                } else if (error instanceof Error && error.message.includes("Unexpected EOF")) {
+                  console.log("Assistant: I encountered an incomplete response error. Please try again with a clearer request.");
+                } else {
+                  console.log("Assistant: I encountered an error processing your request. Please try again.");
+                }
+              }
             }
             prompt();
           });
@@ -227,7 +413,7 @@ const seiExtension = extension({
   },
   actions: [],
 });
-// Create Dreams instance
+
 const seiAxiom = createAgent({
   model: groq("meta-llama/llama-4-scout-17b-16e-instruct"),
   extensions: [seiExtension],
@@ -235,8 +421,8 @@ const seiAxiom = createAgent({
 
 await seiAxiom.start();
 
-console.log("✅ Sei Axiom gent started!");
-console.log(`Wallet: `);
+console.log("✅ Sei Axiom agent started!");
+console.log(`Wallet: ${initialWalletAddress}`);
 console.log("\nAvailable commands:");
 console.log("  - Check balance: 'What is my Sei balance?'");
 console.log("  - Get block height: 'What is the current block height?'");

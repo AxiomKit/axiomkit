@@ -2,7 +2,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createAgent, LogLevel, validateEnv } from "@axiomkit/core";
 import { telegram } from "@axiomkit/telegram";
 
-import * as z from "zod/v4";
+import * as z from "zod";
 
 // Simple Chat
 

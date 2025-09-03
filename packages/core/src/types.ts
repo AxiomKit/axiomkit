@@ -1,190 +1,79 @@
-import { type Schema } from "ai";
-import { z, ZodObject, ZodType, type ZodRawShape } from "zod/v4";
-import { type LanguageModelV2 } from "@ai-sdk/provider";
+import {
+  type LanguageModel,
+  type Schema,
+  type StreamTextResult,
+  type ToolSet,
+} from "ai";
+import { type DeferredPromise } from "p-defer";
+import { z, ZodObject, ZodType, type ZodRawShape } from "zod";
 import type { Container } from "./container";
 import type { ServiceProvider } from "./service-provider";
-import type { BaseMemory } from "./memory";
 import type { TaskRunner } from "./task";
-import type { Logger, LogLevel } from "./logs/logger";
-import type { RequestContext, RequestTrackingConfig } from "./monitor";
-import type { RequestTracker } from "./monitor/monitor";
+import type { Logger } from "./logger";
 
-export { type Schema } from "ai";
-export { type LanguageModelV2 } from "@ai-sdk/provider";
+import type {
+  EpisodeHooks,
+  ActionState,
+  InferActionState,
+  MemorySystem,
+  WorkingMemory,
+} from "./memory";
+import type { ExportManager } from "./memory/exporters";
+import type { BenchMark } from "./benchmark";
+
+// Export memory types
+export * from "./memory";
+
+/**
+ * Makes specified keys optional in a type
+ * @template T - The type to modify
+ * @template K - The keys to make optional
+ */
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+/**
+ * Represents a value that can be a promise or a direct value
+ * @template T - The type of the value
+ */
 export type MaybePromise<T = any> = T | Promise<T>;
 
 /**
- * Represents a memory configuration for storing data
- * @template Data - Type of data stored in memory
+ * Infers the schema type from an object with an optional schema property
+ * @template T - The object type that may have a schema
  */
-export type Memory<Data = any> = {
-  /** Unique identifier for this memory */
-  key: string;
-  /** Function to initialize memory data */
-  create: () => Promise<Data> | Data;
-};
-
-/**
- * Extracts the data type from a Memory type
- * @template TMemory - Memory type to extract data from
- */
-export type InferMemoryData<TMemory extends Memory<any>> =
-  TMemory extends Memory<infer Data> ? Data : never;
-
-/**
- * Represents an execution chain with experts and metadata
- */
-export type Chain = {
-  /** Unique identifier for the chain */
-  id: string;
-  /** Current thinking/reasoning state */
-  thinking: string;
-  /** Goal or purpose of this chain */
-  purpose: string;
-  /** List of experts involved in the chain */
-  experts: { name: string; data: string }[];
-};
-
-/**
- * Interface for storing and retrieving memory data
- */
-export interface MemoryStore {
-  /**
-   * Retrieves data from memory
-   * @template T - Type of data to retrieve
-   * @param key - Key to lookup
-   * @returns Promise resolving to data or null if not found
-   */
-  get<T>(key: string): Promise<T | null>;
-
-  /**
-   * Stores data in memory
-   * @template T - Type of data to store
-   * @param key - Key to store under
-   * @param value - Data to store
-   */
-  set<T>(key: string, value: T): Promise<void>;
-
-  /**
-   * Removes data from memory
-   * @param key - Key to remove
-   */
-  delete(key: string): Promise<void>;
-
-  /**
-   * Removes all data from memory
-   */
-  clear(): Promise<void>;
-
-  keys(base?: string): Promise<string[]>;
-}
-/**
- * Interface for storing and retrieving vector data
- */
-export interface VectorStore {
-  /** Optional connection string for the vector store */
-  connection?: string;
-
-  /**
-   * Adds or updates data in the vector store
-   * @param contextId - Unique identifier for the context
-   * @param data - Data to add or update
-   */
-  upsert(contextId: string, data: any): Promise<void>;
-
-  /**
-   * Searches the vector store for similar data
-   * @param contextId - Context to search within
-   * @param query - Query text to search for
-   * @returns Array of matching documents
-   */
-  query(contextId: string, query: string): Promise<any[]>;
-
-  /**
-   * Creates a new index in the vector store
-   * @param indexName - Name of the index to create
-   */
-  createIndex(indexName: string): Promise<void>;
-
-  /**
-   * Deletes an existing index from the vector store
-   * @param indexName - Name of the index to delete
-   */
-  deleteIndex(indexName: string): Promise<void>;
-}
-
-/**
- * Represents the working memory state during execution
- */
-export interface WorkingMemory {
-  /** List of input references */
-  inputs: InputRef[];
-  /** List of output references */
-  outputs: OutputRef[];
-  /** List of thought records */
-  thoughts: Thought[];
-  /** List of action calls */
-  calls: ActionCall[];
-  /** List of action results */
-  results: ActionResult[];
-  // chains: Chain[];
-  episodicMemory?: EpisodicMemory;
-  /** Current image URL for multimodal context */
-  currentImage?: URL;
-
-  runs: RunRef[];
-
-  steps: StepRef[];
-
-  events: EventRef[];
-}
-
 export type InferSchema<T> = T extends {
   schema?: infer S extends z.ZodTypeAny;
 }
   ? z.infer<S>
   : unknown;
 
+/**
+ * Extracts the context type from an Agent type
+ * @template TAgent - The agent type to extract context from
+ */
 export type InferAgentContext<TAgent extends AnyAgent> = TAgent extends Agent<
   infer Content
 >
   ? Content
   : never;
 
+/**
+ * Extracts the memory type from an Agent by inferring its context
+ * @template TAgent - The agent type to extract memory from
+ */
 export type InferAgentMemory<TAgent extends AnyAgent> = InferContextMemory<
   InferAgentContext<TAgent>
 >;
 
 /**
- * Represents an evaluator that can validate action/output results
- * @template Data - Type of data being evaluated
- * @template Context - Context type for the evaluation
+ * Schema type for action parameters - can be Zod raw shape, ZodObject, or AI SDK Schema
  */
-export type Evaluator<
-  Data = any,
-  Context extends AgentContext<any> = AgentContext<any>,
-  TAgent extends AnyAgent = AnyAgent
-> = {
-  name: string;
-  description?: string;
-  /** Schema for the evaluation result */
-  schema?: z.ZodType<any>;
-  /** Custom prompt template for LLM-based evaluation */
-  prompt?: string;
-  /** Custom handler for evaluation logic */
-  handler?: (
-    data: Data,
-    ctx: Context,
-    agent: TAgent
-  ) => Promise<boolean> | boolean;
-  /** Optional callback when evaluation fails */
-  onFailure?: (ctx: Context, agent: TAgent) => Promise<void> | void;
-};
-
 export type ActionSchema = ZodRawShape | z.ZodObject | Schema<any> | undefined;
 
+/**
+ * Infers the argument type from an action schema
+ * @template TSchema - The schema type to infer from
+ */
 export type InferActionArguments<TSchema = undefined> =
   TSchema extends ZodRawShape
     ? z.infer<ZodObject<TSchema>>
@@ -197,9 +86,9 @@ export type InferActionArguments<TSchema = undefined> =
 export interface ActionContext<
   TContext extends AnyContext = AnyContext,
   AContext extends AnyContext = AnyContext,
-  ActionMemory extends Memory<any> = Memory<any>
+  ActionMemory extends ActionState = ActionState
 > extends AgentContext<TContext> {
-  actionMemory: InferMemoryData<ActionMemory>;
+  actionMemory: InferActionState<ActionMemory>;
   agentMemory: InferContextMemory<AContext> | undefined;
   abortSignal?: AbortSignal;
 }
@@ -208,7 +97,7 @@ export interface ActionCallContext<
   Schema extends ActionSchema = undefined,
   TContext extends AnyContext = AnyContext,
   AContext extends AnyContext = AnyContext,
-  ActionMemory extends Memory<any> = Memory<any>
+  ActionMemory extends ActionState = ActionState
 > extends ActionContext<TContext, AContext, ActionMemory>,
     ContextStateApi<TContext> {
   call: ActionCall<InferActionArguments<Schema>>;
@@ -227,7 +116,7 @@ export type ActionHandler<
   Result = any,
   TContext extends AnyContext = AnyContext,
   TAgent extends AnyAgent = AnyAgent,
-  TMemory extends Memory<any> = Memory<any>
+  TMemory extends ActionState = ActionState
 > = Schema extends undefined
   ? (
       ctx: ActionCallContext<
@@ -261,7 +150,7 @@ export interface Action<
   TError = unknown,
   TContext extends AnyContext = AnyContext,
   TAgent extends AnyAgent = AnyAgent,
-  TMemory extends Memory<any> = Memory<any>
+  TState extends ActionState = ActionState
 > {
   name: string;
   description?: string;
@@ -271,32 +160,25 @@ export interface Action<
 
   attributes?: ActionSchema;
 
-  memory?: TMemory;
+  actionState?: TState;
 
   install?: (agent: TAgent) => Promise<void> | void;
 
   enabled?: (
-    ctx: ActionContext<TContext, InferAgentContext<TAgent>, TMemory>
+    ctx: ActionContext<TContext, InferAgentContext<TAgent>, TState>
   ) => boolean;
 
-  handler: ActionHandler<Schema, Result, TContext, TAgent, TMemory>;
+  handler: ActionHandler<Schema, Result, TContext, TAgent, TState>;
 
   returns?: ActionSchema;
 
   format?: (result: ActionResult<Result>) => string | string[];
-  /** Optional evaluator for this specific action */
-  evaluator?: Evaluator<Result, AgentContext<TContext>, TAgent>;
 
   context?: TContext;
 
   onSuccess?: (
     result: ActionResult<Result>,
-    ctx: ActionCallContext<
-      Schema,
-      TContext,
-      InferAgentContext<TAgent>,
-      TMemory
-    >,
+    ctx: ActionCallContext<Schema, TContext, InferAgentContext<TAgent>, TState>,
     agent: TAgent
   ) => Promise<void> | void;
 
@@ -304,12 +186,7 @@ export interface Action<
 
   onError?: (
     err: TError,
-    ctx: ActionCallContext<
-      Schema,
-      TContext,
-      InferAgentContext<TAgent>,
-      TMemory
-    >,
+    ctx: ActionCallContext<Schema, TContext, InferAgentContext<TAgent>, TState>,
     agent: TAgent
   ) => MaybePromise<any>;
 
@@ -320,7 +197,7 @@ export interface Action<
           Schema,
           TContext,
           InferAgentContext<TAgent>,
-          TMemory
+          TState
         >
       ) => string);
 
@@ -339,11 +216,17 @@ export interface Action<
           Schema,
           TContext,
           InferAgentContext<TAgent>,
-          TMemory
+          TState
         >
       ) => MaybePromise<string>);
+
+  // New deduplication and business rule metadata
+  metadata?: ActionMetadata;
 }
 
+/**
+ * Action with context reference information
+ */
 export type ActionCtxRef = AnyAction & {
   ctxRef: {
     type: string;
@@ -352,6 +235,9 @@ export type ActionCtxRef = AnyAction & {
   };
 };
 
+/**
+ * Output with context reference information
+ */
 export type OutputCtxRef = AnyOutput & {
   ctxRef: {
     type: string;
@@ -360,8 +246,15 @@ export type OutputCtxRef = AnyOutput & {
   };
 };
 
+/**
+ * Schema type for output parameters - can be Zod type, raw shape, or unknown
+ */
 export type OutputSchema = z.ZodTypeAny | ZodRawShape | unknown;
 
+/**
+ * Infers the parameter type from an output schema
+ * @template Schema - The output schema type
+ */
 type InferOutputSchemaParams<Schema extends OutputSchema> =
   Schema extends ZodRawShape
     ? z.infer<ZodObject<Schema>>
@@ -369,10 +262,16 @@ type InferOutputSchemaParams<Schema extends OutputSchema> =
     ? z.infer<Schema>
     : unknown;
 
+/**
+ * Response type for output references
+ */
 export type OutputRefResponse = Pick<OutputRef, "data" | "params"> & {
   processed?: boolean;
 };
 
+/**
+ * Union type for all possible output response types
+ */
 export type OutputResponse =
   | OutputRefResponse
   | OutputRefResponse[]
@@ -385,7 +284,7 @@ export type Output<
   TContext extends AnyContext = AnyContext,
   TAgent extends AnyAgent = AnyAgent
 > = {
-  type: string;
+  name: string;
   description?: string;
   instructions?: string;
   required?: boolean;
@@ -402,18 +301,26 @@ export type Output<
     agent: TAgent
   ) => MaybePromise<Response | Response[]>;
   format?: (res: OutputRef<Response["data"]>) => string | string[] | XMLElement;
-  /** Optional evaluator for this specific output */
-  evaluator?: Evaluator<OutputResponse, AgentContext<Context>, TAgent>;
 
   examples?: string[];
 };
 
+/**
+ * Type alias for any Output with generic parameters
+ */
 export type AnyOutput = Output<any, any, any, AnyAgent>;
 
-export type AnyAction = Action<any, any, any, any, AnyAgent, any>;
+/**
+ * Type alias for any Action with generic parameters
+ */
+export type AnyAction = Action<any, any, any, any, AnyAgent, ActionState>;
 
+/**
+ * Type alias for an Action with a specific Context type
+ * @template Ctx - The context type to constrain the action to
+ */
 export type AnyActionWithContext<Ctx extends Context<any, any, any, any, any>> =
-  Action<any, any, any, Ctx, AnyAgent, any>;
+  Action<any, any, any, Ctx, AnyAgent, ActionState>;
 
 /**
  * Represents an input handler with validation and subscription capability
@@ -458,20 +365,29 @@ export type RunRef = {
   ref: "run";
   type: string;
   data: any;
-  // metrics: {
-  //   duration: number;
-  //   steps: number;
-  //   inputs: number;
-  //   thoughts: number;
-  //   calls: number;
-  //   results: number;
-  //   outputs: number;
-  // };
-  // metadata: any;
   timestamp: number;
   processed: boolean;
   stopReason?: string;
 };
+
+export interface ThoughtRef {
+  id: string;
+  ref: "thought";
+  content: string;
+  processed: boolean;
+  timestamp: number;
+}
+
+/**
+ * Represents a thought or reasoning step
+ */
+export interface Thought {
+  id: string;
+  content: string;
+  timestamp: number;
+  confidence?: number;
+  metadata?: Record<string, any>;
+}
 
 export type StepRef = {
   id: string;
@@ -503,7 +419,7 @@ export type InputRef<Data = any> = {
 export type OutputRef<Data = any> = {
   id: string;
   ref: "output";
-  type: string;
+  name: string;
   params?: Record<string, string>;
   content: string;
   data: Data;
@@ -537,15 +453,6 @@ export type ActionResult<Data = any> = {
   formatted?: string | string[] | XMLElement;
 };
 
-/** Represents a thought or reasoning step */
-export type Thought = {
-  ref: "thought";
-  id: string;
-  content: string;
-  timestamp: number;
-  processed: boolean;
-};
-
 /** Represents a event */
 export type EventRef<Data = any> = {
   ref: "event";
@@ -558,41 +465,29 @@ export type EventRef<Data = any> = {
   formatted?: string | string[] | XMLElement;
 };
 
+/**
+ * Union type representing all possible log entries in the system
+ */
 export type Log =
   | InputRef
   | OutputRef
-  | Thought
+  | ThoughtRef
   | ActionCall
   | ActionResult
   | EventRef;
 
+/**
+ * Union type representing all possible reference types in the system
+ */
 export type AnyRef =
   | InputRef
   | OutputRef
-  | Thought
+  | ThoughtRef
   | ActionCall
   | ActionResult
   | EventRef
   | StepRef
   | RunRef;
-
-/** Properties required for Chain-of-Thought execution */
-export type COTProps = {
-  model: LanguageModelV2;
-  plan: string;
-  inputs: InputRef[];
-  actions: Action[];
-  outputs: Output[];
-  logs: Log[];
-};
-
-/** Response structure from Chain-of-Thought execution */
-export type COTResponse = {
-  plan: string[];
-  actions: ActionCall[];
-  outputs: OutputRef[];
-  thinking: Thought[];
-};
 
 /** Represents an XML element structure */
 export type XMLElement = {
@@ -601,7 +496,10 @@ export type XMLElement = {
   children?: string | (XMLElement | string)[];
 };
 
-/** Utility type to preserve type information */
+/**
+ * Utility type to flatten and preserve type information for better TypeScript inference
+ * @template type - The type to make pretty
+ */
 export type Pretty<type> = { [key in keyof type]: type[key] } & unknown;
 
 /**
@@ -614,48 +512,12 @@ export type ExtractTemplateVariables<T extends string> =
     : never;
 
 /**
- * Converts a dot-separated path into a nested object type
- * @template P - Path string
- * @template V - Value type at the leaf
- */
-type PathToObject<
-  P extends string,
-  V = string
-> = P extends `${infer Key}.${infer Rest}`
-  ? { [K in Key]: PathToObject<Rest, V> }
-  : { [K in P]: V };
-
-/**
- * Merges a union of paths into a single nested object type
- * @template T - Union of path strings
- * @template V - Value type at the leaf
- */
-type UnionToObject<T, V = string> = T extends string
-  ? PathToObject<T, V>
-  : never;
-
-/**
- * Merges multiple object types into one (handles union overlap)
- */
-type Merge<T> = { [K in keyof T]: T[K] extends object ? Merge<T[K]> : T[K] };
-
-type Prettify<T> = T extends object ? { [K in keyof T]: Prettify<T[K]> } : T;
-/**
  * Creates a type mapping template variables (including nested paths) to values
  * @template T - Template string type
  * @template V - Value type at the leaf (defaults to string)
  */
 export type TemplateVariables<T extends string, V = any> = {
   [K in ExtractTemplateVariables<T>]: any;
-};
-
-/** Represents an expert system with instructions and actions */
-export type Expert = {
-  type: string;
-  description: string;
-  instructions: string;
-  model?: LanguageModelV2;
-  actions?: AnyAction[];
 };
 
 export interface AgentContext<TContext extends AnyContext = AnyContext> {
@@ -666,33 +528,55 @@ export interface AgentContext<TContext extends AnyContext = AnyContext> {
   settings: ContextSettings;
   memory: InferContextMemory<TContext>;
   workingMemory: WorkingMemory;
-  requestContext?: RequestContext;
 }
 
+/**
+ * Type alias for any Agent with generic context type
+ */
 export type AnyAgent = Agent<any>;
 
+/**
+ * Event handlers for agent operations
+ */
 export interface Handlers {
+  /** Handler for streaming log events */
   onLogStream: (log: AnyRef, done: boolean) => void;
-  onThinking: (thought: Thought) => void;
+  /** Handler for thinking/reasoning events */
+  onThinking: (thought: ThoughtRef) => void;
 }
 
+/**
+ * Central registry for all agent components and resources
+ */
 export type Registry = {
+  /** Map of registered context types */
   contexts: Map<string, AnyContext>;
+  /** Map of registered action types */
   actions: Map<string, AnyAction>;
+  /** Map of registered input types */
   inputs: Map<string, Input>;
+  /** Map of registered output types */
   outputs: Map<string, Output>;
+  /** Map of registered extensions */
   extensions: Map<string, Extension>;
+  /** Map of registered prompt templates */
   prompts: Map<string, string>;
-  models: Map<string, LanguageModelV2>;
+  /** Map of registered language models */
+  models: Map<string, LanguageModel>;
 };
 
 interface AgentDef<TContext extends AnyContext = AnyContext> {
   logger: Logger;
 
   /**
+   * Analytics tracker automatically extracts metrics from logger events
+   */
+  tracker: BenchMark;
+
+  /**
    * The memory store and vector store used by the agent.
    */
-  memory: BaseMemory;
+  memory: MemorySystem;
 
   /**
    * The current context of the agent.
@@ -715,29 +599,9 @@ interface AgentDef<TContext extends AnyContext = AnyContext> {
   taskRunner: TaskRunner;
 
   /**
-   * Request tracker for monitoring model usage and performance.
-   */
-  requestTracker?: RequestTracker;
-
-  /**
-   * Configuration for request tracking.
-   */
-  requestTrackingConfig?: Partial<RequestTrackingConfig>;
-
-  /**
    * The primary language model used by the agent.
    */
-  model?: LanguageModelV2;
-
-  /**
-   * The reasoning model used by the agent, if any.
-   */
-  reasoningModel?: LanguageModelV2;
-
-  /**
-   * The vector model used by the agent, if any.
-   */
-  vectorModel?: LanguageModelV2;
+  model?: LanguageModel;
 
   /**
    * Model settings for the agent.
@@ -760,17 +624,12 @@ interface AgentDef<TContext extends AnyContext = AnyContext> {
   /**
    * A record of output configurations for the agent.
    */
-  outputs: Record<string, Omit<Output<any, any, TContext, any>, "type">>;
+  outputs: Record<string, Omit<Output<any, any, TContext, any>, "name">>;
 
   /**
    * A record of event schemas for the agent.
    */
   events: Record<string, z.ZodObject>;
-
-  /**
-   * A record of expert configurations for the agent.
-   */
-  experts: Record<string, ExpertConfig>;
 
   /**
    * An array of actions available to the agent.
@@ -781,7 +640,7 @@ interface AgentDef<TContext extends AnyContext = AnyContext> {
     unknown,
     AnyContext,
     Agent<TContext>,
-    Memory<any>
+    ActionState<any>
   >[];
 
   /**
@@ -795,6 +654,9 @@ interface AgentDef<TContext extends AnyContext = AnyContext> {
   trainingDataPath?: string;
 }
 
+/**
+ * Represents a chunk of streaming log data
+ */
 export type LogChunk =
   | { type: "log"; log: AnyRef; done: boolean }
   | { type: "content"; id: string; content: string }
@@ -810,19 +672,51 @@ export interface Agent<TContext extends AnyContext = AnyContext>
   extends AgentDef<TContext> {
   registry: Registry;
 
+  /** Prompt builder used to generate the model prompt */
+  prompt: PromptBuilder;
+
+  /** Response adapter used to parse model responses */
+  response: ResponseAdapter;
+
+  /** Smart deduplication engine for preventing duplicate action execution */
+  deduplicationEngine?: any;
+
   isBooted(): boolean;
 
   /**
-   * Exports all episodes as training data
-   * @param filePath Optional path to save the training data
+   * Gets the configured task priority levels
    */
-  exportAllTrainingData?: (filePath?: string) => Promise<void>;
+  getPriorityLevels(): {
+    default: number;
+    high: number;
+    low: number;
+  };
+
+  /**
+   * Gets the current task configuration
+   */
+  getTaskConfig(): {
+    concurrency: {
+      default: number;
+      llm: number;
+    };
+    priority: {
+      default: number;
+      high?: number;
+      low?: number;
+    };
+  };
 
   /**
    * Emits an event with the provided arguments.
    * @param args - Arguments to pass to the event handler.
    */
   emit: (...args: any[]) => void;
+
+  /**
+   * Export manager for episodes
+   */
+  exports?: ExportManager;
 
   /**
    * Runs the agent with the provided options.
@@ -835,7 +729,7 @@ export interface Agent<TContext extends AnyContext = AnyContext>
   >(opts: {
     context: TContext;
     args: InferSchemaArguments<TContext["schema"]>;
-    model?: LanguageModelV2;
+    model?: LanguageModel;
     modelSettings?: {
       temperature?: number;
       maxTokens?: number;
@@ -846,12 +740,13 @@ export interface Agent<TContext extends AnyContext = AnyContext>
       [key: string]: any;
     };
     contexts?: ContextRefArray<SubContextRefs>;
-    outputs?: Record<string, Omit<Output<any, any, TContext, any>, "type">>;
+    outputs?: Record<string, Omit<Output<any, any, TContext, any>, "name">>;
     actions?: AnyAction[];
     handlers?: Partial<Handlers>;
     abortSignal?: AbortSignal;
     chain?: Log[];
-    requestContext?: RequestContext;
+    /** Task priority for execution ordering (higher = more priority) */
+    priority?: number;
   }) => Promise<AnyRef[]>;
 
   /**
@@ -866,23 +761,14 @@ export interface Agent<TContext extends AnyContext = AnyContext>
     context: SContext;
     args: InferSchemaArguments<SContext["schema"]>;
     input: { type: string; data: any };
-    model?: LanguageModelV2;
+    model?: LanguageModel;
     contexts?: ContextRefArray<SubContextRefs>;
-    outputs?: Record<string, Omit<Output<any, any, SContext, any>, "type">>;
+    outputs?: Record<string, Omit<Output<any, any, SContext, any>, "name">>;
     actions?: AnyAction[];
     handlers?: Partial<Handlers>;
     abortSignal?: AbortSignal;
     chain?: Log[];
   }) => Promise<AnyRef[]>;
-
-  /**
-   * Evaluates the provided context.
-   * @param ctx - The context to evaluate.
-   * @returns A promise that resolves when evaluation is complete.
-   */
-  evaluator<SContext extends AnyContext>(
-    ctx: AgentContext<SContext>
-  ): Promise<void>;
 
   /**
    * Starts the agent with the provided arguments.
@@ -961,13 +847,88 @@ export interface Agent<TContext extends AnyContext = AnyContext>
   ): () => void;
 }
 
+/**
+ * Prompt building interfaces to decouple prompt generation from the core.
+ */
+export type PromptBuildContext = {
+  contexts: ContextState<AnyContext>[];
+  actions: ActionCtxRef[];
+  outputs: OutputCtxRef[];
+  workingMemory: WorkingMemory;
+  settings?: { maxWorkingMemorySize?: number };
+  chainOfThoughtSize?: number;
+  agent?: AnyAgent;
+};
+
+export type PromptBuildResult = {
+  prompt: string;
+  metadata?: Record<string, any>;
+};
+
+export interface PromptBuilder {
+  name?: string;
+  build(input: PromptBuildContext): MaybePromise<PromptBuildResult>;
+}
+
+/**
+ * Response parsing abstraction to decouple output format from the core.
+ */
+export interface ResponseAdapter {
+  prepareStream(options: {
+    model: LanguageModel;
+    stream: StreamTextResult<ToolSet, never>;
+    isReasoningModel: boolean;
+  }): {
+    stream: AsyncIterable<string>;
+    getTextResponse: () => Promise<string>;
+  };
+
+  handleStream(options: {
+    textStream: AsyncIterable<string>;
+    index: number;
+    pushLog: (log: Log, done: boolean) => void;
+    pushChunk?: (chunk: LogChunk) => void;
+    abortSignal?: AbortSignal;
+    defaultHandlers?: {
+      tags: Set<string>;
+      streamHandler: (el: unknown) => void;
+      __streamChunkHandler?: (chunk: unknown) => void;
+    };
+  }): Promise<void>;
+}
+
+/**
+ * Function type for debugging agent operations
+ * @param contextId - The ID of the context being debugged
+ * @param keys - Array of keys identifying the debug point
+ * @param data - Debug data to be logged
+ */
 export type Debugger = (contextId: string, keys: string[], data: any) => void;
+
+/**
+ * Configuration for task execution behavior
+ */
+export type TaskConfiguration = {
+  concurrency?: {
+    /** Default concurrency for TaskRunner main queue (default: 3) */
+    default?: number;
+    /** Max concurrent LLM calls across all contexts (default: 3) */
+    llm?: number;
+  };
+  priority?: {
+    /** Default priority for agent runs (default: 10) */
+    default?: number;
+    /** High priority for urgent operations */
+    high?: number;
+    /** Low priority for background tasks */
+    low?: number;
+  };
+};
 
 export type Config<TContext extends AnyContext = AnyContext> = Partial<
   AgentDef<TContext>
 > & {
   model?: Agent["model"];
-  reasoningModel?: Agent["reasoningModel"];
   modelSettings?: {
     temperature?: number;
     maxTokens?: number;
@@ -986,6 +947,12 @@ export type Config<TContext extends AnyContext = AnyContext> = Partial<
   /** Path to save training data */
   trainingDataPath?: string;
   streaming?: boolean;
+  /** Task execution configuration */
+  tasks?: TaskConfiguration;
+  /** Optional custom prompt builder */
+  prompt?: PromptBuilder;
+  /** Optional custom response adapter */
+  response?: ResponseAdapter;
 };
 
 /** Configuration type for inputs without type field */
@@ -1004,14 +971,39 @@ export type OutputConfig<
   Response extends OutputRefResponse = OutputRefResponse,
   TContext extends AnyContext = AnyContext,
   TAgent extends AnyAgent = AnyAgent
-> = Omit<Output<Schema, Response, TContext, TAgent>, "type">;
-
-/** Configuration type for experts without type field */
-export type ExpertConfig = Omit<Expert, "type">;
+> = Omit<Output<Schema, Response, TContext, TAgent>, "name">;
 
 /** Function type for subscription cleanup */
 export type Subscription = () => void;
 
+/** Enum defining available log levels */
+export enum LogLevel {
+  DISABLED = -1,
+  ERROR = 0,
+  WARN = 1,
+  INFO = 2,
+  DEBUG = 3,
+  TRACE = 4,
+}
+
+export interface IChain {
+  /**
+   * A unique identifier for the chain (e.g., "starknet", "ethereum", "solana", etc.)
+   */
+  chainId: string;
+
+  /**
+   * Read (call) a contract or perform a query on this chain.
+   * The `call` parameter can be chain-specific data.
+   */
+  read(call: unknown): Promise<any>;
+
+  /**
+   * Write (execute a transaction) on this chain, typically requiring signatures, etc.
+   */
+  write(call: unknown): Promise<any>;
+}
+/** Type representing instructions that can be either a single string or array of strings */
 export type Instruction = string | string[];
 
 /** Type representing any Context with generic type parameters */
@@ -1039,6 +1031,10 @@ export type InferContextOptions<TContext extends AnyContext> =
  * @template Exports - Type of exported data
  */
 
+/**
+ * Infers the argument type from a schema definition
+ * @template Schema - The schema to infer arguments from
+ */
 export type InferSchemaArguments<Schema = undefined> =
   Schema extends ZodRawShape
     ? z.infer<ZodObject<Schema>>
@@ -1091,13 +1087,22 @@ interface ContextConfigApi<
   ): Context<TMemory, Schema, Ctx, Actions, Events>;
 }
 
+/**
+ * Definition for an event type
+ * @template Schema - The schema type for event data
+ */
 export type EventDef<Schema extends z.ZodTypeAny | ZodRawShape = z.ZodTypeAny> =
   {
+    /** Name of the event */
     name: string;
+    /** Schema for validating event data */
     schema: Schema;
-    // description?: string;
   };
 
+/**
+ * Maps event definitions to their schema types
+ * @template T - Record of event definitions
+ */
 export type ContextsEventsRecord<T extends Record<string, EventDef>> = {
   [K in keyof T]: T[K]["schema"];
 };
@@ -1125,6 +1130,11 @@ type BaseContextComposer<TContext extends AnyContext> = (
   state: ContextState<TContext>
 ) => ContextRef[];
 
+/**
+ * Type that can be either a static value or a function that computes the value from context
+ * @template Result - The type of the resolved value
+ * @template Ctx - The context type passed to the resolver function
+ */
 export type Resolver<Result, Ctx> = Result | ((ctx: Ctx) => Result);
 
 export interface Context<
@@ -1182,7 +1192,7 @@ export interface Context<
     state: ContextState<this>
   ) => string | string[] | XMLElement | XMLElement[] | (string | XMLElement)[];
 
-  model?: LanguageModelV2;
+  model?: LanguageModel;
 
   modelSettings?: {
     temperature?: number;
@@ -1212,6 +1222,9 @@ export interface Context<
 
   maxWorkingMemorySize?: number;
 
+  /** Episode detection and creation hooks for this context */
+  episodeHooks?: EpisodeHooks<this>;
+
   actions?: Resolver<Action[], ContextState<this>>;
 
   events?: Resolver<Events, ContextState<this>>;
@@ -1228,9 +1241,15 @@ export interface Context<
    * A record of output configurations for the context.
    */
   outputs?: Resolver<
-    Record<string, Omit<Output<any, any, AnyContext, any>, "type">>,
+    Record<string, Omit<Output<any, any, AnyContext, any>, "name">>,
     ContextState<this>
   >;
+
+  /**
+   * Retrieval configuration to adapt memory recall per-context.
+   * Can be a static object or a function of the current context state.
+   */
+  retrieval?: Resolver<RetrievalPolicy, ContextState<this>>;
 
   __composers?: BaseContextComposer<this>[];
 
@@ -1240,10 +1259,32 @@ export interface Context<
   >;
 }
 
+/**
+ * Configuration settings for a context
+ */
+export type RetrievalPolicy = {
+  topK?: number;
+  minScore?: number;
+  include?: { content?: boolean; metadata?: boolean; diagnostics?: boolean };
+  groupBy?: "docId" | "source" | "none";
+  dedupeBy?: "id" | "docId" | "none";
+  weighting?: { salience?: number; recencyHalfLifeMs?: number };
+  scope?: "context" | "global" | "all";
+  /** Ordered list of namespaces to search (e.g., [`episodes:${ctx.id}`, 'org', 'global']). */
+  namespaces?: string[];
+};
+
+/**
+ * Configuration settings for a context
+ */
 export type ContextSettings = {
-  model?: LanguageModelV2;
+  /** Language model to use for this context */
+  model?: LanguageModel;
+  /** Maximum number of execution steps */
   maxSteps?: number;
+  /** Maximum size of working memory */
   maxWorkingMemorySize?: number;
+  /** Model-specific settings */
   modelSettings?: {
     temperature?: number;
     maxTokens?: number;
@@ -1255,15 +1296,27 @@ export type ContextSettings = {
   };
 };
 
+/**
+ * Reference to a context with its arguments
+ * @template TContext - The context type
+ */
 export type ContextRef<TContext extends AnyContext = AnyContext> = {
   context: TContext;
   args: InferSchemaArguments<TContext["schema"]>;
 };
 
+/**
+ * Record of context references mapped by key
+ * @template T - Record type mapping keys to context types
+ */
 export type ContextsRefRecord<T extends Record<string, AnyContext>> = {
   [K in keyof T]: ContextRef<T[K]>;
 };
 
+/**
+ * Array of context references
+ * @template T - Array of context types
+ */
 export type ContextRefArray<T extends AnyContext[] = AnyContext[]> = {
   [K in keyof T]: ContextRef<T[K]>;
 };
@@ -1286,17 +1339,29 @@ type ContextEventEmitter<TContext extends AnyContext> = <
   options?: { processed?: boolean }
 ) => void;
 
-//wip
-
+/**
+ * Function type for resolving template variables in context
+ * @template Ctx - The context type
+ * @param path - The path to the template variable
+ * @param ctx - The context object
+ * @returns The resolved value
+ */
 export type TemplateResolver<Ctx = any> = (
   path: string,
   ctx: Ctx
 ) => MaybePromise<any>;
 
+/**
+ * API methods available on context state
+ * @template TContext - The context type
+ */
 export interface ContextStateApi<TContext extends AnyContext> {
+  /** Emit an event for this context */
   emit: ContextEventEmitter<TContext>;
+  /** Push a log entry */
   push: (log: Log) => Promise<any>;
 
+  /** Call an action with optional configuration */
   callAction: (
     call: ActionCall,
     options?: Partial<{
@@ -1305,17 +1370,30 @@ export interface ContextStateApi<TContext extends AnyContext> {
     }>
   ) => Promise<ActionResult>;
 
+  /** Get pending action results */
   __getRunResults: () => Promise<ActionResult>[];
 }
 
+/**
+ * Current state of a context instance
+ * @template TContext - The context type
+ */
 export type ContextState<TContext extends AnyContext = AnyContext> = {
+  /** Unique identifier for this context instance */
   id: string;
+  /** Optional key for this context instance */
   key?: string;
+  /** The context definition */
   context: TContext;
+  /** Arguments passed to this context */
   args: InferSchemaArguments<TContext["schema"]>;
+  /** Options/configuration for this context */
   options: InferContextOptions<TContext>;
+  /** Memory state for this context */
   memory: InferContextMemory<TContext>;
+  /** Settings for this context */
   settings: ContextSettings;
+  /** IDs of related contexts */
   contexts: string[];
 };
 
@@ -1336,20 +1414,179 @@ export type Extension<
   inputs: Inputs;
 };
 
-export interface Episode {
+export type CallOptions = Partial<{
+  templateResolvers: Record<string, TemplateResolver>;
+  queueKey: string;
+}>;
+
+export interface Router {
+  input(ref: InputRef): Promise<void>;
+  output(ref: OutputRef): Promise<OutputRef[]>;
+  action_call(call: ActionCall, options: CallOptions): Promise<ActionResult>;
+}
+
+export type ErrorRef = {
+  log: AnyRef;
+  error: unknown;
+};
+
+export type State = {
+  running: boolean;
+  step: number;
+  chain: AnyRef[];
+  ctxState: ContextState;
+  inputs: Input[];
+  outputs: OutputCtxRef[];
+  actions: ActionCtxRef[];
+  contexts: ContextState[];
+  promises: Promise<any>[];
+  errors: ErrorRef[];
+  results: Promise<ActionResult>[];
+  params?: Partial<{
+    outputs: Record<string, Omit<Output, "name">>;
+    inputs: Record<string, InputConfig>;
+    actions: AnyAction[];
+    contexts: ContextRef[];
+  }>;
+
+  defer: DeferredPromise<AnyRef[]>;
+};
+
+export class NotFoundError extends Error {
+  name = "NotFoundError";
+  constructor(public ref: ActionCall | OutputRef | InputRef) {
+    super(`${ref.ref} not found: ${ref.ref || "unknown"}`);
+  }
+}
+
+export class ParsingError extends Error {
+  name = "ParsingError";
+  constructor(
+    public ref: ActionCall | OutputRef | InputRef,
+    public parsingError: unknown
+  ) {
+    super(
+      `Parsing failed for ${ref.ref}: ${
+        parsingError instanceof Error
+          ? parsingError.message
+          : String(parsingError)
+      }`
+    );
+  }
+}
+
+export type ContextStateSnapshot = {
+  /** Unique context identifier */
   id: string;
-  timestamp: number;
-  observation: string; // Context and setup
-  result: string; // Outcomes of actions
-  thoughts: string;
-  metadata?: {
-    success?: boolean;
-    tags?: string[];
-    [key: string]: any;
+  /** Context type name */
+  type: string;
+  /** Context arguments */
+  args: any;
+  /** Optional context key */
+  key?: string;
+  /** Context settings with model stored as string ID */
+  settings: Omit<ContextSettings, "model"> & { model?: string };
+  /** Array of related context IDs */
+  contexts: string[];
+};
+
+/**
+ * Deduplication rule configuration for actions
+ */
+export interface DeduplicationRule {
+  // When to consider actions duplicates
+  timeWindow: number; // milliseconds
+
+  // What makes actions different
+  ignoreFields: string[]; // Fields to ignore in comparison
+  requiredFields: string[]; // Fields that must match
+
+  // Context sensitivity
+  contextSensitive: boolean;
+  sessionSensitive: boolean;
+  userSensitive: boolean;
+
+  // Retry behavior
+  allowRetries: boolean;
+  maxRetries: number;
+  retryDelay: number;
+}
+
+/**
+ * Business rule configuration for actions
+ */
+export interface BusinessRule {
+  // Can this action be executed multiple times?
+  idempotent: boolean;
+
+  // What makes this action unique?
+  uniquenessCriteria: string[];
+
+  // When should duplicates be allowed?
+  duplicateConditions: {
+    timeGap: number;
+    contextChange: boolean;
+    userConfirmation: boolean;
   };
 }
 
-export interface EpisodicMemory {
-  episodes: Episode[];
-  index?: number; // For vector store indexing
+/**
+ * Action fingerprint for deduplication
+ */
+export interface ActionFingerprint {
+  // Core action identity
+  actionName: string;
+  parameters: Record<string, any>;
+
+  // Context information
+  contextId: string;
+  sessionId?: string;
+  userId?: string;
+
+  // Temporal information
+  timestamp: number;
+  timeWindow: number; // Configurable deduplication window
+
+  // Execution context
+  requestId: string;
+  attemptNumber: number;
+  source: "user" | "llm" | "system" | "retry";
+}
+
+/**
+ * Deduplication decision result
+ */
+export interface DeduplicationDecision {
+  shouldExecute: boolean;
+  reason: string;
+  cachedResult?: any;
+  allowWithConfirmation?: boolean;
+  duplicateAction?: ActionFingerprint;
+}
+
+/**
+ * Action metadata for deduplication and business rules
+ */
+export interface ActionMetadata {
+  // Action definition
+  name: string;
+  schema?: any;
+
+  // Deduplication rules
+  deduplication?: {
+    enabled: boolean;
+    strategy: "strict" | "smart" | "contextual";
+    rules: DeduplicationRule;
+  };
+
+  // Business rules
+  business?: {
+    idempotent: boolean;
+    uniquenessCriteria: string[];
+    duplicateConditions: {
+      timeGap: number;
+      contextChange: boolean;
+      userConfirmation: boolean;
+    };
+  };
 }

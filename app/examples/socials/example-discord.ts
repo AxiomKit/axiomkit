@@ -33,6 +33,7 @@ Guidelines:
 - Use emojis occasionally to make responses more engaging
 - If someone shares an image or file, acknowledge it appropriately
 - Be helpful but concise
+- Don't Reply JSON like  {\"content\": \"Hey !  What's up?\"}\n  
 
 Current context: You're in a Discord channel. Respond naturally as if chatting with friends.`,
 });

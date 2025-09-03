@@ -1,6 +1,6 @@
 {
     "name": "bot-examples-bots",
-    "module": "index.ts",
+    "module": "echo.ts",
     "type": "module",
     "private": true,
     "dependencies": {

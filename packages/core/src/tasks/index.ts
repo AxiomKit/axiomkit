@@ -1,9 +1,4 @@
-import {
-  streamText,
-  type CoreMessage,
-  type StreamTextResult,
-  type ToolSet,
-} from "ai";
+import { streamText, type CoreMessage, type LanguageModel } from "ai";
 import { task } from "../task";
 import type {
   Action,
@@ -12,15 +7,40 @@ import type {
   AnyAgent,
   AnyContext,
   WorkingMemory,
+  Log,
+  LogChunk,
+  AnyRef,
+  Output,
 } from "../types";
-import type { Logger } from "../logs/logger";
-import { wrapStream } from "../utils/streaming";
-import { modelsResponseConfig, reasoningModels } from "../configs";
+import type { Logger } from "../logger";
+import { modelsResponseConfig, reasoningModels } from "../config";
 import { generateText } from "ai";
-import { type RequestContext } from "../monitor";
-import { getRequestTracker } from "../monitor/monitor";
-import { LogEventType, StructuredLogger } from "../logs/logging-events";
-import { type LanguageModelV2 } from "../types";
+import { createEngine } from "../engine";
+import { createContextStreamHandler } from "../handlers";
+import type { StackElement, StackElementChunk } from "../handlers";
+import type { ResponseAdapter, PromptBuildResult } from "../types";
+import { saveContextWorkingMemory } from "../context";
+
+function getModelInfo(model: LanguageModel): {
+  modelId: string;
+  provider: string;
+} {
+  if (typeof model === "string") {
+    return { modelId: model, provider: "unknown" };
+  }
+  return {
+    modelId: model.modelId || "unknown",
+    provider: model.provider || "unknown",
+  };
+}
+
+function getReasoningTokens(usage: unknown): number | undefined {
+  if (usage && typeof usage === "object" && "reasoningTokens" in usage) {
+    const v = (usage as { reasoningTokens?: unknown }).reasoningTokens;
+    return typeof v === "number" ? v : undefined;
+  }
+  return undefined;
+}
 /**
  * Prepares a stream response by handling the stream result and parsing it.
  *
@@ -32,40 +52,18 @@ import { type LanguageModelV2 } from "../types";
  * @param options.task - The task context containing callId and debug function
  * @returns An object containing the parsed response promise and wrapped text stream
  */
-function prepareStreamResponse({
-  model,
-  stream,
-  isReasoningModel,
-}: {
-  model: LanguageModelV2;
-  stream: StreamTextResult<ToolSet, never>;
-  isReasoningModel: boolean;
-}) {
-  const prefix =
-    modelsResponseConfig[model.modelId]?.prefix ??
-    (isReasoningModel
-      ? modelsResponseConfig[model.modelId]?.thinkTag ?? "<think>"
-      : "<response>");
-  const suffix = "</response>";
-  return {
-    getTextResponse: async () => {
-      const result = await stream.text;
-      const text = prefix + result + suffix;
-      return text;
-    },
-    stream: wrapStream(stream.textStream, prefix, suffix),
-  };
-}
+// Stream wrapping handled by ResponseAdapter
 
 type GenerateOptions = {
   prompt: string;
   workingMemory: WorkingMemory;
   logger: Logger;
-  structuredLogger?: StructuredLogger;
-  model: LanguageModelV2;
+  model: LanguageModel;
   streaming: boolean;
   onError: (error: unknown) => void;
-  requestContext?: RequestContext;
+  requestId?: string;
+  userId?: string;
+  sessionId?: string;
   contextSettings?: {
     modelSettings?: {
       temperature?: number;
@@ -77,6 +75,7 @@ type GenerateOptions = {
       [key: string]: any;
     };
   };
+  adapter: ResponseAdapter;
 };
 
 export const runGenerate = task({
@@ -88,13 +87,17 @@ export const runGenerate = task({
       model,
       streaming,
       onError,
-      requestContext,
+      requestId,
+      userId,
+      sessionId,
       contextSettings,
-      structuredLogger,
+      logger,
+      adapter,
     }: GenerateOptions,
     { abortSignal }
   ) => {
-    const isReasoningModel = reasoningModels.includes(model.modelId);
+    const { modelId, provider } = getModelInfo(model);
+    const isReasoningModel = reasoningModels.includes(modelId);
     const modelSettings = contextSettings?.modelSettings || {};
 
     const messages: CoreMessage[] = [
@@ -109,12 +112,12 @@ export const runGenerate = task({
       },
     ];
 
-    if (modelsResponseConfig[model.modelId]?.assist !== false)
+    if (modelsResponseConfig[modelId]?.assist !== false)
       messages.push({
         role: "assistant",
         content: isReasoningModel
-          ? modelsResponseConfig[model.modelId]?.thinkTag ?? "<think>"
-          : "<response>\n<reasoning>",
+          ? modelsResponseConfig[modelId]?.thinkTag ?? "<think>"
+          : "<response>",
       });
 
     if (workingMemory.currentImage) {
@@ -127,48 +130,32 @@ export const runGenerate = task({
       ] as CoreMessage["content"];
     }
 
-    const tracker = getRequestTracker();
     const startTime = Date.now();
-    let modelCallId: string | undefined;
-
-    // Start context and action tracking if requestContext is provided
-    let contextTrackingContext = requestContext;
-    let actionTrackingContext = requestContext;
-
-    if (requestContext && requestContext.trackingEnabled) {
-      // Start context tracking for the "generate" context
-      contextTrackingContext = await tracker.startContextTracking(
-        requestContext,
-        `generate-${Date.now()}`, // Unique context ID
-        "generate"
-      );
-
-      // Start action tracking for the "generate" action
-      actionTrackingContext = await tracker.startActionCall(
-        contextTrackingContext,
-        "generate_text"
-      );
-    }
 
     try {
-      // Log model call start event
-      if (structuredLogger && actionTrackingContext) {
-        structuredLogger.logEvent({
-          eventType: LogEventType.MODEL_CALL_START,
-          timestamp: startTime,
-          requestContext: actionTrackingContext,
-          provider: model.provider || "unknown",
-          modelId: model.modelId,
-          callType: streaming ? "stream" : "generate",
-          inputTokens: undefined, // Not available before the call
-        });
-      }
+      // Log action and model call start events
+      logger.event("ACTION_START", {
+        requestId,
+        userId,
+        sessionId,
+        actionName: "generate_text",
+      });
+
+      logger.event("MODEL_CALL_START", {
+        requestId,
+        userId,
+        sessionId,
+        provider: provider,
+        modelId: modelId,
+        callType: streaming ? "stream" : "generate",
+        actionName: "generate_text",
+      });
 
       if (!streaming) {
         const response = await generateText({
           model,
           messages,
-          temperature: modelSettings.temperature ?? 0.2,
+          temperature: modelSettings.temperature ?? undefined,
           maxTokens: modelSettings.maxTokens,
           topP: modelSettings.topP,
           topK: modelSettings.topK,
@@ -179,94 +166,36 @@ export const runGenerate = task({
 
         const endTime = Date.now();
 
-        // Track the model call
-        if (actionTrackingContext && actionTrackingContext.trackingEnabled) {
-          modelCallId = await tracker.trackModelCall(
-            actionTrackingContext,
-            "generate",
-            model.modelId,
-            model.provider || "unknown",
-            {
-              tokenUsage:
-                response.usage.inputTokens &&
-                response.usage.outputTokens &&
-                response.usage.totalTokens
-                  ? {
-                      inputTokens: response.usage.inputTokens,
-                      outputTokens: response.usage.outputTokens,
-                      totalTokens: response.usage.totalTokens,
-                      reasoningTokens: (response.usage as any).reasoningTokens,
-                    }
-                  : undefined,
-              metrics: {
-                modelId: model.modelId,
-                provider: model.provider || "unknown",
-                totalTime: endTime - startTime,
-                tokensPerSecond: response.usage.outputTokens
-                  ? response.usage.outputTokens / ((endTime - startTime) / 1000)
-                  : undefined,
-              },
-            }
-          );
+        // Log model call complete event
+        if (response.usage) {
+          const tokenUsage = {
+            input: response.usage.inputTokens ?? 0,
+            output: response.usage.outputTokens ?? 0,
+            total: response.usage.totalTokens ?? 0,
+            reasoning: getReasoningTokens(response.usage),
+          };
+
+          logger.event("MODEL_CALL_COMPLETE", {
+            requestId,
+            userId,
+            sessionId,
+            provider: provider,
+            modelId: modelId,
+            callType: "generate",
+            actionName: "generate_text",
+            tokens: tokenUsage,
+            duration: endTime - startTime,
+          });
         }
 
-        // Log structured model call complete event
-        if (structuredLogger && actionTrackingContext && response.usage) {
-          // Only create tokenUsage if all required fields are present
-          if (
-            response.usage.inputTokens !== undefined &&
-            response.usage.outputTokens !== undefined &&
-            response.usage.totalTokens !== undefined
-          ) {
-            const tokenUsage = {
-              inputTokens: response.usage.inputTokens,
-              outputTokens: response.usage.outputTokens,
-              totalTokens: response.usage.totalTokens,
-              reasoningTokens: (response.usage as any).reasoningTokens,
-            };
-
-            // Add cost estimation if tracking is enabled
-            const tracker = getRequestTracker();
-            const config = tracker.getConfig();
-            if (config.trackCosts && config.costEstimation) {
-              const { estimateCost } = await import("../monitor");
-              // Try multiple provider key combinations for better matching
-              const providerKeys = [
-                `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
-                model.provider || "unknown", // e.g., "openrouter.chat"
-                model.modelId.split("/")[0], // e.g., "google"
-              ];
-
-              let cost = 0;
-              for (const providerKey of providerKeys) {
-                cost = estimateCost(
-                  tokenUsage,
-                  providerKey,
-                  config.costEstimation
-                );
-                if (cost > 0) break; // Found a matching cost configuration
-              }
-              (tokenUsage as any).estimatedCost = cost;
-            }
-
-            structuredLogger.logEvent({
-              eventType: LogEventType.MODEL_CALL_COMPLETE,
-              timestamp: endTime,
-              requestContext: actionTrackingContext,
-              provider: model.provider || "unknown",
-              modelId: model.modelId,
-              callType: "generate",
-              tokenUsage,
-              metrics: {
-                modelId: model.modelId,
-                provider: model.provider || "unknown",
-                totalTime: endTime - startTime,
-                tokensPerSecond:
-                  response.usage.outputTokens / ((endTime - startTime) / 1000),
-              },
-            });
-          }
-        }
+        // Log action complete event
+        logger.event("ACTION_COMPLETE", {
+          requestId,
+          userId,
+          sessionId,
+          actionName: "generate_text",
+          duration: endTime - startTime,
+        });
 
         let getTextResponse = async () => response.text;
         let stream = textToStream(response.text);
@@ -276,22 +205,13 @@ export const runGenerate = task({
         const stream = streamText({
           model,
           messages,
-          stopSequences: modelSettings.stopSequences ?? ["\n</response>"],
-          temperature: modelSettings.temperature ?? 0.5,
+          stopSequences: modelSettings.stopSequences,
+          temperature: modelSettings.temperature ?? undefined,
           maxTokens: modelSettings.maxTokens,
           topP: modelSettings.topP,
           topK: modelSettings.topK,
           abortSignal,
-          // experimental_transform: smoothStream({
-          //   chunking: "word",
-          // }),
-          providerOptions: modelSettings.providerOptions || {
-            openrouter: {
-              reasoning: {
-                max_tokens: 32768,
-              },
-            },
-          },
+          providerOptions: modelSettings.providerOptions,
           onError: (event) => {
             onError(event.error);
           },
@@ -299,233 +219,111 @@ export const runGenerate = task({
         });
 
         // Track streaming model call when it completes
-        if (actionTrackingContext && actionTrackingContext.trackingEnabled) {
-          // Track after stream finishes - we'll use a simpler approach
-          stream.usage
-            .then(async (usage) => {
-              const endTime = Date.now();
+        stream.usage
+          .then(async (usage) => {
+            const endTime = Date.now();
 
-              await tracker.trackModelCall(
-                actionTrackingContext,
-                "stream",
-                model.modelId,
-                model.provider || "unknown",
-                {
-                  tokenUsage:
-                    usage &&
-                    usage.inputTokens !== undefined &&
-                    usage.outputTokens !== undefined &&
-                    usage.totalTokens !== undefined
-                      ? {
-                          inputTokens: usage.inputTokens,
-                          outputTokens: usage.outputTokens,
-                          totalTokens: usage.totalTokens,
-                          reasoningTokens: (usage as any).reasoningTokens,
-                        }
-                      : undefined,
-                  metrics: {
-                    modelId: model.modelId,
-                    provider: model.provider || "unknown",
-                    totalTime: endTime - startTime,
-                    tokensPerSecond: usage?.outputTokens
-                      ? usage.outputTokens / ((endTime - startTime) / 1000)
-                      : undefined,
-                  },
-                }
-              );
+            // Log model call complete event for streaming
+            if (usage) {
+              const tokenUsage = {
+                input: usage.inputTokens ?? 0,
+                output: usage.outputTokens ?? 0,
+                total: usage.totalTokens ?? 0,
+                reasoning: getReasoningTokens(usage),
+              };
 
-              // Log structured model call complete event for streaming
-              if (structuredLogger && actionTrackingContext && usage) {
-                // Only create tokenUsage if all required fields are present
-                if (
-                  usage.inputTokens !== undefined &&
-                  usage.outputTokens !== undefined &&
-                  usage.totalTokens !== undefined
-                ) {
-                  const tokenUsage = {
-                    inputTokens: usage.inputTokens,
-                    outputTokens: usage.outputTokens,
-                    totalTokens: usage.totalTokens,
-                    reasoningTokens: (usage as any).reasoningTokens,
-                  };
+              logger.event("MODEL_CALL_COMPLETE", {
+                requestId,
+                userId,
+                sessionId,
+                provider: provider,
+                modelId: modelId,
+                callType: "stream",
+                actionName: "generate_text",
+                tokens: tokenUsage,
+                duration: endTime - startTime,
+              });
+            }
 
-                  // Add cost estimation if tracking is enabled
-                  const tracker = getRequestTracker();
-                  const config = tracker.getConfig();
-                  if (config.trackCosts && config.costEstimation) {
-                    const { estimateCost } = await import("../monitor");
-                    // Try multiple provider key combinations for better matching
-                    const providerKeys = [
-                      `${model.provider}/${model.modelId}`, // e.g., "openrouter.chat/google/gemini-2.5-pro"
-                      model.provider || "unknown", // e.g., "openrouter.chat"
-                      model.modelId.split("/")[0], // e.g., "google"
-                    ];
-
-                    let cost = 0;
-                    for (const providerKey of providerKeys) {
-                      cost = estimateCost(
-                        tokenUsage,
-                        providerKey,
-                        config.costEstimation
-                      );
-                      if (cost > 0) break; // Found a matching cost configuration
-                    }
-                    (tokenUsage as any).estimatedCost = cost;
-                  }
-
-                  structuredLogger.logEvent({
-                    eventType: LogEventType.MODEL_CALL_COMPLETE,
-                    timestamp: endTime,
-                    requestContext: actionTrackingContext,
-                    provider: model.provider || "unknown",
-                    modelId: model.modelId,
-                    callType: "stream",
-                    tokenUsage,
-                    metrics: {
-                      modelId: model.modelId,
-                      provider: model.provider || "unknown",
-                      totalTime: endTime - startTime,
-                      tokensPerSecond:
-                        usage.outputTokens / ((endTime - startTime) / 1000),
-                    },
-                  });
-                }
-              }
-
-              // Complete action tracking for successful streaming
-              if (
-                actionTrackingContext &&
-                actionTrackingContext.actionCallId &&
-                actionTrackingContext.trackingEnabled
-              ) {
-                await tracker.completeActionCall(
-                  actionTrackingContext.actionCallId,
-                  "completed"
-                );
-              }
-            })
-            .catch(async (error: any) => {
-              // Track failed streaming call
-              if (
-                actionTrackingContext &&
-                actionTrackingContext.trackingEnabled
-              ) {
-                await tracker.trackModelCall(
-                  actionTrackingContext,
-                  "stream",
-                  model.modelId,
-                  model.provider || "unknown",
-                  {
-                    error: {
-                      message: error.message || "Stream failed",
-                      cause: error,
-                    },
-                    metrics: {
-                      modelId: model.modelId,
-                      provider: model.provider || "unknown",
-                      totalTime: Date.now() - startTime,
-                    },
-                  }
-                );
-              }
-
-              // Complete action tracking for failed streaming
-              if (
-                actionTrackingContext &&
-                actionTrackingContext.actionCallId &&
-                actionTrackingContext.trackingEnabled
-              ) {
-                await tracker.completeActionCall(
-                  actionTrackingContext.actionCallId,
-                  "failed",
-                  {
-                    message: error.message || "Stream failed",
-                    cause: error,
-                  }
-                );
-              }
+            // Log action complete event
+            logger.event("ACTION_COMPLETE", {
+              requestId,
+              userId,
+              sessionId,
+              actionName: "generate_text",
+              duration: endTime - startTime,
             });
-        }
+          })
+          .catch(async (error: any) => {
+            const endTime = Date.now();
 
-        return prepareStreamResponse({
-          model,
-          stream,
-          isReasoningModel,
-        });
+            // Log model call error event
+            logger.event("MODEL_CALL_ERROR", {
+              requestId,
+              userId,
+              sessionId,
+              provider: provider,
+              modelId: modelId,
+              callType: "stream",
+              actionName: "generate_text",
+              duration: endTime - startTime,
+              error: {
+                message: error.message || "Stream failed",
+                cause: error,
+              },
+            });
+
+            // Log action error event
+            logger.event("ACTION_ERROR", {
+              requestId,
+              userId,
+              sessionId,
+              actionName: "generate_text",
+              duration: endTime - startTime,
+              error: {
+                message: error.message || "Stream failed",
+                cause: error,
+              },
+            });
+          });
+
+        return adapter.prepareStream({ model, stream, isReasoningModel });
       }
     } catch (error) {
-      // Track failed model call
-      if (actionTrackingContext && actionTrackingContext.trackingEnabled) {
-        const endTime = Date.now();
-        await tracker.trackModelCall(
-          actionTrackingContext,
-          streaming ? "stream" : "generate",
-          model.modelId,
-          model.provider || "unknown",
-          {
-            error: {
-              message:
-                error instanceof Error ? error.message : "Model call failed",
-              cause: error,
-            },
-            metrics: {
-              modelId: model.modelId,
-              provider: model.provider || "unknown",
-              totalTime: endTime - startTime,
-            },
-          }
-        );
-      }
+      const endTime = Date.now();
 
-      // Log structured model call error event
-      if (structuredLogger && actionTrackingContext) {
-        structuredLogger.logEvent({
-          eventType: LogEventType.MODEL_CALL_ERROR,
-          timestamp: Date.now(),
-          requestContext: actionTrackingContext,
-          provider: model.provider || "unknown",
-          modelId: model.modelId,
-          callType: streaming ? "stream" : "generate",
-          error: {
-            message:
-              error instanceof Error ? error.message : "Model call failed",
-            cause: error,
-          },
-        });
-      }
+      // Log model call error event
+      logger.event("MODEL_CALL_ERROR", {
+        requestId,
+        userId,
+        sessionId,
+        provider: provider,
+        modelId: modelId,
+        callType: streaming ? "stream" : "generate",
+        actionName: "generate_text",
+        duration: endTime - startTime,
+        error: {
+          message: error instanceof Error ? error.message : "Model call failed",
+          cause: error,
+        },
+      });
 
-      // Complete action and context tracking with error
-      if (
-        actionTrackingContext &&
-        actionTrackingContext.actionCallId &&
-        actionTrackingContext.trackingEnabled
-      ) {
-        await tracker.completeActionCall(
-          actionTrackingContext.actionCallId,
-          "failed",
-          {
-            message:
-              error instanceof Error ? error.message : "Generate action failed",
-            cause: error,
-          }
-        );
-      }
+      // Log action error event
+      logger.event("ACTION_ERROR", {
+        requestId,
+        userId,
+        sessionId,
+        actionName: "generate_text",
+        duration: endTime - startTime,
+        error: {
+          message:
+            error instanceof Error ? error.message : "Generate action failed",
+          cause: error,
+        },
+      });
 
       onError(error);
       throw error;
-    } finally {
-      // Complete action and context tracking for non-streaming calls
-      if (
-        !streaming &&
-        actionTrackingContext &&
-        actionTrackingContext.actionCallId &&
-        actionTrackingContext.trackingEnabled
-      ) {
-        await tracker.completeActionCall(
-          actionTrackingContext.actionCallId,
-          "completed"
-        );
-      }
     }
   },
 });
@@ -541,6 +339,307 @@ async function* textToStream(
     // await new Promise(resolve => setTimeout(resolve, 10));
   }
 }
+
+/**
+ * Task that executes a complete agent context run
+ * This replaces the direct agent.run() to provide proper concurrency control
+ */
+export const runAgentContext = task({
+  key: "agent:run:context",
+  concurrency: 1, // Only 1 execution per queue (per context)
+  retry: false, // Context runs shouldn't retry
+  handler: async (
+    params: {
+      agent: AnyAgent;
+      context: AnyContext;
+      args: unknown;
+      outputs?: Record<string, Omit<Output<any, any, any, any>, "name">>;
+      handlers?: Record<string, unknown>;
+      requestId?: string;
+      userId?: string;
+      sessionId?: string;
+      chain?: Log[];
+      model?: LanguageModel;
+    },
+    { abortSignal }
+  ) => {
+    const {
+      agent,
+      context,
+      args,
+      outputs,
+      handlers,
+      requestId,
+      userId,
+      sessionId,
+      chain,
+    } = params;
+
+    const model = params.model ?? context.model ?? agent.model;
+    if (!model) throw new Error("no model");
+
+    const startTime = Date.now();
+
+    agent.logger.event("AGENT_START", {
+      requestId,
+      userId,
+      sessionId,
+      agentName: "agent",
+      configuration: {
+        contextType: context.type,
+        hasArgs: !!args,
+        hasCustomOutputs: !!outputs,
+        hasHandlers: !!handlers,
+        model: model,
+      },
+    });
+
+    const ctxId = agent.getContextId({ context, args });
+
+    // Get context state and working memory
+    const ctxState = await agent.getContext({ context, args });
+    const workingMemory = await agent.getWorkingMemory(ctxId);
+    const agentCtxState = await agent.getAgentContext();
+
+    // Create engine and streaming components
+
+    // Create empty subscriptions for this execution
+    const subscriptions = new Set<(ref: AnyRef, done: boolean) => void>();
+    const chunkSubscriptions = new Set<(chunk: LogChunk) => void>();
+
+    const engine = createEngine({
+      agent,
+      ctxState: ctxState,
+      workingMemory,
+      handlers,
+      agentCtxState: agentCtxState,
+      subscriptions,
+      __chunkSubscriptions: chunkSubscriptions,
+    });
+
+    const { streamState, streamHandler, tags, __streamChunkHandler } =
+      createContextStreamHandler({
+        abortSignal,
+        pushLog(log: Log, done: boolean) {
+          engine.push(log, done, false);
+        },
+        __pushLogChunk(chunk: LogChunk) {
+          engine.pushChunk(chunk);
+        },
+      });
+
+    await engine.setParams({
+      actions: undefined,
+      outputs: outputs,
+      contexts: undefined,
+    });
+
+    let stepRef = await engine.start();
+
+    if (chain) {
+      for (const log of chain) {
+        await engine.push(log);
+      }
+    }
+
+    await engine.settled();
+
+    const { state } = engine;
+    let maxSteps = 0;
+
+    function getMaxSteps() {
+      return state.contexts.reduce(
+        (maxSteps, ctxState) =>
+          Math.max(
+            maxSteps,
+            ctxState.settings.maxSteps ?? ctxState.context.maxSteps ?? 0
+          ),
+        5
+      );
+    }
+
+    while ((maxSteps = getMaxSteps()) >= state.step) {
+      try {
+        if (state.step > 1) {
+          stepRef = await engine.nextStep();
+          streamState.index++;
+        }
+
+        const buildResult: PromptBuildResult = await agent.prompt.build({
+          contexts: state.contexts,
+          actions: state.actions,
+          outputs: state.outputs,
+          workingMemory,
+          chainOfThoughtSize: 0,
+          settings: {
+            maxWorkingMemorySize: ctxState.settings.maxWorkingMemorySize,
+          },
+          agent,
+        });
+
+        const prompt = buildResult.prompt;
+
+        agent.logger.trace("agent:run", "Prompt", {
+          prompt: JSON.stringify(prompt),
+        });
+
+        stepRef.data.prompt = prompt;
+
+        let streamError: unknown = null;
+
+        const unprocessed = [
+          ...workingMemory.inputs.filter((i) => i.processed === false),
+          ...state.chain.filter((i) => i.processed === false),
+        ];
+
+        // Use runGenerate task with shared LLM queue
+        const { stream, getTextResponse } = await agent.taskRunner.enqueueTask(
+          runGenerate,
+          {
+            model,
+            prompt,
+            workingMemory,
+            logger: agent.logger,
+            streaming: true,
+            contextSettings: ctxState.settings,
+            requestId,
+            userId,
+            sessionId,
+            adapter: agent.response,
+            onError: (error: unknown) => {
+              streamError = error;
+            },
+          },
+          {
+            abortSignal,
+            queueKey: "llm", // Shared LLM queue
+          }
+        );
+
+        await agent.response.handleStream({
+          textStream: stream,
+          index: streamState.index,
+          pushLog(log, done) {
+            engine.push(log, done, false);
+          },
+          pushChunk: (chunk) => engine.pushChunk(chunk),
+          abortSignal,
+          defaultHandlers: {
+            tags,
+            streamHandler: (el: unknown) => streamHandler(el as StackElement),
+            __streamChunkHandler: __streamChunkHandler
+              ? (chunk: unknown) =>
+                  __streamChunkHandler(chunk as StackElementChunk)
+              : undefined,
+          },
+        });
+
+        if (streamError) {
+          throw streamError;
+        }
+
+        const response = await getTextResponse();
+
+        agent.logger.trace("agent:run", "Response", {
+          response,
+        });
+
+        stepRef.data.response = response;
+
+        unprocessed.forEach((i) => {
+          (i as { processed: boolean }).processed = true;
+        });
+
+        await engine.settled();
+        stepRef.processed = true;
+
+        // Save working memory
+        await saveContextWorkingMemory(agent, ctxState.id, workingMemory);
+
+        await Promise.all(
+          state.contexts.map((state) =>
+            state.context.onStep?.(
+              {
+                ...state,
+                workingMemory,
+              },
+              agent
+            )
+          )
+        );
+
+        await Promise.all(
+          state.contexts.map((state) => agent.saveContext(state))
+        );
+
+        if (!engine.shouldContinue()) break;
+
+        state.step++;
+      } catch (error) {
+        agent.logger.error("agent:run", "Step execution failed", {
+          error,
+          step: state.step,
+          contextId: ctxState.id,
+        });
+
+        await Promise.allSettled([
+          saveContextWorkingMemory(agent, ctxState.id, workingMemory),
+          ...state.contexts.map((state) => agent.saveContext(state)),
+        ]);
+
+        if (context.onError) {
+          try {
+            await context.onError(
+              error,
+              {
+                ...ctxState,
+                workingMemory,
+              },
+              agent
+            );
+          } catch (error) {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+
+    await Promise.all(
+      state.contexts.map((state) =>
+        state.context.onRun?.(
+          {
+            ...state,
+            workingMemory,
+          },
+          agent
+        )
+      )
+    );
+
+    await Promise.all(state.contexts.map((state) => agent.saveContext(state)));
+
+    const executionTime = Date.now() - startTime;
+
+    // Log agent complete event
+    agent.logger.event("AGENT_COMPLETE", {
+      requestId,
+      userId,
+      sessionId,
+      agentName: "agent",
+      executionTime,
+    });
+
+    agent.logger.info("agent:run", "Run completed", {
+      contextId: ctxState.id,
+      chainLength: state.chain.length,
+      executionTime,
+    });
+
+    return state.chain;
+  },
+});
 
 /**
  * Task that executes an action with the given context and parameters.
@@ -561,11 +660,17 @@ export const runAction = task({
     action,
     agent,
     logger,
+    requestId,
+    userId,
+    sessionId,
   }: {
     ctx: ActionCallContext<any, TContext>;
     action: AnyAction;
     agent: AnyAgent;
     logger: Logger;
+    requestId?: string;
+    userId?: string;
+    sessionId?: string;
   }) => {
     logger.info(
       "agent:action_call:" + ctx.call.id,
@@ -573,20 +678,86 @@ export const runAction = task({
       JSON.stringify(ctx.call.data)
     );
 
+    const startTime = Date.now();
+
+    // Log action start event
+    logger.event("ACTION_START", {
+      requestId,
+      userId,
+      sessionId,
+      actionName: ctx.call.name,
+    });
+
     try {
       const result =
         action.schema === undefined
-          ? await Promise.try((action as Action<undefined>).handler, ctx, agent)
-          : await Promise.try(action.handler as any, ctx.call.data, ctx, agent);
+          ? await (action as Action<undefined>).handler(
+              ctx as unknown as ActionCallContext<undefined, AnyContext>,
+              agent
+            )
+          : await (action.handler as any)(ctx.call.data, ctx, agent);
 
       logger.debug("agent:action_result:" + ctx.call.id, ctx.call.name, result);
 
+      // Log action complete event
+      logger.event("ACTION_COMPLETE", {
+        requestId,
+        userId,
+        sessionId,
+        actionName: ctx.call.name,
+        duration: Date.now() - startTime,
+      });
+
+      // Record action execution for deduplication if engine exists
+      if (agent.deduplicationEngine) {
+        try {
+          agent.deduplicationEngine.recordActionExecution(
+            action,
+            ctx,
+            ctx.call,
+            result
+          );
+        } catch (error) {
+          logger.warn("deduplication:record", `Failed to record action execution`, {
+            actionName: action.name,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+
       return result;
     } catch (error) {
-      logger.error("agent:action", "ACTION_FAILED", { error });
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorDetails = {
+        actionName: ctx.call.name,
+        callId: ctx.call.id,
+        error: errorMessage,
+        errorStack: error instanceof Error ? error.stack : undefined,
+        callData: ctx.call.data,
+      };
+
+      logger.error(
+        "agent:action",
+        `Action '${ctx.call.name}' failed: ${errorMessage}`,
+        errorDetails
+      );
+
+      // Log action error event
+      logger.event("ACTION_ERROR", {
+        requestId,
+        userId,
+        sessionId,
+        actionName: ctx.call.name,
+        duration: Date.now() - startTime,
+        error: {
+          message: errorMessage,
+          cause: error,
+        },
+      });
 
       if (action.onError) {
-        return await Promise.try(action.onError, error, ctx, agent);
+        return await action.onError(error, ctx as any, agent);
       } else {
         throw error;
       }

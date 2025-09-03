@@ -1,9 +1,4 @@
-export * from "./formatters";
-export * from "./jsonpath";
-export * from "./streaming";
-export * from "./xml";
-
-import * as z from "zod/v4";
+import * as z from "zod";
 import type {
   Action,
   ActionCall,
@@ -11,19 +6,23 @@ import type {
   AnyAgent,
   AnyContext,
   EventRef,
-  ExpertConfig,
   Extension,
   InputConfig,
   InputRef,
-  Memory,
+  ActionState,
   Optional,
   OutputConfig,
   OutputRef,
   OutputRefResponse,
   OutputSchema,
   WorkingMemory,
+  PromptBuilder,
+  PromptBuildContext,
+  PromptBuildResult,
+  MaybePromise,
 } from "../types";
 import { v7 as randomUUIDv7 } from "uuid";
+import { parse } from "../parsing";
 
 export { randomUUIDv7 };
 /**
@@ -58,7 +57,7 @@ export function action<
   TError = any,
   TContext extends AnyContext = AnyContext,
   TAgent extends AnyAgent = AnyAgent,
-  TMemory extends Memory<any> = Memory<any>
+  TMemory extends ActionState<any> = ActionState<any>
 >(
   action: Optional<
     Action<TSchema, Result, TError, TContext, TAgent, TMemory>,
@@ -83,16 +82,6 @@ export function output<
   Response extends OutputRefResponse = OutputRefResponse,
   Context extends AnyContext = AnyContext
 >(config: OutputConfig<Schema, Response, Context>) {
-  return config;
-}
-
-/**
- * Creates an expert configuration
- * @template Context - Context type for expert execution
- * @param config - Expert configuration object
- * @returns Typed expert configuration
- */
-export function expert(config: ExpertConfig) {
   return config;
 }
 
@@ -145,7 +134,7 @@ export function splitTextIntoChunks(
  * @param memory - Memory configuration object
  * @returns Typed memory configuration
  */
-export function memory<Data = any>(memory: Memory<Data>) {
+export function memory<Data = any>(memory: ActionState<Data>) {
   return memory;
 }
 
@@ -164,6 +153,44 @@ export function extension<
   };
 }
 
+/**
+ * Creates a PromptBuilder with strong typing for developers.
+ *
+ * Usage:
+ * - createPromptBuilder({ name: 'axiom-prompt', build })
+ * - createPromptBuilder('axiom-prompt', build)
+ */
+export function createPromptBuilder(def: {
+  name?: string;
+  build: (input: PromptBuildContext) => MaybePromise<PromptBuildResult>;
+}): PromptBuilder;
+export function createPromptBuilder(
+  name: string,
+  build: (input: PromptBuildContext) => MaybePromise<PromptBuildResult>
+): PromptBuilder;
+export function createPromptBuilder(
+  nameOrDef:
+    | string
+    | {
+        name?: string;
+        build: (input: PromptBuildContext) => MaybePromise<PromptBuildResult>;
+      },
+  maybeBuild?: (input: PromptBuildContext) => MaybePromise<PromptBuildResult>
+): PromptBuilder {
+  if (typeof nameOrDef === "string") {
+    if (!maybeBuild)
+      throw new Error("createPromptBuilder requires a build function");
+    return { name: nameOrDef, build: maybeBuild };
+  }
+  return { name: nameOrDef.name, build: nameOrDef.build };
+}
+
+/**
+ * Validates environment variables against a Zod schema
+ * @param schema The Zod schema to validate against
+ * @param env The environment object to validate (defaults to process.env)
+ * @returns The validated environment variables
+ */
 export function validateEnv<T extends z.ZodTypeAny>(
   schema: T,
   env = process.env
@@ -211,9 +238,10 @@ export function trimWorkingMemory(
  * @param ...args The arguments to pass to the function
  * @returns A promise that resolves with the result of the function
  */
+// Reverted to simpler, permissive signature to avoid type friction
 export async function tryAsync<T>(fn: Function, ...args: any[]): Promise<T> {
   try {
-    return await fn(...args);
+    return (await fn(...args)) as T;
   } catch (error) {
     return Promise.reject(error);
   }
@@ -231,7 +259,7 @@ export function createInputRef(
 }
 
 export function createOutputRef(
-  ref: Pick<OutputRef, "type" | "content" | "data" | "processed">
+  ref: Pick<OutputRef, "name" | "content" | "data" | "processed">
 ): OutputRef {
   return {
     id: randomUUIDv7(),
@@ -261,4 +289,38 @@ export function createActionCall(
     timestamp: Date.now(),
     ...ref,
   };
+}
+
+export function parseJSONContent(content: string): unknown {
+  if (content.startsWith("```json")) {
+    content = content.slice("```json".length, -3);
+  }
+
+  return JSON.parse(content);
+}
+
+export function parseXMLContent(content: string): Record<string, string> {
+  const nodes = parse(content, (node) => {
+    return node;
+  });
+
+  const data = nodes.reduce((data, node) => {
+    if (node.type === "element") {
+      data[node.name] = node.content;
+    }
+    return data;
+  }, {} as Record<string, string>);
+
+  return data;
+}
+
+export function resolve<Value = unknown, Ctx = unknown>(
+  value: Value,
+  ctx: Ctx
+): Promise<Value extends (ctx: Ctx) => infer R ? R : Value> {
+  return typeof value === "function"
+    ? value(ctx)
+    : (Promise.resolve(value) as Promise<
+        Value extends (ctx: Ctx) => infer R ? R : Value
+      >);
 }
