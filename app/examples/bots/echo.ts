@@ -17,7 +17,7 @@ export const echoCliExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  // logLevel: LogLevel.DISABLED,
+  logLevel: LogLevel.DISABLED,
   extensions: [echoCliExtension],
 });
 

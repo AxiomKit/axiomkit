@@ -15,7 +15,7 @@ import { KeyValueMemoryImpl } from "./kv-memory";
 import { VectorMemoryImpl } from "./vector-memory";
 import { GraphMemoryImpl } from "./graph-memory";
 import { EpisodicMemoryImpl, type EpisodicMemory } from "./episodic-memory";
-import type { Logger } from "../../logger";
+import type { Logger } from "@/logger";
 
 /**
  * Simplified Memory System - basic storage only

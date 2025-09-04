@@ -38,13 +38,13 @@ import {
   JSONExporter,
   MarkdownExporter,
 } from "./services/memory";
-import { LogLevel } from "./types";
+import { LogLevel } from "@/types";
 import { randomUUIDv7, tryAsync } from "./utils";
 import { promptTemplate } from "./prompts/main";
 import { defaultPromptBuilder } from "./prompts/prompt-builder";
 import { defaultXmlResponseAdapter } from "./response/default-xml-adapter";
 import type { DeferredPromise } from "p-defer";
-import { runAgentContext } from "./tasks";
+import { runAgentContext } from "@/tasks";
 
 /**
  * Creates and configures a new Agent AI agent instance

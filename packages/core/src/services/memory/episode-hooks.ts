@@ -5,7 +5,7 @@ import type {
   ContextState,
   WorkingMemory,
   EpisodeHooks as HooksType,
-} from "../../types";
+} from "@/types";
 import type { Episode } from "./episodic-memory";
 
 // =============================================================================
