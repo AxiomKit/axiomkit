@@ -3,10 +3,10 @@ import type {
   AnyContext,
   AnyRef,
   ContextState,
-  Episode,
   WorkingMemory,
   EpisodeHooks as HooksType,
-} from "../types";
+} from "../../types";
+import type { Episode } from "./episodic-memory";
 
 // =============================================================================
 // EPISODE MANAGEMENT AND DETECTION
@@ -127,7 +127,10 @@ export async function handleEpisodeHooks<TContext extends AnyContext>(
 
       const rawLogs =
         providedLogs && providedLogs.length > 0 ? providedLogs : logs;
-      const finalLogs = sanitizeEpisodeLogs(rawLogs, hooks as HooksType | undefined);
+      const finalLogs = sanitizeEpisodeLogs(
+        rawLogs,
+        hooks as HooksType | undefined
+      );
       const finalSummary = summary ?? generateBasicSummary(finalLogs);
 
       const episode: Episode = {

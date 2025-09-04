@@ -1,5 +1,5 @@
-import { formatContextLog } from "../parsing";
-import type { AnyRef, Log } from "../types";
+import { formatContextLog } from "../../parsing";
+import type { AnyRef, Log } from "../../types";
 import type { WorkingMemory } from "./types";
 
 /**

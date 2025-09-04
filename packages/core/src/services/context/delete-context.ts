@@ -1,4 +1,4 @@
-import type { AnyAgent } from "../types";
+import type { AnyAgent } from "../../types";
 
 /**
  * Deletes all data associated with a context from storage

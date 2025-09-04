@@ -1,6 +1,6 @@
-import type { ActionCall, AnyAction } from "../types";
-import { parseJSONContent, parseXMLContent } from "../utils";
-import { ParsingError } from "../types";
+import type { ActionCall, AnyAction } from "../../types";
+import { parseJSONContent, parseXMLContent } from "../../utils";
+import { ParsingError } from "../../types";
 
 export function parseActionCallContent({
   call,

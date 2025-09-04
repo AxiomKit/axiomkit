@@ -8,14 +8,14 @@ import type {
   ActionCall,
   ActionCallContext,
   MaybePromise,
-} from "../types";
+} from "../../types";
 
 import { parseActionCallContent } from "./parse-action-call-content";
-import { detectTemplates, type TemplateInfo } from "./resolvers";
-import { resolveTemplates } from "./resolvers";
-import { ParsingError } from "../types";
+import { detectTemplates, type TemplateInfo } from "../../handlers/resolvers";
+import { resolveTemplates } from "../../handlers/resolvers";
+import { ParsingError } from "../../types";
 import { z } from "zod";
-import type { Logger } from "../logger";
+import type { Logger } from "../../logger";
 import { jsonSchema } from "ai";
 
 export async function prepareActionCall({

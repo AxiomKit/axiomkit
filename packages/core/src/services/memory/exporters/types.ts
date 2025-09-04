@@ -1,4 +1,4 @@
-import type { Episode } from "../../types";
+import type { Episode } from "../episodic-memory";
 
 /**
  * Core interface for episode exporters

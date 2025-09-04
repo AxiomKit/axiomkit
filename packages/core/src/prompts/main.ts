@@ -14,7 +14,7 @@ import type {
   Output,
   WorkingMemory,
 } from "../types";
-import type { MemoryResult } from "../memory/types";
+import type { MemoryResult } from "../types";
 
 export const templateSections = {
   intro: `\

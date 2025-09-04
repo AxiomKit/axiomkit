@@ -1,4 +1,4 @@
-import type { Logger } from "../logger";
+import type { Logger } from "../../logger";
 import type {
   ActionCall,
   ActionResult,
@@ -13,9 +13,8 @@ import type {
   AnyContext,
   AnyAgent,
   ContextState,
-  EpisodicMemory,
-  Episode,
-} from "../types";
+} from "../../types";
+import type { Episode, EpisodicMemory } from "./episodic-memory";
 
 /**
  * Core Memory interface - simplified for basic storage
@@ -558,7 +557,14 @@ export interface EpisodeHooks<TContext extends AnyContext = AnyContext> {
    * If omitted, defaults to ['input','output','action_call','action_result','event'] (excludes 'thought').
    */
   includeRefs?: Array<
-    'input' | 'output' | 'thought' | 'action_call' | 'action_result' | 'event' | 'step' | 'run'
+    | "input"
+    | "output"
+    | "thought"
+    | "action_call"
+    | "action_result"
+    | "event"
+    | "step"
+    | "run"
   >;
 
   /** Max size (in bytes) allowed for action_result.data before truncation/redaction (default: 4096). */

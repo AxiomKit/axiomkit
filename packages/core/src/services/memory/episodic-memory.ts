@@ -1,4 +1,4 @@
-import type { AnyRef, AnyAgent, ContextState } from "../types";
+import type { AnyRef, AnyAgent, ContextState } from "../../types";
 import type { Memory, EpisodeHooks } from "./types";
 
 export interface Episode {

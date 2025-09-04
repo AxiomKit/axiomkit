@@ -7,7 +7,7 @@ import type {
   ActionCtxRef,
   ContextRef,
 } from "../types";
-import { prepareContextActions } from "./prepare-context-actions";
+import { prepareContextActions } from "../services/actions/prepare-context-actions";
 import { prepareOutput } from "./prepare-output";
 import { resolve } from "../utils";
 

@@ -28,7 +28,7 @@ import {
   loadContextState,
   getContexts,
   deleteContext,
-} from "./context";
+} from "./services/context";
 import {
   InMemoryGraphProvider,
   InMemoryKeyValueProvider,
@@ -37,7 +37,7 @@ import {
   ExportManager,
   JSONExporter,
   MarkdownExporter,
-} from "./memory";
+} from "./services/memory";
 import { LogLevel } from "./types";
 import { randomUUIDv7, tryAsync } from "./utils";
 import { promptTemplate } from "./prompts/main";

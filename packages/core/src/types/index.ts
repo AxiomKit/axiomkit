@@ -6,10 +6,10 @@ import {
 } from "ai";
 import { type DeferredPromise } from "p-defer";
 import { z, ZodObject, ZodType, type ZodRawShape } from "zod";
-import type { Container } from "./container";
-import type { ServiceProvider } from "./service-provider";
-import type { TaskRunner } from "./task";
-import type { Logger } from "./logger";
+import type { Container } from "../container";
+import type { ServiceProvider } from "../service-provider";
+import type { TaskRunner } from "../task";
+import type { Logger } from "../logger";
 
 import type {
   EpisodeHooks,
@@ -17,12 +17,12 @@ import type {
   InferActionState,
   MemorySystem,
   WorkingMemory,
-} from "./memory";
-import type { ExportManager } from "./memory/exporters";
-import type { BenchMark } from "./benchmark";
+} from "../services/memory";
+import type { ExportManager } from "../services/memory/exporters";
+import type { BenchMark } from "../benchmark";
 
 // Export memory types
-export * from "./memory";
+export * from "../services/memory/types";
 
 /**
  * Makes specified keys optional in a type

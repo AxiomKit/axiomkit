@@ -4,12 +4,12 @@ import type {
   AnyAction,
   AnyAgent,
   ActionResult,
-} from "../types";
-import { randomUUIDv7 } from "../utils";
-import type { Logger } from "../logger";
-import type { TaskRunner } from "../task";
-import { runAction } from "../tasks";
-import { SmartDeduplicationEngine } from "./smart-deduplication";
+} from "../../types";
+import { randomUUIDv7 } from "../../utils";
+import type { Logger } from "../../logger";
+import type { TaskRunner } from "../../task";
+import { runAction } from "../../tasks";
+import { SmartDeduplicationEngine } from "../../handlers/smart-deduplication";
 
 export async function handleActionCall({
   action,
@@ -36,19 +36,20 @@ export async function handleActionCall({
   }
 
   // Check if action should be executed based on deduplication rules
-  const deduplicationDecision = await agent.deduplicationEngine.shouldExecuteAction(
-    action,
-    callCtx,
-    call
-  );
+  const deduplicationDecision =
+    await agent.deduplicationEngine.shouldExecuteAction(action, callCtx, call);
 
   // If action should not execute, return cached result or error
   if (!deduplicationDecision.shouldExecute) {
     if (deduplicationDecision.cachedResult) {
-      logger.info("deduplication:cache", `Returning cached result for ${action.name}`, {
-        reason: deduplicationDecision.reason,
-        actionId: call.id
-      });
+      logger.info(
+        "deduplication:cache",
+        `Returning cached result for ${action.name}`,
+        {
+          reason: deduplicationDecision.reason,
+          actionId: call.id,
+        }
+      );
 
       return {
         ref: "action_result",
@@ -62,19 +63,23 @@ export async function handleActionCall({
     }
 
     if (deduplicationDecision.allowWithConfirmation) {
-      logger.warn("deduplication:confirmation", `Action ${action.name} requires confirmation`, {
-        reason: deduplicationDecision.reason,
-        actionId: call.id
-      });
+      logger.warn(
+        "deduplication:confirmation",
+        `Action ${action.name} requires confirmation`,
+        {
+          reason: deduplicationDecision.reason,
+          actionId: call.id,
+        }
+      );
 
       return {
         ref: "action_result",
         id: randomUUIDv7(),
         callId: call.id,
-        data: { 
+        data: {
           error: "DUPLICATE_ACTION_REQUIRES_CONFIRMATION",
           message: deduplicationDecision.reason,
-          duplicateAction: deduplicationDecision.duplicateAction
+          duplicateAction: deduplicationDecision.duplicateAction,
         },
         name: call.name,
         timestamp: Date.now(),
@@ -83,19 +88,23 @@ export async function handleActionCall({
     }
 
     // Block duplicate action
-    logger.warn("deduplication:blocked", `Action ${action.name} blocked as duplicate`, {
-      reason: deduplicationDecision.reason,
-      actionId: call.id
-    });
+    logger.warn(
+      "deduplication:blocked",
+      `Action ${action.name} blocked as duplicate`,
+      {
+        reason: deduplicationDecision.reason,
+        actionId: call.id,
+      }
+    );
 
     return {
       ref: "action_result",
       id: randomUUIDv7(),
       callId: call.id,
-      data: { 
+      data: {
         error: "DUPLICATE_ACTION_BLOCKED",
         message: deduplicationDecision.reason,
-        duplicateAction: deduplicationDecision.duplicateAction
+        duplicateAction: deduplicationDecision.duplicateAction,
       },
       name: call.name,
       timestamp: Date.now(),

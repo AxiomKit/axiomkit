@@ -8,9 +8,9 @@ import type {
   ContextSettings,
   ContextState,
   InferSchemaArguments,
-} from "../types";
+} from "../../types";
 
-import { tryAsync } from "../utils";
+import { tryAsync } from "../../utils";
 
 export function context<
   TMemory = any,

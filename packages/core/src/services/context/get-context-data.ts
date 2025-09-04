@@ -1,4 +1,4 @@
-import type { ContextState } from "../types";
+import type { ContextState } from "../../types";
 
 /**
  * Retrieves context metadata for a given context ID

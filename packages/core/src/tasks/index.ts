@@ -19,7 +19,7 @@ import { createEngine } from "../engine";
 import { createContextStreamHandler } from "../handlers";
 import type { StackElement, StackElementChunk } from "../handlers";
 import type { ResponseAdapter, PromptBuildResult } from "../types";
-import { saveContextWorkingMemory } from "../context";
+import { saveContextWorkingMemory } from "../services/context";
 
 function getModelInfo(model: LanguageModel): {
   modelId: string;
@@ -718,10 +718,14 @@ export const runAction = task({
             result
           );
         } catch (error) {
-          logger.warn("deduplication:record", `Failed to record action execution`, {
-            actionName: action.name,
-            error: error instanceof Error ? error.message : String(error)
-          });
+          logger.warn(
+            "deduplication:record",
+            `Failed to record action execution`,
+            {
+              actionName: action.name,
+              error: error instanceof Error ? error.message : String(error),
+            }
+          );
         }
       }
 

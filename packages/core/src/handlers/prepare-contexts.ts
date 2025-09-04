@@ -1,3 +1,4 @@
+import { prepareAction } from "../services/actions/prepare-action";
 import type {
   AnyAgent,
   AnyAction,
@@ -10,7 +11,7 @@ import type {
   OutputCtxRef,
 } from "../types";
 import { prepareContext } from "./prepare-context";
-import { prepareAction } from "./prepare-action";
+
 import { prepareOutput } from "./prepare-output";
 
 export async function prepareContexts({

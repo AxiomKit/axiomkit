@@ -1,6 +1,6 @@
 import type { OutputCtxRef, OutputRef } from "../types";
 import type { Logger } from "../logger";
-import type { WorkingMemory } from "../memory";
+import type { WorkingMemory } from "../services/memory";
 import type { ContextState } from "../types";
 import type { AnyAgent } from "../types";
 import { randomUUIDv7 } from "../utils";

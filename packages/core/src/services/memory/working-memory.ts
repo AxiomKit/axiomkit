@@ -1,4 +1,4 @@
-import type { AnyRef, AgentContext, AnyContext, AnyAgent } from "../types";
+import type { AnyRef, AgentContext, AnyContext, AnyAgent } from "../../types";
 import type {
   IWorkingMemory,
   WorkingMemoryData,

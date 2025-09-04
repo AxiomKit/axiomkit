@@ -5,7 +5,7 @@ import type {
   WorkingMemory,
   ActionCtxRef,
   Context,
-} from "../types";
+} from "../../types";
 import { prepareAction } from "./prepare-action";
 
 export async function prepareContextActions(params: {

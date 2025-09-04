@@ -1,12 +1,10 @@
 import {
   createResultsTemplateResolver,
   getValueByPath,
-  handleActionCall,
   handleOutput,
   prepareActionCall,
   prepareContexts,
   prepareOutputRef,
-  resolveActionCall,
 } from "../handlers";
 import {
   type ActionResult,
@@ -29,11 +27,15 @@ import {
   ParsingError,
 } from "../types";
 import pDefer from "p-defer";
-import { pushToWorkingMemory } from "../memory/utils";
+
 import { randomUUIDv7 } from "../utils";
-import { handleEpisodeHooks } from "../memory/episode-hooks";
+
 import { createErrorEvent, formatError } from "./prettify-error";
 import { handleInput } from "../handlers";
+import { handleEpisodeHooks } from "../services/memory/episode-hooks";
+import { pushToWorkingMemory } from "../services/memory/utils";
+import { resolveActionCall } from "../services/actions/resolve-action-call";
+import { handleActionCall } from "../services/actions/handle-action-call";
 
 export function createEngine({
   agent,
@@ -238,7 +240,11 @@ export function createEngine({
           pushLogToSubscribers(eventRef, true);
         } catch {}
         try {
-          __pushLogChunkToSubscribers({ type: "log", done: true, log: eventRef });
+          __pushLogChunkToSubscribers({
+            type: "log",
+            done: true,
+            log: eventRef,
+          });
         } catch {}
         // Optionally persist the error event
         try {
@@ -473,14 +479,22 @@ export function createEngine({
         }
 
         try {
-          __pushLogChunkToSubscribers({ type: "log", done: true, log: ref as any });
-        } catch (error) {
-          agent.logger.error("engine:chunk", "Failed to emit chunk for output", {
-            error: error instanceof Error ? error.message : String(error),
-            logRef: (ref as any).ref,
-            logId: (ref as any).id,
-            contextId: ctxState.id,
+          __pushLogChunkToSubscribers({
+            type: "log",
+            done: true,
+            log: ref as any,
           });
+        } catch (error) {
+          agent.logger.error(
+            "engine:chunk",
+            "Failed to emit chunk for output",
+            {
+              error: error instanceof Error ? error.message : String(error),
+              logRef: (ref as any).ref,
+              logId: (ref as any).id,
+              contextId: ctxState.id,
+            }
+          );
         }
       }
 

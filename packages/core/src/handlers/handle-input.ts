@@ -1,4 +1,4 @@
-import type { MemoryResult, RecallOptions } from "../memory";
+import type { MemoryResult, RecallOptions } from "../services/memory";
 import {
   NotFoundError,
   ParsingError,
@@ -8,7 +8,7 @@ import {
   type InputRef,
   type RetrievalPolicy,
 } from "../types";
-import type { WorkingMemoryData } from "../memory";
+import type { WorkingMemoryData } from "../services/memory";
 import type { Logger } from "../logger";
 import z from "zod";
 
