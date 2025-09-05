@@ -21,7 +21,7 @@
       "autoUpdate": true
     },
     "@axiomkit/create-agent": {
-      "version": "0.1.11",
+      "version": "0.1.13",
       "autoUpdate": true
     },
     "@axiomkit/supabase": {
