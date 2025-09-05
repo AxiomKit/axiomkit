@@ -1,5 +1,5 @@
 {
-    "name": "bot-examples-bots",
+    "name": "axiom-examples-bots",
     "module": "echo.ts",
     "type": "module",
     "private": true,

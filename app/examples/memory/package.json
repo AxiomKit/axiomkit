@@ -1,22 +1,18 @@
 {
-    "name": "axiom-supabse-example",
-    "module": "index.ts",
+    "name": "axiomkit-memory",
+    "module": "echo.ts",
     "type": "module",
     "private": true,
     "dependencies": {
         "@ai-sdk/anthropic": "catalog:",
         "@ai-sdk/groq": "catalog:",
         "@ai-sdk/openai": "catalog:",
-        "@axiomkit/cli": "workspace:*",
         "@axiomkit/core": "workspace:*",
-        "@axiomkit/supabase": "workspace:*",
+        "@axiomkit/cli": "workspace:*",
         "@axiomkit/sei": "workspace:*",
-        "chalk": "catalog:",
-        "cors": "^2.8.5",
-        "dotenv": "catalog:",
-        "express": "^4.18.2",
         "viem": "^2.33.0",
-        "zod": "catalog:"
+        "zod": "catalog:",
+        "chalk": "catalog:"
     },
     "peerDependencies": {
         "typescript": "catalog:"

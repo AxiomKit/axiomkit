@@ -3,29 +3,17 @@ import { createAgent } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
 import { createMongoMemory } from "@axiomkit/mongodb";
 import dotenv from "dotenv";
+import { validateEnv } from "core/src";
+import { z } from "zod";
 
-// Load environment variables from .env file
 dotenv.config();
+const env = validateEnv(
+  z.object({
+    GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
+    MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
+  })
+);
 
-/**
- * Environment validation
- */
-const env = {
-  GROQ_API_KEY: process.env.GROQ_API_KEY!,
-  MONGODB_URI: process.env.MONGODB_URI!,
-};
-
-if (!env.GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY environment variable is required");
-}
-
-if (!env.MONGODB_URI) {
-  throw new Error("MONGODB_URI environment variable is required");
-}
-
-/**
- * Create the AI model
- */
 const groq = createGroq({
   apiKey: env.GROQ_API_KEY,
 });

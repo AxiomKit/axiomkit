@@ -1,5 +1,5 @@
 {
-    "name": "examples-mongodb",
+    "name": "axiom-mongodb-example",
     "module": "index.ts",
     "type": "module",
     "private": true,
