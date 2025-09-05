@@ -1,11 +1,11 @@
 {
   "packages": {
     "@axiomkit/core": {
-      "version": "2.0.7",
+      "version": "2.0.8",
       "autoUpdate": true
     },
     "@axiomkit/cli": {
-      "version": "0.0.14",
+      "version": "0.0.15",
       "autoUpdate": true
     },
     "@axiomkit/telegram": {

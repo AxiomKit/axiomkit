@@ -1,6 +1,6 @@
 import * as readline from "readline/promises";
 import { service, context, input, extension, output } from "@axiomkit/core";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Instruction } from "@axiomkit/core";
 

@@ -33,6 +33,7 @@ const program = new Command()
   )
   .option("--cli", "🔧 Add CLI extension for command-line interface support")
   .option("--telegram", "💬 Add Telegram extension for messaging integration")
+  .option("--discord", "💬 Add Discord extension for messaging integration")
   .option("--all", "📦 Add all available extensions")
   .option(
     "--model <model>",

@@ -37,11 +37,11 @@ export async function getConfiguredDependencies(
   const extensionDependencies: Record<string, string> = {};
 
   if (selectedExtensions.includes("cli")) {
-    extensionDependencies["@axiomkit/cli"] = "^0.0.14";
+    extensionDependencies["@axiomkit/cli"] = "^0.0.15";
   }
   if (selectedExtensions.includes("discord")) {
     extensionDependencies["@axiomkit/discord"] = "^0.0.9";
-    extensionDependencies["discord.js"] = "^14.17.3";
+    extensionDependencies["discord.js"] = "^14.18.0";
   }
   if (selectedExtensions.includes("telegram")) {
     extensionDependencies["@axiomkit/telegram"] = "^0.0.9";
@@ -288,7 +288,17 @@ export function createEnvVariables(
     );
     envVariables.push("TELEGRAM_USER_SESSION=your_session_string\n");
   }
-
+  if (selectedExtensions.includes("discord")) {
+    envVariables.push("# Discord Configuration");
+    envVariables.push(
+      "# Discord Bot Token (https://discord.com/developers/applications)"
+    );
+    envVariables.push(
+      "# Required Gateway Intents: Server Members, Message Content, Presence"
+    );
+    envVariables.push("DISCORD_BOT_TOKEN=your_discord_token");
+    envVariables.push("DISCORD_BOT_NAME=your_bot_name\n");
+  }
   // General configuration (always included)
   envVariables.push("# General Configuration");
   envVariables.push("DRY_RUN=1\n");
