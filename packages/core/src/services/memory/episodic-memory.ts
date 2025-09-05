@@ -1,5 +1,5 @@
 import type { AnyRef, AnyAgent, ContextState } from "@/types";
-import type { Memory, EpisodeHooks } from "./types";
+import type { Memory, EpisodeHooks } from "./memory-types";
 
 export interface Episode {
   id: string;

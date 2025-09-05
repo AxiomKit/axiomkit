@@ -1,4 +1,4 @@
-import type { AnyAgent } from "../../types";
+import type { AnyAgent } from "@/types";
 import type { WorkingMemory } from "../memory";
 
 /**

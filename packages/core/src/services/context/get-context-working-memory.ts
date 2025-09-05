@@ -1,4 +1,4 @@
-import type { AnyAgent } from "../../types";
+import type { AnyAgent } from "@/types";
 
 /**
  * Retrieves working memory for a context, creating it if it doesn't exist

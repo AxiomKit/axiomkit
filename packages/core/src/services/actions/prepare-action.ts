@@ -5,7 +5,7 @@ import type {
   WorkingMemory,
   ActionCtxRef,
   AnyAgent,
-} from "../../types";
+} from "@/types";
 
 export async function prepareAction({
   action,

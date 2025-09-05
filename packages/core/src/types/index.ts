@@ -22,7 +22,7 @@ import type { ExportManager } from "../services/memory/exporters";
 import type { BenchMark } from "../benchmark";
 
 // Export memory types
-export * from "../services/memory/types";
+export * from "../services/memory/memory-types";
 
 /**
  * Makes specified keys optional in a type

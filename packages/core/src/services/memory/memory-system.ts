@@ -9,7 +9,7 @@ import type {
   RecallOptions,
   MemoryResult,
   ForgetCriteria,
-} from "./types";
+} from "./memory-types";
 import { WorkingMemoryImpl } from "./working-memory";
 import { KeyValueMemoryImpl } from "./kv-memory";
 import { VectorMemoryImpl } from "./vector-memory";

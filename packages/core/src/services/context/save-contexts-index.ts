@@ -1,4 +1,4 @@
-import type { AnyAgent } from "../../types";
+import type { AnyAgent } from "@/types";
 
 /**
  * Saves the index of all active context IDs to storage

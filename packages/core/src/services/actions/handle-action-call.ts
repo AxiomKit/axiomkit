@@ -4,12 +4,12 @@ import type {
   AnyAction,
   AnyAgent,
   ActionResult,
-} from "../../types";
-import { randomUUIDv7 } from "../../utils";
-import type { Logger } from "../../logger";
-import type { TaskRunner } from "../../task";
-import { runAction } from "../../tasks";
-import { SmartDeduplicationEngine } from "../../handlers/smart-deduplication";
+} from "@/types";
+import { randomUUIDv7 } from "@/utils";
+import type { Logger } from "@/logger";
+import type { TaskRunner } from "@/task";
+import { runAction } from "@/tasks";
+import { SmartDeduplicationEngine } from "@/handlers/smart-deduplication";
 
 export async function handleActionCall({
   action,

@@ -1,6 +1,6 @@
 import { formatContextLog } from "../../parsing";
 import type { AnyRef, Log } from "../../types";
-import type { WorkingMemory } from "./types";
+import type { WorkingMemory } from "./memory-types";
 
 /**
  * Retrieves and sorts working memory logs

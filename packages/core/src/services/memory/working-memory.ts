@@ -4,7 +4,7 @@ import type {
   WorkingMemoryData,
   PushOptions,
   Memory,
-} from "./types";
+} from "./memory-types";
 import { contextLockManager } from "./context-lock-manager";
 
 export class WorkingMemoryImpl implements IWorkingMemory {

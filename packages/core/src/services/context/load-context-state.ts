@@ -1,5 +1,5 @@
-import type { AnyAgent, AnyContext, ContextState } from "../../types";
-import type { ContextStateSnapshot } from "../../types";
+import type { AnyAgent, AnyContext, ContextState } from "@/types";
+import type { ContextStateSnapshot } from "@/types";
 
 /**
  * Loads context state metadata from storage

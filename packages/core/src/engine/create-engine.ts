@@ -2,7 +2,6 @@ import {
   createResultsTemplateResolver,
   getValueByPath,
   handleOutput,
-  prepareActionCall,
   prepareContexts,
   prepareOutputRef,
 } from "@/handlers";
@@ -36,6 +35,7 @@ import { handleEpisodeHooks } from "@/services/memory/episode-hooks";
 import { pushToWorkingMemory } from "@/services/memory/utils";
 import { resolveActionCall } from "@/services/actions/resolve-action-call";
 import { handleActionCall } from "@/services/actions/handle-action-call";
+import { prepareActionCall } from "@/services/actions";
 
 export function createEngine({
   agent,

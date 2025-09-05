@@ -1,6 +1,6 @@
-import type { Logger } from "../../logger";
-import type { ActionCall, ActionCtxRef } from "../../types";
-import { NotFoundError } from "../../types";
+import type { Logger } from "@/logger";
+import type { ActionCall, ActionCtxRef } from "@/types";
+import { NotFoundError } from "@/types";
 
 export function resolveActionCall({
   call,

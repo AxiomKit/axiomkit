@@ -1,5 +1,5 @@
 // Core types
-export * from "./types";
+export * from "./memory-types";
 
 // Main memory system
 export { MemorySystem } from "./memory-system";
