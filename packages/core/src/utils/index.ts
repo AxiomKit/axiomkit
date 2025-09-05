@@ -191,19 +191,67 @@ export function createPromptBuilder(
  * @param env The environment object to validate (defaults to process.env)
  * @returns The validated environment variables
  */
+// export function validateEnv<T extends z.ZodTypeAny>(
+//   schema: T,
+//   env = process.env
+// ): z.infer<T> {
+//   try {
+//     return schema.parse(env);
+//   } catch (error) {
+//     if (error instanceof z.ZodError) {
+//       const errors = error.issues.map((err) => {
+//         const path = err.path.length > 0 ? err.path.join('.') : 'unknown';
+
+//         // Provide more helpful error messages
+//         if (err.code === 'invalid_type' && (!('received' in err) || err.received === undefined)) {
+//           return `- ${path}: Required environment variable is missing`;
+//         }
+
+//         if ('received' in err && 'expected' in err) {
+//           const received = err.received === undefined ? 'undefined' : typeof err.received;
+//           const expected = err.expected || 'valid value';
+//           return `- ${path}: ${err.message} (received: ${received}, expected: ${expected})`;
+//         }
+
+//         return `- ${path}: ${err.message}`;
+//       });
+
+//       const missingVars = error.issues
+//         .filter(err => err.code === 'invalid_type' && (!('received' in err) || err.received === undefined))
+//         .map(err => err.path.join('.'));
+
+//       let errorMessage = `Environment validation failed:\n${errors.join("\n")}`;
+
+//       if (missingVars.length > 0) {
+//         errorMessage += `\n\nMissing required environment variables: ${missingVars.join(', ')}`;
+//         errorMessage += `\n\nPlease set these environment variables in your .env file or system environment.`;
+//       }
+
+//       throw new Error(errorMessage);
+//     }
+//     throw error;
+//   }
+// }
 export function validateEnv<T extends z.ZodTypeAny>(
   schema: T,
-  env = process.env
+  env: Record<string, unknown> = process.env
 ): z.infer<T> {
-  try {
-    return schema.parse(env);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const errors = error.issues.map((err) => `- ${err.message}`);
-      throw new Error(`Environment validation failed:\n${errors.join("\n")}`);
-    }
-    throw error;
+  // Convert empty strings to undefined so required errors are clearer
+  const normalized: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(env)) {
+    normalized[k] = typeof v === "string" && v.trim() === "" ? undefined : v;
   }
+
+  const res = schema.safeParse(normalized);
+  if (res.success) return res.data as z.infer<T>;
+
+  // Minimal error string (single pass)
+  let msg = "Environment validation failed:\n";
+  for (const issue of res.error.issues) {
+    const path = issue.path.join(".") || "unknown";
+    msg += `- ${path}: ${issue.message}\n`;
+  }
+  throw new Error(msg.trimEnd());
 }
 
 type TrimWorkingMemoryOptions = {

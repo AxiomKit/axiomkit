@@ -145,38 +145,39 @@ export class SupabaseVectorProvider implements VectorProvider {
       throw new Error("Either query text or embedding must be provided");
     }
 
-    let rpcQuery: any = {
-      query_embedding: embedding,
-      match_threshold: minScore,
-      match_count: limit,
-    };
+
+    // Use direct SQL query for vector similarity search
+    let dbQuery = this.client
+      .from(this.tableName)
+      .select("id, content, metadata, embedding")
+      .not("embedding", "is", null);
 
     if (namespace) {
-      rpcQuery.query_namespace = namespace;
+      dbQuery = dbQuery.eq("namespace", namespace);
     }
 
     if (filter) {
-      rpcQuery.query_filter = JSON.stringify(filter);
+      dbQuery = dbQuery.contains("metadata", filter);
     }
 
-    // Use the RPC function for vector similarity search
-    const { data, error } = await this.client.rpc("match_documents", rpcQuery);
+    const { data: allData, error } = await dbQuery;
 
     if (error) {
+      // If table doesn't exist, try to create it and retry
+      if (error.code === "42P01" || error.message.includes("does not exist")) {
+        console.log("Table not found, attempting to create it...");
+        await this.initializeTable();
+        // Retry the query
+        const { data: retryData, error: retryError } = await dbQuery;
+        if (retryError) {
+          throw new Error(`Vector search failed after retry: ${retryError.message}`);
+        }
+        return this.processSearchResults(retryData || [], embedding, minScore, limit, includeContent, includeMetadata);
+      }
       throw new Error(`Vector search failed: ${error.message}`);
     }
 
-    if (!data) {
-      return [];
-    }
-
-    return data.map((row: any) => ({
-      id: row.id,
-      score: row.similarity,
-      content: includeContent ? row.content : undefined,
-      metadata:
-        includeMetadata && row.metadata ? JSON.parse(row.metadata) : undefined,
-    }));
+    return this.processSearchResults(allData, embedding, minScore, limit, includeContent, includeMetadata);
   }
 
   async delete(ids: string[]): Promise<void> {
@@ -330,6 +331,62 @@ export class SupabaseVectorProvider implements VectorProvider {
     } else if (error) {
       console.error(`Error checking vector table ${this.tableName}:`, error);
     }
+  }
+
+  private processSearchResults(
+    data: any[],
+    embedding: number[] | undefined,
+    minScore: number,
+    limit: number,
+    includeContent: boolean,
+    includeMetadata: boolean
+  ): VectorResult[] {
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Calculate similarity scores and filter by threshold
+    const results = data
+      .map((row: any) => {
+        // Calculate cosine similarity (1 - cosine distance)
+        const similarity = embedding ? 1 - this.cosineDistance(embedding, row.embedding) : 0;
+        return {
+          id: row.id,
+          score: similarity,
+          content: includeContent ? row.content : undefined,
+          metadata: includeMetadata && row.metadata ? JSON.parse(row.metadata) : undefined,
+        };
+      })
+      .filter((result: any) => result.score >= minScore)
+      .sort((a: any, b: any) => b.score - a.score)
+      .slice(0, limit);
+
+    return results;
+  }
+
+  private cosineDistance(a: number[], b: number[]): number {
+    if (a.length !== b.length) {
+      throw new Error("Vectors must have the same length");
+    }
+
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+
+    normA = Math.sqrt(normA);
+    normB = Math.sqrt(normB);
+
+    if (normA === 0 || normB === 0) {
+      return 1; // Maximum distance for zero vectors
+    }
+
+    return 1 - (dotProduct / (normA * normB));
   }
 
   private async setupDatabase(): Promise<void> {

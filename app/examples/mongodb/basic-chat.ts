@@ -35,8 +35,8 @@ const groq = createGroq({
  */
 const memorySystem = createMongoMemory({
   uri: env.MONGODB_URI,
-  dbName: "basic_chat",
-  collectionName: "axiom-conversations",
+  dbName: "axiomkit",
+  collectionName: "axiom-chat",
 });
 
 /**

@@ -1,29 +1,19 @@
 import { createGroq } from "@ai-sdk/groq";
 import { createAgent, validateEnv } from "@axiomkit/core";
 import { createCliExtension } from "@axiomkit/cli";
-
 import dotenv from "dotenv";
 import { createSupabaseMemory } from "@axiomkit/supabase";
+import { z } from "zod";
 
-// Load environment variables from .env file
 dotenv.config();
 
-/**
- * Environment validation
- */
-const env = {
-  GROQ_API_KEY: process.env.GROQ_API_KEY!,
-  SUPABASE_URL: process.env.SUPABASE_URL!,
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
-};
-
-if (!env.SUPABASE_URL) {
-  throw new Error("SUPABASE_URL environment variable is required");
-}
-
-if (!env.SUPABASE_ANON_KEY) {
-  throw new Error("SUPABASE_ANON_KEY environment variable is required");
-}
+const env = validateEnv(
+  z.object({
+    GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
+    SUPABASE_URL: z.string().min(1, "SUPABASE_URL is required"),
+    SUPABASE_ANON_KEY: z.string().min(1, "SUPABASE_ANON_KEY is required"),
+  })
+);
 
 /**
  * Create the AI model
