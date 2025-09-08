@@ -1,4 +1,0 @@
-/**
- * MCP Postgresql
- *
- */
