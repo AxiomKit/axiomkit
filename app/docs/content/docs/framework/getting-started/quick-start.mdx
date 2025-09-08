@@ -9,7 +9,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 # Prerequisites
 Before you begin, ensure you have:
 - **Node.js** (v18 or higher)
-- **pnpm** package manager
+- **Package manager** (pnpm,yarn or npm)
 - Get an **API Key**:
   - **Groq API key** [here](https://console.groq.com)
   - [**Gemini API key**](https://aistudio.google.com/app/apikey)
@@ -265,24 +265,6 @@ chmod +x index.ts
 node --loader ts-node/esm index.ts
 ```
 
-## Project Structure
-
-As your agent grows, organize it like this:
-
-```
-my-first-agent/
-├── index.ts              # Main entry point
-├── package.json          # Dependencies
-├── .env                  # Environment variables
-├── tsconfig.json         # TypeScript config
-├── src/
-│   ├── contexts/         # Custom contexts
-│   ├── actions/          # Custom actions
-│   ├── services/         # External services
-│   └── utils/            # Utility functions
-├── tests/                # Test files
-└── README.md            # Documentation
-```
 
 ## Advanced Configuration
 

@@ -300,6 +300,39 @@ importers:
         specifier: ^5.3.0
         version: 5.9.2
 
+  app/examples/memory:
+    dependencies:
+      '@ai-sdk/anthropic':
+        specifier: 'catalog:'
+        version: 2.0.6(zod@4.0.16)
+      '@ai-sdk/groq':
+        specifier: 'catalog:'
+        version: 2.0.14(zod@4.0.16)
+      '@ai-sdk/openai':
+        specifier: 'catalog:'
+        version: 2.0.20(zod@4.0.16)
+      '@axiomkit/cli':
+        specifier: workspace:*
+        version: link:../../../packages/cli
+      '@axiomkit/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@axiomkit/sei':
+        specifier: workspace:*
+        version: link:../../../packages/sei
+      chalk:
+        specifier: 'catalog:'
+        version: 5.3.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      viem:
+        specifier: ^2.33.0
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
+      zod:
+        specifier: 'catalog:'
+        version: 4.0.16
+
   app/examples/mongodb:
     dependencies:
       '@ai-sdk/groq':

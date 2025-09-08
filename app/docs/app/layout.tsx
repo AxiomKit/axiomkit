@@ -1,18 +1,10 @@
 import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider";
 import { Metadata } from "next";
-import {
-  Fira_Code,
-  Geist,
-  Geist_Mono,
-  Inter,
-  Open_Sans,
-  Space_Grotesk,
-} from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 
 import Favicon from "./favicon.ico";
 import Banner from "@/public/banner.png";
-import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://axiomkit.altlab.space"),

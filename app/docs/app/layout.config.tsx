@@ -23,7 +23,7 @@ export const baseOptions: BaseLayoutProps = {
                 transition-all duration-300
               `}
         >
-          v.2.0.7
+          v.2.0.8
         </Badge>
       </>
     ),

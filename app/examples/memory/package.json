@@ -1,8 +1,12 @@
 {
-    "name": "axiomkit-memory",
-    "module": "echo.ts",
+    "name": "axiomkit-memory-showcase",
+    "version": "1.0.0",
+    "description": "Episodic Memory Showcase for Axiom Framework",
     "type": "module",
     "private": true,
+    "scripts": {
+        "simple": "bun simple-example.ts"
+    },
     "dependencies": {
         "@ai-sdk/anthropic": "catalog:",
         "@ai-sdk/groq": "catalog:",
@@ -12,9 +16,21 @@
         "@axiomkit/sei": "workspace:*",
         "viem": "^2.33.0",
         "zod": "catalog:",
-        "chalk": "catalog:"
+        "chalk": "catalog:",
+        "tsx": "catalog:"
     },
     "peerDependencies": {
         "typescript": "catalog:"
-    }
+    },
+    "keywords": [
+        "axiom",
+        "ai",
+        "memory",
+        "episodic-memory",
+        "conversation",
+        "context",
+        "showcase"
+    ],
+    "author": "Axiom Framework",
+    "license": "MIT"
 }
