@@ -139,5 +139,5 @@ createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
   context: orderContext,
   actions: [confirmOrder],
-  extensions: [telegram],
+  providers: [telegram],
 }).start({ confirmed: false });

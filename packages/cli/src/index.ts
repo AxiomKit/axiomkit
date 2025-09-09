@@ -2,8 +2,6 @@ import * as readline from "readline/promises";
 import { service, context, input, provider, output } from "@axiomkit/core";
 import * as z from "zod";
 
-import type { Instruction } from "@axiomkit/core";
-
 export const readlineService = service({
   register(container) {
     container.singleton("readline", () =>
@@ -20,7 +18,7 @@ export const readlineService = service({
  */
 export interface CliContextConfig {
   name?: string;
-  instructions?: Instruction;
+  instructions?: string | string[];
   maxSteps?: number;
   schema?: z.ZodObject<z.ZodRawShape>;
 }
@@ -69,8 +67,6 @@ export const createCliContext = (config: CliContextConfig = {}) => {
     outputs: {
       "cli:message": output({
         description: "Send messages to the user",
-        instructions:
-          "Respond to the user's message according to your instructions",
         schema: z.string(),
         handler(data) {
           console.log("Agent:", data);
@@ -82,9 +78,9 @@ export const createCliContext = (config: CliContextConfig = {}) => {
 };
 
 /**
- * Create a flexible CLI extension for any context config.
+ * Create a flexible CLI tools for any context config.
  */
-export const createCliExtension = (contextConfig?: CliContextConfig) => {
+export const createCliProvider = (contextConfig?: CliContextConfig) => {
   const cliContext = createCliContext(contextConfig || {});
 
   return provider({
@@ -96,7 +92,7 @@ export const createCliExtension = (contextConfig?: CliContextConfig) => {
   });
 };
 
-export const assistantCliExtension = createCliExtension({
+export const assistantCliTool = createCliProvider({
   name: "assistant",
   instructions: [
     "You are a helpful and friendly assistant.",
@@ -106,5 +102,4 @@ export const assistantCliExtension = createCliExtension({
   ],
 });
 
-// Default CLI extension
-export const cliExtension = createCliExtension();
+export const cliExtension = createCliProvider();

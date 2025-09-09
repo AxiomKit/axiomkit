@@ -36,11 +36,11 @@ A multi-layered memory architecture that provides:
 - **Vector Memory**: Semantic search capabilities
 - **Graph Memory**: Relationship-based knowledge storage
 
-### 🔌 **Extensions**
+### 🔌 **Providers**
 Pluggable modules that bundle related functionality:
 - **Platform Integrations**: Discord, Telegram, CLI
 - **Database Connectors**: MongoDB, Supabase
-- **Custom Extensions**: Domain-specific functionality
+- **Custom Providers**: Domain-specific functionality
 
 ## Context System
 
@@ -157,16 +157,16 @@ const memory = new MemorySystem({
 });
 ```
 
-## Extension System
+## Provider System
 
-Extensions bundle related functionality into reusable modules:
+Providers bundle related functionality into reusable modules:
 
 ```typescript
-import { extension } from "@axiomkit/core";
+import { provider } from "@axiomkit/core";
 import { discordContext } from "./discord-context";
 import { discordActions } from "./discord-actions";
 
-export const discordExtension = extension({
+export const discordProvider = provider({
   name: "discord",
   contexts: {
     discord: discordContext,
@@ -178,7 +178,7 @@ export const discordExtension = extension({
 
 ## Execution Flow
 
-1. **Initialization**: Agent loads contexts, actions, and extensions
+1. **Initialization**: Agent loads contexts, actions, and providers
 2. **Input Processing**: External events trigger context activation
 3. **Memory Retrieval**: Relevant memories are loaded into working memory
 4. **Reasoning**: LLM analyzes context and decides on actions
@@ -190,7 +190,7 @@ export const discordExtension = extension({
 
 - **Context Isolation**: Each context operates independently
 - **Memory Optimization**: Automatic memory cleanup and summarization
-- **Extension Loading**: Lazy loading of extensions as needed
+- **Provider Loading**: Lazy loading of Providers as needed
 - **Error Recovery**: Graceful handling of failures and retries
 - **Performance Monitoring**: Built-in metrics and logging
 

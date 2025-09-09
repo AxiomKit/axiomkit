@@ -1,6 +1,6 @@
 {
-    "title": "Sei Extensions",
-    "description": "The docs for Sei extensions",
+    "title": "Sei Provider",
+    "description": "The docs for Sei Provider",
     "icon": "building",
     "root": true,
     "pages": [

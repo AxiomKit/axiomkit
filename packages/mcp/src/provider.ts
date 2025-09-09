@@ -22,7 +22,7 @@ export function createMcpProvider(servers: McpServerConfig[]) {
     async install(agent) {
       const logger = agent.container.resolve<Logger>("logger");
 
-      logger.info("mcp:extension", "Installing MCP extension", {
+      logger.info("mcp:providers", "Installing MCP provider", {
         serversCount: servers.length,
       });
 
@@ -31,7 +31,7 @@ export function createMcpProvider(servers: McpServerConfig[]) {
         try {
           McpServerConfigSchema.parse(server);
         } catch (error) {
-          logger.error("mcp:extension", "Invalid server configuration", {
+          logger.error("mcp:provider", "Invalid server configuration", {
             serverId: server.id,
             error: (error as Error).message,
           });

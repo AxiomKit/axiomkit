@@ -4,7 +4,6 @@
     "icon": "code",
     "root": true,
     "pages": [
-        "index",
-        "basic/calculator-bot"
+        "index"
     ]
 }

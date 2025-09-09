@@ -1,9 +1,8 @@
 import { createAgent, LogLevel } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-// Pre-configured extensions for common use cases
-export const echoCliExtension = createCliExtension({
+export const echoCliProvider = createCliProvider({
   name: "echo",
   instructions: [
     "You are a simple echo bot.",
@@ -18,7 +17,7 @@ export const echoCliExtension = createCliExtension({
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
   logLevel: LogLevel.DISABLED,
-  extensions: [echoCliExtension],
+  providers: [echoCliProvider],
 });
 
 // Start the agent

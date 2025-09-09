@@ -4,8 +4,6 @@ import { telegram } from "@axiomkit/telegram";
 
 import * as z from "zod";
 
-// Simple Chat
-
 const env = validateEnv(
   z.object({
     TELEGRAM_TOKEN: z.string().min(1, "TELEGRAM_TOKEN is required"),
@@ -20,5 +18,7 @@ const groq = createGroq({
 createAgent({
   logLevel: LogLevel.DEBUG,
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [telegram],
-}).start();
+  providers: [telegram],
+}).start({
+  id: "telegram-simple-bot",
+});

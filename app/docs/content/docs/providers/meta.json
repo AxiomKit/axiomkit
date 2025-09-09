@@ -1,6 +1,6 @@
 {
-    "title": "Extensions",
-    "description": "The Extensions",
+    "title": "Built-in Providers",
+    "description": "Provider documentation for Axiomkit's built-in and official custom provider.",
     "root": true,
     "pages": [
         "index",
@@ -8,13 +8,13 @@
         "core",
         "create-agent",
         "cli",
-        "---SOCIAL EXTENSIONS---",
+        "---SOCIAL PROVIDERS---",
         "discord",
         "telegram",
-        "---MEMORY EXTESNSIONS---",
+        "---MEMORY PROVIDERS---",
         "mongodb",
         "supabase",
-        "---ADVANCE EXTESNSIONS---",
+        "---ADVANCE PROVIDERS---",
         "mcp"
     ]
 }

@@ -6,10 +6,10 @@ import Footer from "@/components/footer";
 
 export default function Home() {
   const tsSnippet = `import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-export const echoCliExtension = createCliExtension({
+export const echoCliProvider = createCliProvider({
   name: "echo",
   instructions: [
     "You are a simple echo bot.",
@@ -17,7 +17,7 @@ export const echoCliExtension = createCliExtension({
 });
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [echoCliExtension],
+  providers: [echoCliProvider],
 });
 async function main() {
   await agent.start({
