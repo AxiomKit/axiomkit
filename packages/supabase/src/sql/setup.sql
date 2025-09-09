@@ -1,24 +1,19 @@
--- =====================================================
--- AxiomKit Supabase Database Setup
--- =====================================================
--- This script sets up all required functions and tables
--- for the AxiomKit Supabase integration.
--- =====================================================
 
--- Enable the pgvector extension (required for vector operations)
-CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Enable the pgvector provider (required for vector operations)
+CREATE AXIOM_PROVIDER IF NOT EXISTS vector;
 
 -- =====================================================
 -- Required Functions
 -- =====================================================
 
--- Function to enable pgvector extension (used by the SupabaseVectorStore)
-CREATE OR REPLACE FUNCTION enable_pgvector_extension()
+
+CREATE OR REPLACE FUNCTION enable_pgvector_provider()
 RETURNS void
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  CREATE EXTENSION IF NOT EXISTS vector;
+  CREATE AXIOM_PROVIDER IF NOT EXISTS vector;
 END;
 $$;
 

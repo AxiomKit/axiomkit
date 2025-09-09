@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { action, extension } from "@axiomkit/core";
+import { action, provider } from "@axiomkit/core";
 import type { Logger } from "@axiomkit/core";
 
 import { McpConnectionManager } from "./connection-manager";
@@ -7,19 +7,18 @@ import { type McpServerConfig, McpServerConfigSchema } from "./types";
 import { safeMcpOperation } from "./utils";
 
 /**
- * Creates an extension that connects to one or more MCP servers
+ * Creates an provider that connects to one or more MCP servers
  * and exposes their capabilities as actions within the agent system.
  *
  * @param servers Configuration for one or more MCP servers to connect to
- * @returns An extension that can be added to the agent's extensions list
+ * @returns An provider that can be added to the agent's providers list
  */
-export function createMcpExtension(servers: McpServerConfig[]) {
+export function createMcpProvider(servers: McpServerConfig[]) {
   let connectionManager: McpConnectionManager;
 
-  return extension({
+  return provider({
     name: "mcp",
 
-    // Initialize MCP clients when the extension is installed
     async install(agent) {
       const logger = agent.container.resolve<Logger>("logger");
 

@@ -117,7 +117,7 @@ date: {YYYY-MM-DD format}
 ## Next Steps
 
 - **[Link 1]** - {Related topic or concept}
-- **[Link 2]** - {Extension or deeper dive}
+- **[Link 2]** - {Provider or deeper dive}
 - **[Link 3]** - {Example project or tutorial}
 ```
 
@@ -176,7 +176,7 @@ date: {YYYY-MM-DD format}
 - Performance considerations
 - Best practices and anti-patterns
 Link 2
- – Extension or deeper dive
+ – Provider or deeper dive
 
 Link 3
  – Example project

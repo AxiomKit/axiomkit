@@ -91,7 +91,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [/* your extensions */],
+  providers: [/* your providers */],
 });
 
 agent.start();
@@ -102,7 +102,7 @@ agent.start();
 ```bash
 npm install @axiomkit/core
 ```
-# Install with extensions
+# Install with providers
 ```bash
 npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei @axiomkit/discord @axiomkit/supabase @axiomkit/mcp
 ```
@@ -116,11 +116,11 @@ npx @axiomkit/create-agent my-agent
 - **Core Concepts**: [`packages/core/README.md`](./packages/core/README.md)
 - **CLI Tools**: [`packages/cli/`](./packages/cli/)
 - **Create Agent**: [`packages/create-agent/README.md`](./packages/create-agent/README.md)
-- **MongoDB Extension**: [`packages/mongodb/README.md`](./packages/mongodb/README.md)
-- **Sei Extension**: [`packages/sei/Readme.md`](./packages/sei/Readme.md)
-- **Telegram Extension**: [`packages/telegram/README.md`](./packages/telegram/README.md)
-- **Discord Extension**: [`packages/discord/README.md`](./packages/discord/README.md)
-- **MCP Extension**: [`packages/mcp/README.md`](./packages/mcp/README.md)
+- **MongoDB Built-in Provider**: [`packages/mongodb/README.md`](./packages/mongodb/README.md)
+- **Sei Built-in Provider**: [`packages/sei/Readme.md`](./packages/sei/Readme.md)
+- **Telegram Built-in Provider**: [`packages/telegram/README.md`](./packages/telegram/README.md)
+- **Discord Built-in Provider**: [`packages/discord/README.md`](./packages/discord/README.md)
+- **MCP Built-in Provider**: [`packages/mcp/README.md`](./packages/mcp/README.md)
 
 ## 🤝 Contributing
 

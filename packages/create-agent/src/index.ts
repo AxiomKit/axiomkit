@@ -24,17 +24,17 @@ const __dirname = path.dirname(__filename);
 const program = new Command()
   .name("create-agent")
   .description(
-    "🤖 Initialize a new AxiomKit AI agent with configurable extensions and model providers"
+    "🤖 Initialize a new AxiomKit AI agent with configurable providers and model providers"
   )
   .version("0.0.2")
   .argument(
     "[directory]",
     "📁 Target directory for agent (defaults to current)"
   )
-  .option("--cli", "🔧 Add CLI extension for command-line interface support")
-  .option("--telegram", "💬 Add Telegram extension for messaging integration")
-  .option("--discord", "💬 Add Discord extension for messaging integration")
-  .option("--all", "📦 Add all available extensions")
+  .option("--cli", "🔧 Add CLI provider for command-line interface support")
+  .option("--telegram", "💬 Add Telegram provider for messaging integration")
+  .option("--discord", "💬 Add Discord provider for messaging integration")
+  .option("--all", "📦 Add all available providers")
   .option(
     "--model <model>",
     "🧠 Set model provider (options: openai, groq, anthropic, google)"
@@ -47,10 +47,10 @@ const program = new Command()
 Examples:
   $ create-agent my-bot                    Create agent in ./my-bot (will prompt for model)
   $ create-agent --telegram                Create agent with Twitter 
-  $ create-agent --model openai --all      Create agent with OpenAI and all extensions
+  $ create-agent --model openai --all      Create agent with OpenAI and all providers
   $ create-agent . --cli                   Create agent in current directory with CLI only
 
-Available Extensions:
+Available providers:
   cli       Command-line interface for terminal interactions
   telegram  Telegram bot for messaging and notifications
 
@@ -61,7 +61,7 @@ Supported Models:
 
 Environment Setup:
   After creation, copy .env.example to .env and configure your API keys.
-  Each extension may require additional environment variables.
+  Each provider may require additional environment variables.
 `
   );
 
@@ -133,24 +133,24 @@ export async function main(
   console.log(chalk.bold("🚀 Initializing new AxiomKit agent..."));
   console.log();
 
-  // Determine selected extensions
-  const availableExtensions = ["cli", "twitter", "discord", "telegram"];
-  let selectedExtensions = [];
+  // Determine selected providers
+  const availableProviders = ["cli", "twitter", "discord", "telegram"];
+  let selectedProviders = [];
 
   if (options.all) {
-    selectedExtensions = [...availableExtensions];
-    console.log(chalk.green("📦 Including all extensions"));
+    selectedProviders = [...availableProviders];
+    console.log(chalk.green("📦 Including all providers available"));
   } else {
-    // Collect extensions from command line options
-    selectedExtensions = availableExtensions.filter((ext) => options[ext]);
+    // Collect providers from command line options
+    selectedProviders = availableProviders.filter((ext) => options[ext]);
 
-    // If no extensions were selected via flags, prompt the user
-    if (selectedExtensions.length === 0) {
-      console.log(chalk.cyan("🔧 Choose extensions for your agent:"));
-      const { extensions } = await prompts({
+    // If no providers were selected via flags, prompt the user
+    if (selectedProviders.length === 0) {
+      console.log(chalk.cyan("🔧 Choose providers for your agent:"));
+      const { providers } = await prompts({
         type: "multiselect",
-        name: "extensions",
-        message: "Select extensions to include",
+        name: "providers",
+        message: "Select providers to include",
         choices: [
           {
             title: "CLI",
@@ -166,20 +166,20 @@ export async function main(
         hint: "Use space to select, enter to confirm",
       });
 
-      if (!extensions || extensions.length === 0) {
+      if (!providers || providers.length === 0) {
         console.log(
           chalk.yellow(
-            "⚠️  No extensions selected. Including CLI extension by default."
+            "⚠️  No providers selected. Including CLI provider by default."
           )
         );
-        selectedExtensions = ["cli"];
+        selectedProviders = ["cli"];
       } else {
-        selectedExtensions = extensions;
+        selectedProviders = providers;
       }
     }
   }
 
-  log(`Selected extensions: ${selectedExtensions.join(", ")}`);
+  log(`Selected provider: ${selectedProviders.join(", ")}`);
 
   let selectedModel = options.model;
   if (selectedModel) {
@@ -240,7 +240,7 @@ export async function main(
   let dependencies: Record<string, string>;
   try {
     dependencies = await getConfiguredDependencies(
-      selectedExtensions,
+      selectedProviders,
       selectedModel,
       options.verbose
     );
@@ -385,8 +385,8 @@ jspm_packages/
   // Copy template file based on selected model
   spinner.start(
     `🤖 Creating agent with ${chalk.cyan(selectedModel)} model and ${chalk.cyan(
-      selectedExtensions.length
-    )} extension(s)`
+      selectedProviders.length
+    )} provider(s)`
   );
 
   let templateContent: string;
@@ -429,23 +429,22 @@ jspm_packages/
 
   const config = MODEL_CONFIG[selectedModel as keyof typeof MODEL_CONFIG];
 
-  // Prepare extension imports and extension list for template generation
-  const extensionImports: string[] = [];
-  const extensionsList: string[] = [];
+  const providerImports: string[] = [];
+  const providersList: string[] = [];
 
-  for (const ext of selectedExtensions) {
-    if (ext === "cli") {
-      extensionImports.push(`import { cliExtension } from "@axiomkit/cli";`);
-      extensionsList.push("cliExtension");
-    } else if (ext === "twitter") {
-      extensionImports.push(`import { twitter } from "@axiomkit/twitter";`);
-      extensionsList.push("twitter");
-    } else if (ext === "discord") {
-      extensionImports.push(`import { discord } from "@axiomkit/discord";`);
-      extensionsList.push("discord");
-    } else if (ext === "telegram") {
-      extensionImports.push(`import { telegram } from "@axiomkit/telegram";`);
-      extensionsList.push("telegram");
+  for (const prov of selectedProviders) {
+    if (prov === "cli") {
+      providerImports.push(`import { cliTool } from "@axiomkit/cli";`);
+      providersList.push("cliTool");
+    } else if (prov === "twitter") {
+      providerImports.push(`import { twitter } from "@axiomkit/twitter";`);
+      providersList.push("twitter");
+    } else if (prov === "discord") {
+      providerImports.push(`import { discord } from "@axiomkit/discord";`);
+      providersList.push("discord");
+    } else if (prov === "telegram") {
+      providerImports.push(`import { telegram } from "@axiomkit/telegram";`);
+      providersList.push("telegram");
     }
   }
 
@@ -454,20 +453,20 @@ jspm_packages/
     const processedContent = generateTemplateContent(
       templateContent,
       config,
-      extensionImports,
-      extensionsList
+      providerImports,
+      providersList
     );
 
     // Write the modified template to the target directory
     await fs.writeFile(path.join(targetPath, "index.ts"), processedContent);
     spinner.succeed(
       chalk.green(
-        `✅ Created agent with ${selectedModel} model and extensions: ${chalk.cyan(
-          selectedExtensions.join(", ")
+        `✅ Created agent with ${selectedModel} model and providers: ${chalk.cyan(
+          selectedProviders.join(", ")
         )}`
       )
     );
-    log(`Extensions configured: ${selectedExtensions.join(", ")}`);
+    log(`Providers configured: ${selectedProviders.join(", ")}`);
   } catch (error) {
     spinner.fail(chalk.red("❌ Failed to create agent file"));
     console.error(
@@ -481,13 +480,13 @@ jspm_packages/
   // Create .env file with required environment variables
   spinner.start("🔐 Creating environment configuration");
   try {
-    const envContent = createEnvVariables(selectedModel, selectedExtensions);
+    const envContent = createEnvVariables(selectedModel, selectedProviders);
     await fs.writeFile(path.join(targetPath, ".env.example"), envContent);
     spinner.succeed(
       chalk.green("✅ Created environment configuration (.env.example)")
     );
     log(
-      `Environment variables for: ${selectedModel}, ${selectedExtensions.join(
+      `Environment variables for: ${selectedModel}, ${selectedProviders.join(
         ", "
       )}`
     );
@@ -505,7 +504,7 @@ jspm_packages/
   try {
     const readmeContent = createReadme(
       path.basename(targetPath),
-      selectedExtensions,
+      selectedProviders,
       selectedModel
     );
     await fs.writeFile(path.join(targetPath, "README.md"), readmeContent);
@@ -576,8 +575,8 @@ jspm_packages/
   console.log(`   ${chalk.gray("Location:")} ${chalk.white(targetPath)}`);
   console.log(`   ${chalk.gray("Model:")} ${chalk.white(selectedModel)}`);
   console.log(
-    `   ${chalk.gray("Extensions:")} ${chalk.white(
-      selectedExtensions.join(", ")
+    `   ${chalk.gray("Providers:")} ${chalk.white(
+      selectedProviders.join(", ")
     )}`
   );
   console.log();

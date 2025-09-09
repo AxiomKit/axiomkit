@@ -1,5 +1,5 @@
 import * as readline from "readline/promises";
-import { service, context, input, extension, output } from "@axiomkit/core";
+import { service, context, input, provider, output } from "@axiomkit/core";
 import * as z from "zod";
 
 import type { Instruction } from "@axiomkit/core";
@@ -87,7 +87,7 @@ export const createCliContext = (config: CliContextConfig = {}) => {
 export const createCliExtension = (contextConfig?: CliContextConfig) => {
   const cliContext = createCliContext(contextConfig || {});
 
-  return extension({
+  return provider({
     name: "cli",
     contexts: {
       cli: cliContext,

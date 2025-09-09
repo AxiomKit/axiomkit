@@ -557,8 +557,8 @@ export type Registry = {
   inputs: Map<string, Input>;
   /** Map of registered output types */
   outputs: Map<string, Output>;
-  /** Map of registered extensions */
-  extensions: Map<string, Extension>;
+  /** Map of registered provider */
+  providers: Map<string, Provider>;
   /** Map of registered prompt templates */
   prompts: Map<string, string>;
   /** Map of registered language models */
@@ -941,7 +941,7 @@ export type Config<TContext extends AnyContext = AnyContext> = Partial<
   logLevel?: LogLevel;
   contexts?: AnyContext[];
   services?: ServiceProvider[];
-  extensions?: Extension<TContext>[];
+  providers?: Provider<TContext>[];
   /** Whether to export training data for episodes */
   exportTrainingData?: boolean;
   /** Path to save training data */
@@ -1380,7 +1380,7 @@ export type ContextState<TContext extends AnyContext = AnyContext> = {
   contexts: string[];
 };
 
-export type Extension<
+export type Provider<
   TContext extends AnyContext = AnyContext,
   Contexts extends Record<string, AnyContext> = Record<string, AnyContext>,
   Inputs extends Record<string, InputConfig<any, any>> = Record<

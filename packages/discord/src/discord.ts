@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 import {
-  extension,
+  provider,
   input,
   output,
   validateEnv,
@@ -40,7 +40,7 @@ const attachmentSchema = z.object({
     .custom<Buffer>((val) => Buffer.isBuffer(val))
     .optional()
     .describe(
-      "Pre-fetched attachment data as a Buffer, if processed by the extension."
+      "Pre-fetched attachment data as a Buffer, if processed by the provider."
     ),
 });
 
@@ -258,7 +258,7 @@ export const discordChannelContext = context({
     }),
   });
 
-export const discord = extension({
+export const discord = provider({
   name: "discord",
   services: [discordService],
   contexts: {

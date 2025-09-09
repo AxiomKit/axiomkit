@@ -10,7 +10,7 @@ import {
     action,
     validateEnv,
 } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { string, z } from "zod/v4";
 
 // Initialize {{MODEL_NAME}} client
@@ -104,8 +104,8 @@ export const deleteTask = action({
     return { success: true, message: `Deleted task with ID ${taskId}.` };
   },
 });
-const cliExtension = createCliExtension({
-  name: "goal-extension",
+const cliProvider = createCliProvider({
+  name: "goal",
   instructions: `
 You are a task management assistant.
 
@@ -159,7 +159,7 @@ export const todoContext = context({
 
 createAgent({
     model: {{MODEL_VARIABLE}}("{{MODEL_VERSION}}"),
-  extensions: [cliExtension],
+  providers: [cliProvider],
   context: todoContext,
      actions: [addTask, completeTask, deleteTask],
 }).start({ id: "todo-user" });

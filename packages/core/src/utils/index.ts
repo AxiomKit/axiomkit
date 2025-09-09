@@ -6,7 +6,7 @@ import type {
   AnyAgent,
   AnyContext,
   EventRef,
-  Extension,
+  Provider,
   InputConfig,
   InputRef,
   ActionState,
@@ -138,15 +138,15 @@ export function memory<Data = any>(memory: ActionState<Data>) {
   return memory;
 }
 
-export function extension<
+export function provider<
   Contexts extends Record<string, AnyContext> = Record<string, AnyContext>,
   Inputs extends Record<string, InputConfig<any, any>> = Record<
     string,
     InputConfig<any, any>
   >
 >(
-  config: Optional<Extension<AnyContext, Contexts, Inputs>, "inputs">
-): Extension<AnyContext, Contexts, Inputs> {
+  config: Optional<Provider<AnyContext, Contexts, Inputs>, "inputs">
+): Provider<AnyContext, Contexts, Inputs> {
   return {
     ...config,
     inputs: config.inputs ?? ({} as Inputs),

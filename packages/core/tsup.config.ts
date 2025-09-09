@@ -4,7 +4,7 @@ import { tsupConfig } from "../../tsup.config";
 
 export default defineConfig({
   ...tsupConfig,
-  entry: ["./src/index.ts"], // Removed non-existent extensions entry
+  entry: ["./src/index.ts"], // Removed non-existent provider entry
   dts: {
     resolve: true,
   },

@@ -109,7 +109,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     actions: new Map(),
     outputs: new Map(),
     inputs: new Map(),
-    extensions: new Map(),
+    providers: new Map(),
     models: new Map(),
     prompts: new Map(),
   };
@@ -123,7 +123,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     events = {},
     actions = [],
     services = [],
-    extensions = [],
+    providers = [],
     model,
 
     modelSettings,
@@ -172,7 +172,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
 
     logLevel: config.logLevel ?? LogLevel.INFO,
     streaming,
-    extensionsCount: extensions.length,
+    providersCount: providers.length,
     contextsCount: config.contexts?.length ?? 0,
     actionsCount: actions.length,
     servicesCount: services.length,
@@ -198,7 +198,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     serviceManager.register(service);
   }
 
-  // Register contexts and process extensions
+  // Register contexts and process providers
   if (config.contexts) {
     logger.debug("agent:create", "Registering contexts", {
       count: config.contexts.length,
@@ -209,30 +209,30 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
     }
   }
 
-  for (const extension of extensions) {
-    logger.debug("agent:create", `Processing extension: ${extension.name}`, {
-      hasInputs: !!extension.inputs,
-      hasOutputs: !!extension.outputs,
-      hasEvents: !!extension.events,
-      actionsCount: extension.actions?.length ?? 0,
-      servicesCount: extension.services?.length ?? 0,
-      contextsCount: extension.contexts
-        ? Object.keys(extension.contexts).length
+  for (const provider of providers) {
+    logger.debug("agent:create", `Processing provider: ${provider.name}`, {
+      hasInputs: !!provider.inputs,
+      hasOutputs: !!provider.outputs,
+      hasEvents: !!provider.events,
+      actionsCount: provider.actions?.length ?? 0,
+      servicesCount: provider.services?.length ?? 0,
+      contextsCount: provider.contexts
+        ? Object.keys(provider.contexts).length
         : 0,
     });
 
-    if (extension.inputs) Object.assign(inputs, extension.inputs);
-    if (extension.outputs) Object.assign(outputs, extension.outputs);
-    if (extension.events) Object.assign(events, extension.events);
-    if (extension.actions) actions.push(...extension.actions);
-    if (extension.services) {
-      for (const service of extension.services) {
+    if (provider.inputs) Object.assign(inputs, provider.inputs);
+    if (provider.outputs) Object.assign(outputs, provider.outputs);
+    if (provider.events) Object.assign(events, provider.events);
+    if (provider.actions) actions.push(...provider.actions);
+    if (provider.services) {
+      for (const service of provider.services) {
         serviceManager.register(service);
       }
     }
 
-    if (extension.contexts) {
-      for (const context of Object.values(extension.contexts)) {
+    if (provider.contexts) {
+      for (const context of Object.values(provider.contexts)) {
         registry.contexts.set(context.type, context);
       }
     }
@@ -575,7 +575,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
      * This method performs the complete agent startup sequence:
      * - Initializes the memory system
      * - Boots all services
-     * - Installs extensions, inputs, outputs, and actions
+     * - Installs providers, inputs, outputs, and actions
      * - Loads saved contexts from storage
      * - Sets up the agent's own context if configured
      *
@@ -641,7 +641,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
           outputs: Array.from(registry.outputs.keys()),
           contextOutputs: contextCounts.outputs,
           totalOutputs: registry.outputs.size + contextCounts.outputs,
-          extensions: Array.from(registry.extensions.keys()),
+          providers: Array.from(registry.providers.keys()),
         },
       });
 
@@ -656,18 +656,15 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
       });
       await serviceManager.bootAll();
 
-      logger.debug("agent:start", "Installing extensions", {
-        count: extensions.length,
-        names: extensions.map((ext) => ext.name),
+      logger.debug("agent:start", "Installing providers", {
+        count: providers.length,
+        names: providers.map((ext) => ext.name),
       });
 
-      for (const extension of extensions) {
-        if (extension.install) {
-          logger.trace(
-            "agent:start",
-            `Installing extension: ${extension.name}`
-          );
-          await tryAsync(extension.install, agent);
+      for (const provider of providers) {
+        if (provider.install) {
+          logger.trace("agent:start", `Installing provider: ${provider.name}`);
+          await tryAsync(provider.install, agent);
         }
       }
 
@@ -774,7 +771,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
           outputs: Object.keys(outputs).length,
           contextOutputs: contextCounts.outputs,
           totalOutputs: registry.outputs.size + contextCounts.outputs,
-          extensions: extensions.length,
+          providers: providers.length,
         },
         activeSubscriptions: inputSubscriptions.size,
         savedContexts: savedContexts?.length ?? 0,
@@ -929,7 +926,7 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
       actions: registry.actions.size,
       inputs: registry.inputs.size,
       outputs: registry.outputs.size,
-      extensions: registry.extensions.size,
+      providers: registry.providers.size,
     },
   });
 

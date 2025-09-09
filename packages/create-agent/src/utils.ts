@@ -2,13 +2,13 @@ import chalk from "chalk";
 
 /**
  * Gets the configured versions for all dependencies from config.ts
- * @param selectedExtensions Array of selected extensions to determine which packages to include
+ * @param selectedProviders Array of selected providers to determine which packages to include
  * @param selectedModel The selected model provider to determine which AI SDK to include
  * @param verbose Whether to show detailed logging
  * @returns Object with package names and their configured versions
  */
 export async function getConfiguredDependencies(
-  selectedExtensions: string[],
+  selectedProviders: string[],
   selectedModel: string,
   verbose: boolean = false
 ): Promise<Record<string, string>> {
@@ -33,33 +33,33 @@ export async function getConfiguredDependencies(
     modelDependencies[selected.pkg] = selected.version;
   }
 
-  // Extension-specific dependencies
-  const extensionDependencies: Record<string, string> = {};
+  // Providers-specific dependencies
+  const providerDependencies: Record<string, string> = {};
 
-  if (selectedExtensions.includes("cli")) {
-    extensionDependencies["@axiomkit/cli"] = "^0.0.15";
+  if (selectedProviders.includes("cli")) {
+    providerDependencies["@axiomkit/cli"] = "^0.0.15";
   }
-  if (selectedExtensions.includes("discord")) {
-    extensionDependencies["@axiomkit/discord"] = "^0.0.9";
-    extensionDependencies["discord.js"] = "^14.18.0";
+  if (selectedProviders.includes("discord")) {
+    providerDependencies["@axiomkit/discord"] = "^0.0.9";
+    providerDependencies["discord.js"] = "^14.18.0";
   }
-  if (selectedExtensions.includes("telegram")) {
-    extensionDependencies["@axiomkit/telegram"] = "^0.0.9";
-    extensionDependencies["telegraf"] = "^4.16.3";
+  if (selectedProviders.includes("telegram")) {
+    providerDependencies["@axiomkit/telegram"] = "^0.0.9";
+    providerDependencies["telegraf"] = "^4.16.3";
   }
 
   const allDependencies = {
     ...baseDependencies,
     ...modelDependencies,
-    ...extensionDependencies,
+    ...providerDependencies,
   };
 
   log(
     `Using configured versions for ${
       Object.keys(allDependencies).length
     } packages (${selectedModel} model + ${
-      selectedExtensions.length
-    } extensions)...`
+      selectedProviders.length
+    } providers)...`
   );
 
   // Use configured versions directly without fetching from registry
@@ -182,15 +182,15 @@ export function validateModel(model: string): {
  * Generates the content for an agent template by replacing placeholders
  * @param templateContent The original template content with placeholders
  * @param modelConfig The model-specific configuration values
- * @param extensionImports Array of extension import statements
- * @param extensionsList Array of extension variable names
+ * @param providerImports Array of provider import statements
+ * @param providersList Array of provider variable names
  * @returns The processed template content
  */
 export function generateTemplateContent(
   templateContent: string,
   modelConfig: Record<string, string>,
-  extensionImports: string[] = [],
-  extensionsList: string[] = []
+  providerImports: string[] = [],
+  providersList: string[] = []
 ): string {
   // Replace model-specific placeholders
   let processedContent = templateContent;
@@ -201,24 +201,23 @@ export function generateTemplateContent(
     processedContent = processedContent.replace(placeholder, value);
   });
 
-  // Replace extension imports if specified
-  if (extensionImports.length > 0) {
+  if (providerImports.length > 0) {
     processedContent = processedContent.replace(
-      `import { cliExtension } from "@axiomkit/cli";`,
-      extensionImports.join("\n")
+      `import { cliProvider} from "@axiomkit/cli";`,
+      providerImports.join("\n")
     );
   }
 
-  if (extensionsList.length > 0) {
+  if (providersList.length > 0) {
     processedContent = processedContent.replace(
-      "extensions: [cli]",
-      `extensions: [${extensionsList.join(", ")}]`
+      "providers: [cli]",
+      `providers: [${providersList.join(", ")}]`
     );
   }
 
   // Add header comment
   const headerComment = `/**
- * Axiomkit agent with ${extensionsList.join(", ")} extension(s)
+ * Axiomkit agent with ${providersList.join(", ")} provider(s)
  * Using ${modelConfig.MODEL_NAME} as the model provider
  */`;
 
@@ -233,12 +232,12 @@ export function generateTemplateContent(
 /**
  * Creates environment variables content for the .env.example file
  * @param selectedModel The selected model provider
- * @param selectedExtensions Array of selected extensions
+ * @param selectedProviders Array of selected Providers
  * @returns The content for the .env.example file
  */
 export function createEnvVariables(
   selectedModel: string,
-  selectedExtensions: string[]
+  selectedProviders: string[]
 ): string {
   const envVariables = ["# Axiomkit Environment Variables\n"];
 
@@ -259,7 +258,7 @@ export function createEnvVariables(
       break;
   }
 
-  if (selectedExtensions.includes("telegram")) {
+  if (selectedProviders.includes("telegram")) {
     envVariables.push("# Telegram Configuration");
     envVariables.push(
       "# TELEGRAM_STARTUP_CHAT_ID: Chat ID where startup notifications will be sent"
@@ -287,7 +286,7 @@ export function createEnvVariables(
     );
     envVariables.push("TELEGRAM_USER_SESSION=your_session_string\n");
   }
-  if (selectedExtensions.includes("discord")) {
+  if (selectedProviders.includes("discord")) {
     envVariables.push("# Discord Configuration");
     envVariables.push(
       "# Discord Bot Token (https://discord.com/developers/applications)"
@@ -308,19 +307,19 @@ export function createEnvVariables(
 /**
  * Creates a README file content for the agent
  * @param projectName The name of the project
- * @param selectedExtensions Array of selected extensions
+ * @param selectedProviders Array of selected providers
  * @param selectedModel The selected model provider
  * @returns The content for the README.md file
  */
 export function createReadme(
   projectName: string,
-  selectedExtensions: string[],
+  selectedProviders: string[],
   selectedModel: string
 ): string {
   return `# ${projectName}
 
-A Axiomkit agent with the following extensions:
-${selectedExtensions.map((ext) => `- ${ext}`).join("\n")}
+A Axiomkit agent with the following Providers:
+${selectedProviders.map((prov) => `- ${prov}`).join("\n")}
 
 ## Features
 

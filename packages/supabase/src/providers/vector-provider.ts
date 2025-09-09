@@ -37,19 +37,21 @@ export class SupabaseVectorProvider implements VectorProvider {
   private tableName: string;
   private embeddingDimension: number;
   private autoSetup: boolean;
-  private setupOptions: Required<NonNullable<SupabaseVectorProviderConfig['setupOptions']>>;
+  private setupOptions: Required<
+    NonNullable<SupabaseVectorProviderConfig["setupOptions"]>
+  >;
   private initialized = false;
 
   constructor(config: SupabaseVectorProviderConfig) {
-    const { 
-      url, 
-      key, 
+    const {
+      url,
+      key,
       tableName = "axiomkit_vector_store",
       embeddingDimension = 1536,
       autoSetup = true,
-      setupOptions = {}
+      setupOptions = {},
     } = config;
-    
+
     this.client = createClient(url, key);
     this.tableName = tableName;
     this.embeddingDimension = embeddingDimension;
@@ -145,7 +147,6 @@ export class SupabaseVectorProvider implements VectorProvider {
       throw new Error("Either query text or embedding must be provided");
     }
 
-
     // Use direct SQL query for vector similarity search
     let dbQuery = this.client
       .from(this.tableName)
@@ -170,14 +171,30 @@ export class SupabaseVectorProvider implements VectorProvider {
         // Retry the query
         const { data: retryData, error: retryError } = await dbQuery;
         if (retryError) {
-          throw new Error(`Vector search failed after retry: ${retryError.message}`);
+          throw new Error(
+            `Vector search failed after retry: ${retryError.message}`
+          );
         }
-        return this.processSearchResults(retryData || [], embedding, minScore, limit, includeContent, includeMetadata);
+        return this.processSearchResults(
+          retryData || [],
+          embedding,
+          minScore,
+          limit,
+          includeContent,
+          includeMetadata
+        );
       }
       throw new Error(`Vector search failed: ${error.message}`);
     }
 
-    return this.processSearchResults(allData, embedding, minScore, limit, includeContent, includeMetadata);
+    return this.processSearchResults(
+      allData,
+      embedding,
+      minScore,
+      limit,
+      includeContent,
+      includeMetadata
+    );
   }
 
   async delete(ids: string[]): Promise<void> {
@@ -249,8 +266,8 @@ export class SupabaseVectorProvider implements VectorProvider {
     // If the table doesn't exist, create it
     if (error && error.code === "42P01") {
       const createTableQuery = `
-        -- Enable the pgvector extension
-        CREATE EXTENSION IF NOT EXISTS vector;
+        -- Enable the pgvector provider
+        CREATE PROVIDER IF NOT EXISTS vector;
 
         -- Create the vector store table
         CREATE TABLE IF NOT EXISTS ${this.tableName} (
@@ -349,12 +366,17 @@ export class SupabaseVectorProvider implements VectorProvider {
     const results = data
       .map((row: any) => {
         // Calculate cosine similarity (1 - cosine distance)
-        const similarity = embedding ? 1 - this.cosineDistance(embedding, row.embedding) : 0;
+        const similarity = embedding
+          ? 1 - this.cosineDistance(embedding, row.embedding)
+          : 0;
         return {
           id: row.id,
           score: similarity,
           content: includeContent ? row.content : undefined,
-          metadata: includeMetadata && row.metadata ? JSON.parse(row.metadata) : undefined,
+          metadata:
+            includeMetadata && row.metadata
+              ? JSON.parse(row.metadata)
+              : undefined,
         };
       })
       .filter((result: any) => result.score >= minScore)
@@ -386,17 +408,17 @@ export class SupabaseVectorProvider implements VectorProvider {
       return 1; // Maximum distance for zero vectors
     }
 
-    return 1 - (dotProduct / (normA * normB));
+    return 1 - dotProduct / (normA * normB);
   }
 
   private async setupDatabase(): Promise<void> {
     const { schema } = this.setupOptions;
 
-    // Enable pgvector extension
+    // Enable pgvector provider
     await this.client.rpc("execute_sql", {
-      query: `CREATE EXTENSION IF NOT EXISTS vector SCHEMA ${schema};`,
+      query: `CREATE PROVIDER IF NOT EXISTS vector SCHEMA ${schema};`,
     });
-    console.log(`Enabled pgvector extension in schema ${schema}`);
+    console.log(`Enabled pgvector provider in schema ${schema}`);
 
     // Create the vector store table
     await this.client.rpc("execute_sql", {
@@ -422,7 +444,9 @@ export class SupabaseVectorProvider implements VectorProvider {
         WITH (lists = 100) SCHEMA ${schema};
       `,
     });
-    console.log(`Created embedding index for ${this.tableName} in schema ${schema}`);
+    console.log(
+      `Created embedding index for ${this.tableName} in schema ${schema}`
+    );
 
     await this.client.rpc("execute_sql", {
       query: `
@@ -430,7 +454,9 @@ export class SupabaseVectorProvider implements VectorProvider {
         ON ${this.tableName} (namespace) WHERE namespace IS NOT NULL SCHEMA ${schema};
       `,
     });
-    console.log(`Created namespace index for ${this.tableName} in schema ${schema}`);
+    console.log(
+      `Created namespace index for ${this.tableName} in schema ${schema}`
+    );
 
     await this.client.rpc("execute_sql", {
       query: `
@@ -438,7 +464,9 @@ export class SupabaseVectorProvider implements VectorProvider {
         ON ${this.tableName} USING GIN (metadata) WHERE metadata IS NOT NULL SCHEMA ${schema};
       `,
     });
-    console.log(`Created metadata index for ${this.tableName} in schema ${schema}`);
+    console.log(
+      `Created metadata index for ${this.tableName} in schema ${schema}`
+    );
 
     // Create the vector similarity search function
     await this.client.rpc("execute_sql", {

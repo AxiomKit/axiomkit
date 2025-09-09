@@ -18,7 +18,7 @@ AxiomKit Core provides a robust foundation for creating AI agents that can:
 - **Memory Management**: Persistent episodic and semantic memory with vector storage
 - **Extensible Actions**: Type-safe action system with schema validation
 - **Monitoring**: Built-in performance tracking and request monitoring
--  **Plugin Architecture**: Easy extension system for custom functionality
+-  **Providers Architecture**: Easy scale provider system for custom functionality
 - **Context Management**: Sophisticated context handling with state persistence
 - **Comprehensive Logging**: Detailed logging with multiple levels and formats
 
