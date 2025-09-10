@@ -102,4 +102,4 @@ export const assistantCliTool = createCliProvider({
   ],
 });
 
-export const cliExtension = createCliProvider();
+export const cliProvider = createCliProvider();
