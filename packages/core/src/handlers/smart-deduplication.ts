@@ -35,7 +35,6 @@ export class SmartDeduplicationEngine {
     const metadata = action.metadata;
     const rules = metadata?.deduplication?.rules;
 
-    // Create base fingerprint
     const fingerprint: ActionFingerprint = {
       actionName: action.name,
       parameters: this.filterParameters(call.data || {}, rules),

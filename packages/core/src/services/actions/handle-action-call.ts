@@ -87,7 +87,7 @@ export async function handleActionCall({
       };
     }
 
-    // Block duplicate action
+    // Action is blocked due to deduplication
     logger.warn(
       "deduplication:blocked",
       `Action ${action.name} blocked as duplicate`,

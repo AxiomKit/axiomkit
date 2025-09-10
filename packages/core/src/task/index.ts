@@ -83,7 +83,7 @@ export class TaskRunner {
 
     this.logger.info(
       "task:queue",
-      isNewQueue ? "Created new queue" : "Updated queue",
+      isNewQueue ? "Created New Queue" : "Updated Queue",
       {
         queueKey,
         concurrency,

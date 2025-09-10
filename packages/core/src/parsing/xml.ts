@@ -32,7 +32,6 @@ export function createTagParser<T = string>(
   };
 }
 
-// new parser
 export type TextNode = {
   type: "text";
   content: string;
@@ -41,7 +40,7 @@ export type TextNode = {
 };
 
 export type ElementNode<
-  Attributes extends Record<string, string> = Record<string, any>,
+  Attributes extends Record<string, string> = Record<string, any>
 > = {
   type: "element";
   name: string;
@@ -236,7 +235,6 @@ export function* xmlStreamParser(
         continue;
       }
 
-      // todo: regex performance
       if (
         tagStart === -1 ||
         (buffer.length > 1 && !alphaSlashRegex.test(buffer[tagStart + 1]))

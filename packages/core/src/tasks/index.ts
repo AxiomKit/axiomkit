@@ -52,7 +52,6 @@ function getReasoningTokens(usage: unknown): number | undefined {
  * @param options.task - The task context containing callId and debug function
  * @returns An object containing the parsed response promise and wrapped text stream
  */
-// Stream wrapping handled by ResponseAdapter
 
 type GenerateOptions = {
   prompt: string;

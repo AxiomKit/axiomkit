@@ -21,6 +21,7 @@ export async function handleOutput({
   agent: AnyAgent;
 }): Promise<OutputRef | OutputRef[]> {
   if (output.handler) {
+    logger.info(`Handling output with handler: ${outputRef.id}`);
     const response = await Promise.try(
       output.handler,
       outputRef.data,

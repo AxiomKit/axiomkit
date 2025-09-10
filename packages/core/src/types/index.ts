@@ -1528,7 +1528,7 @@ export interface ActionFingerprint {
 
   // Temporal information
   timestamp: number;
-  timeWindow: number; // Configurable deduplication window
+  timeWindow: number;
 
   // Execution context
   requestId: string;

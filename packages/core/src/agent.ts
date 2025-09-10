@@ -47,7 +47,7 @@ import type { DeferredPromise } from "p-defer";
 import { runAgentContext } from "@/tasks";
 
 /**
- * Creates and configures a new Agent AI agent instance
+ * Creates and config a new Agent AI agent instance
  *
  * This is the main factory function for creating a Agent agent with the specified
  * configuration. The agent manages contexts, actions, memory, and provides a complete
@@ -60,8 +60,7 @@ import { runAgentContext } from "@/tasks";
  * @example
  * ```typescript
  * const agent = createAgent({
- *   model: openai("gpt-4"),
- *   memory: new MemorySystem({...}),
+ *   model: groq("deepseek-r1-distill-llama-70b"),
  *   actions: [myAction],
  *   contexts: [myContext]
  * });
@@ -105,12 +104,12 @@ export function createAgent<TContext extends AnyContext = AnyContext>(
 
   // Internal registry for managing agent components
   const registry: Registry = {
-    contexts: new Map(),
+    contexts: new Map(), // registered contexts
     actions: new Map(),
-    outputs: new Map(),
-    inputs: new Map(),
-    providers: new Map(),
-    models: new Map(),
+    outputs: new Map(), // output handler custom for output generation agent
+    inputs: new Map(), // input handler
+    providers: new Map(), // custom providers (e.g supabase, mongodb , telegram ..etc) external API
+    models: new Map(), // custom models (e.g embedding models, local models ..etc)
     prompts: new Map(),
   };
 

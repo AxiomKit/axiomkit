@@ -3,11 +3,14 @@ import type { Logger } from "../logger";
 import { jsonPath } from "../parsing";
 
 /**
- * Resolves detected templates in an arguments object using provided data sources.
- * Modifies the input object directly. Uses native helper functions.
+ *
+ * @param argsObject - The object containing arguments with potential templates
+ * @param detectedTemplates - An array of detected templates with their paths and expressions
+ * @param resolver - A function that resolves a template given its primary key and path
+ * @param logger - A logger instance for logging warnings and errors
  */
 export async function resolveTemplates(
-  argsObject: Record<string | number, unknown>, // The object containing templates (will be mutated)
+  argsObject: Record<string | number, unknown>,
   detectedTemplates: readonly TemplateInfo[],
   resolver: (primary_key: string, path: string) => MaybePromise<unknown>,
   logger: Logger

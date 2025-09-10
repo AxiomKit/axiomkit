@@ -41,10 +41,12 @@ const agent = createAgent({
   logger: new Logger({ level: LogLevel.DEBUG }),
   context: discordContext,
   model: groq("gemma2-9b-it"),
-  extensions: [discord],
+  providers: [discord],
   container,
 });
 
 console.log("Starting Axiomkit Discord Bot...");
-await agent.start();
+await agent.start({
+  id: "discord-bot",
+});
 console.log("Axiomkit Discord Bot started");

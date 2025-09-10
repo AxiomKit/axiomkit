@@ -17,10 +17,7 @@ interface GraphQLResponse<T> {
  * A generalized error type for convenience.
  */
 class ApiError extends Error {
-  constructor(
-    public message: string,
-    public details?: unknown
-  ) {
+  constructor(public message: string, public details?: unknown) {
     super(message);
   }
 }
@@ -51,10 +48,12 @@ export async function fetchRest<ResponseType = unknown>(
 }
 
 /**
- * A helper function to perform GraphQL queries.
- * - `endpoint`: the GraphQL endpoint URL.
- * - `query`: the GraphQL query string.
- * - `variables`: an optional variables object for the query.
+ *
+ * @param endpoint - The full URL of the GraphQL endpoint.
+ * @param query - The GraphQL query string.
+ * @param variables - Optional variables for the GraphQL query.
+ * @returns - The data returned from the GraphQL query or an ApiError if the request fails.
+ * @throws - Throws an ApiError if the fetch operation fails.
  */
 export async function fetchGraphQL<DataType = unknown>(
   endpoint: string,

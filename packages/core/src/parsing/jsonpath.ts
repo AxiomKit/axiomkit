@@ -1,10 +1,8 @@
-/* JSONPath 0.8.0 - XPath for JSON
+/**
+ * JSON Path https://goessner.net/articles/JsonPath MIT License
+ * Original Author: Stefan Goessner (goessner.net)
  *
- * Copyright (c) 2007 Stefan Goessner (goessner.net)
- * Licensed under the MIT (MIT-LICENSE.txt) licence.
- * Converted to TypeScript.
  */
-
 interface JsonPathArgs {
   resultType?: "VALUE" | "PATH";
 }
