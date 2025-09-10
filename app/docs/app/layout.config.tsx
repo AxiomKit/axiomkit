@@ -19,8 +19,7 @@ export const baseOptions: BaseLayoutProps = {
         <span className="text-red-600 text-lg">AxiomKit</span>
         <Badge
           className={`
-                bg-green-500/20 text-green-400 border-green-500/30 text-xs
-                transition-all duration-300
+                bg-green-500/20 text-green-400 border-green-500/30 text-xs            
               `}
         >
           v.2.0.8
