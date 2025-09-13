@@ -54,13 +54,15 @@ export async function erc20_transfer(
       }
 
       const seiBalance = await agent.getERC20Balance();
-      if (Number(seiBalance) < Number(formattedAmount)) {
+      console.log(`Current SEI balance: ${seiBalance}`);
+      console.log(`Formatted transfer amount: ${formattedAmount}`);
+      if (Number(seiBalance) < Number(amount)) {
         throw new Error("Insufficient SEI balance");
       }
 
       const hash = await agent.walletClient.sendTransaction({
         account,
-        chain: sei,
+        chain: agent.walletClient.chain,
         to: recipient,
         value: formattedAmount,
       });
@@ -111,7 +113,7 @@ export async function erc20_transfer(
     }
 
     const tokenBalance = await agent.getERC20Balance(token_address);
-    if (Number(tokenBalance) < Number(formattedAmount)) {
+    if (Number(tokenBalance) < Number(amount)) {
       throw new Error(`Insufficient balance of ${ticker.toUpperCase()}`);
     }
     const hash = await agent.walletClient.writeContract({

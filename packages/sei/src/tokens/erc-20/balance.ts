@@ -39,7 +39,6 @@ export async function get_erc20_balance(
       return formatEther(balance);
     }
 
-    // Handle ERC-20 token balance
     if (!agent.publicClient || !agent.walletAdress) {
       throw new Error("Public client or wallet address not initialized");
     }

@@ -113,29 +113,9 @@ const seiAgentContext = context({
             );
           }
 
-          const balance = await seiChain.publicClient.getBalance({
-            address: targetAddress as `0x${string}`,
-            blockTag: `safe`,
-          });
+          const balance = await seiChain.getERC20Balance();
 
-          const seiBalance = Number(formatEther(balance));
-          if (targetAddress.toLowerCase() === memory.wallet.toLowerCase()) {
-            memory.balance = seiBalance; // Update memory if it's the current wallet
-          }
-
-          // If this is the current wallet and we have a recent transfer, use the updated balance from memory
-          let finalBalance = seiBalance;
-          if (
-            targetAddress.toLowerCase() === memory.wallet.toLowerCase() &&
-            memory.balance !== seiBalance
-          ) {
-            finalBalance = memory.balance;
-            console.log(
-              `📊 Using updated balance from memory: ${finalBalance} SEI (instead of ${seiBalance} SEI)`
-            );
-          }
-
-          return actionResponse(`Balance for ${address}: ${finalBalance} SEI`);
+          return actionResponse(`Balance for ${address}: ${balance} SEI`);
         } catch (error) {
           return actionResponse(
             `Error: Failed to get balance. ${
@@ -169,37 +149,10 @@ const seiAgentContext = context({
             );
           }
 
-          const balance = await seiChain.publicClient.getBalance({
-            address: memory.wallet as `0x${string}`,
-            blockTag: `safe`,
-          });
-          const seiBalance = Number(formatEther(balance));
-          if (seiBalance < amount) {
-            return actionResponse(
-              `Error: Insufficient balance. Current balance is ${seiBalance} SEI.`
-            );
-          }
-
-          const wallet = seiChain.walletClient;
-          const transaction = await wallet.sendTransaction({
-            to: addressTo as `0x${string}`,
-            value: parseEther(amount.toString()),
-          });
-          console.log("Transaction sent:", transaction);
-
-          // Update memory with transaction details
-          const transferId = `transfer_${Date.now()}_${Math.random()
-            .toString(36)
-            .substr(2, 9)}`;
-          memory.transactions.unshift(
-            `Transfer: ${amount} SEI to ${addressTo} (${transaction}) [ID: ${transferId}]`
+          const transaction = await seiChain.ERC20Transfer(
+            String(amount),
+            addressTo
           );
-          memory.lastTransaction = transaction;
-
-          // Update the balance in memory after the transfer
-          memory.balance = memory.balance - amount;
-
-          console.log(`✅ Transfer completed with ID: ${transferId}`);
           console.log(`   Amount: ${amount} SEI`);
           console.log(`   To: ${addressTo}`);
           console.log(`   Hash: ${transaction}`);
