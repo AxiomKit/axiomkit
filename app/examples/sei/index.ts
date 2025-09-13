@@ -7,7 +7,7 @@ import {
   input,
   validateEnv,
 } from "@axiomkit/core";
-import { SeiChain } from "sei/dist";
+import { AxiomSeiWallet } from "sei/dist";
 import { formatEther, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";
@@ -20,7 +20,7 @@ const env = validateEnv(
   })
 );
 
-const seiChain = new SeiChain({
+const seiChain = new AxiomSeiWallet({
   rpcUrl: env.SEI_RPC_URL,
   privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
   chain: viemChains.seiTestnet,
@@ -113,7 +113,7 @@ const seiAgentContext = context({
             );
           }
 
-          const balance = await seiChain.client.getBalance({
+          const balance = await seiChain.publicClient.getBalance({
             address: targetAddress as `0x${string}`,
             blockTag: `safe`,
           });
@@ -169,7 +169,7 @@ const seiAgentContext = context({
             );
           }
 
-          const balance = await seiChain.client.getBalance({
+          const balance = await seiChain.publicClient.getBalance({
             address: memory.wallet as `0x${string}`,
             blockTag: `safe`,
           });
@@ -180,7 +180,7 @@ const seiAgentContext = context({
             );
           }
 
-          const wallet = seiChain.getWalletClient();
+          const wallet = seiChain.walletClient;
           const transaction = await wallet.sendTransaction({
             to: addressTo as `0x${string}`,
             value: parseEther(amount.toString()),
