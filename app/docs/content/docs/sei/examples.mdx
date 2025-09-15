@@ -1,0 +1,1014 @@
+---
+title: Examples
+description: Real-world examples and use cases for SEI AI agents
+icon: Code
+---
+
+# SEI AI Agent Examples
+
+This section provides comprehensive examples of SEI AI agents for various use cases, from simple balance checkers to sophisticated DeFi trading bots.
+
+## Basic Examples
+
+### 1. Simple Balance Checker
+
+A basic agent that checks SEI and token balances.
+
+```typescript
+import { createAgent, context, action, validateEnv } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { groq } from "@ai-sdk/groq";
+import { z } from "zod";
+
+const env = validateEnv(
+  z.object({
+    SEI_RPC_URL: z.string(),
+    SEI_PRIVATE_KEY: z.string(),
+    GROQ_API_KEY: z.string(),
+  })
+);
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: env.SEI_RPC_URL,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+const balanceContext = context({
+  type: "balance-checker",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "check-sei-balance",
+      description: "Check native SEI balance",
+      schema: z.object({}),
+      handler: async () => {
+        const balance = await wallet.getERC20Balance();
+        return `Your SEI balance is: ${balance} SEI`;
+      },
+    }),
+    
+    action({
+      name: "check-token-balance",
+      description: "Check balance of a specific token",
+      schema: z.object({
+        token: z.string().describe("Token ticker (e.g., 'USDC')"),
+      }),
+      handler: async (args) => {
+        const tokenAddress = await wallet.getTokenAddressFromTicker(args.token);
+        if (!tokenAddress) {
+          return `Token '${args.token}' not found`;
+        }
+        
+        const balance = await wallet.getERC20Balance(tokenAddress);
+        return `Your ${args.token} balance is: ${balance} ${args.token}`;
+      },
+    }),
+  ],
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it", { apiKey: env.GROQ_API_KEY }),
+  contexts: [balanceContext],
+});
+
+// Usage
+await agent.start();
+const response = await agent.send({
+  context: balanceContext,
+  args: { walletAddress: wallet.walletAdress },
+  input: { type: "text", data: { text: "What's my SEI balance?" } },
+});
+```
+
+### 2. Token Transfer Agent
+
+An agent that can transfer SEI and ERC-20 tokens.
+
+```typescript
+const transferContext = context({
+  type: "token-transfer",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "transfer-tokens",
+      description: "Transfer SEI or ERC-20 tokens",
+      schema: z.object({
+        amount: z.string().describe("Amount to transfer"),
+        recipient: z.string().describe("Recipient address"),
+        token: z.string().optional().describe("Token ticker (default: SEI)"),
+      }),
+      handler: async (args) => {
+        try {
+          // Validate recipient address
+          if (!args.recipient.startsWith("0x") || args.recipient.length !== 42) {
+            return "Invalid recipient address format";
+          }
+          
+          // Check balance before transfer
+          let currentBalance: string;
+          if (args.token) {
+            const tokenAddress = await wallet.getTokenAddressFromTicker(args.token);
+            if (!tokenAddress) {
+              return `Token '${args.token}' not found`;
+            }
+            currentBalance = await wallet.getERC20Balance(tokenAddress);
+          } else {
+            currentBalance = await wallet.getERC20Balance();
+          }
+          
+          if (parseFloat(currentBalance) < parseFloat(args.amount)) {
+            return `Insufficient balance. Current: ${currentBalance}, Required: ${args.amount}`;
+          }
+          
+          // Execute transfer
+          const result = await wallet.ERC20Transfer(
+            args.amount,
+            args.recipient as `0x${string}`,
+            args.token
+          );
+          
+          return `Transfer successful! ${result}`;
+        } catch (error) {
+          return `Transfer failed: ${error.message}`;
+        }
+      },
+    }),
+  ],
+});
+```
+
+## DeFi Examples
+
+### 3. DEX Trading Bot
+
+An intelligent trading bot that can execute swaps on SEI DEXs.
+
+```typescript
+import { erc20Abi } from "viem";
+
+// Astroport Router ABI (simplified)
+const astroportRouterAbi = [
+  {
+    "inputs": [
+      {"name": "amountIn", "type": "uint256"},
+      {"name": "amountOutMin", "type": "uint256"},
+      {"name": "path", "type": "address[]"},
+      {"name": "to", "type": "address"},
+      {"name": "deadline", "type": "uint256"}
+    ],
+    "name": "swapExactTokensForTokens",
+    "outputs": [{"name": "amounts", "type": "uint256[]"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const;
+
+const tradingContext = context({
+  type: "dex-trading",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "get-swap-quote",
+      description: "Get a quote for token swap",
+      schema: z.object({
+        tokenIn: z.string().describe("Input token ticker"),
+        tokenOut: z.string().describe("Output token ticker"),
+        amountIn: z.string().describe("Amount of input tokens"),
+      }),
+      handler: async (args) => {
+        try {
+          // Get token addresses
+          const [tokenInAddress, tokenOutAddress] = await Promise.all([
+            wallet.getTokenAddressFromTicker(args.tokenIn),
+            wallet.getTokenAddressFromTicker(args.tokenOut),
+          ]);
+          
+          if (!tokenInAddress || !tokenOutAddress) {
+            return "One or both tokens not found";
+          }
+          
+          // Get current prices (simplified - in practice, query DEX)
+          const response = await fetch(
+            `https://api.dexscreener.com/latest/dex/search?q=${args.tokenIn}`
+          );
+          const data = await response.json();
+          const pair = data.pairs?.find((p: any) => 
+            p.chainId === "seiv2" && p.baseToken.symbol === args.tokenIn
+          );
+          
+          if (!pair) {
+            return "Price data not available";
+          }
+          
+          const price = parseFloat(pair.priceUsd);
+          const amountOut = parseFloat(args.amountIn) * price;
+          
+          return `Swap Quote:
+Input: ${args.amountIn} ${args.tokenIn}
+Output: ${amountOut.toFixed(6)} ${args.tokenOut}
+Price: 1 ${args.tokenIn} = ${price.toFixed(6)} ${args.tokenOut}
+Note: This is an estimate. Actual output may vary.`;
+        } catch (error) {
+          return `Failed to get quote: ${error.message}`;
+        }
+      },
+    }),
+    
+    action({
+      name: "execute-swap",
+      description: "Execute a token swap on DEX",
+      schema: z.object({
+        tokenIn: z.string().describe("Input token ticker"),
+        tokenOut: z.string().describe("Output token ticker"),
+        amountIn: z.string().describe("Amount of input tokens"),
+        slippage: z.number().optional().describe("Slippage tolerance (default: 0.5%)"),
+      }),
+      handler: async (args) => {
+        try {
+          const slippage = args.slippage || 0.5;
+          
+          // Get token addresses
+          const [tokenInAddress, tokenOutAddress] = await Promise.all([
+            wallet.getTokenAddressFromTicker(args.tokenIn),
+            wallet.getTokenAddressFromTicker(args.tokenOut),
+          ]);
+          
+          if (!tokenInAddress || !tokenOutAddress) {
+            return "One or both tokens not found";
+          }
+          
+          // Check balance
+          const balance = await wallet.getERC20Balance(tokenInAddress);
+          if (parseFloat(balance) < parseFloat(args.amountIn)) {
+            return `Insufficient ${args.tokenIn} balance. Current: ${balance}`;
+          }
+          
+          // Get quote for minimum output
+          const response = await fetch(
+            `https://api.dexscreener.com/latest/dex/search?q=${args.tokenIn}`
+          );
+          const data = await response.json();
+          const pair = data.pairs?.find((p: any) => 
+            p.chainId === "seiv2" && p.baseToken.symbol === args.tokenIn
+          );
+          
+          if (!pair) {
+            return "Price data not available";
+          }
+          
+          const expectedOutput = parseFloat(args.amountIn) * parseFloat(pair.priceUsd);
+          const minOutput = expectedOutput * (1 - slippage / 100);
+          
+          // Approve router to spend tokens
+          const routerAddress = "0x..."; // Astroport router address
+          const approveHash = await wallet.walletClient.writeContract({
+            address: tokenInAddress,
+            abi: erc20Abi,
+            functionName: "approve",
+            args: [routerAddress as `0x${string}`, BigInt(parseFloat(args.amountIn) * 1e18)],
+          });
+          
+          await wallet.publicClient.waitForTransactionReceipt({ hash: approveHash });
+          
+          // Execute swap
+          const swapHash = await wallet.walletClient.writeContract({
+            address: routerAddress as `0x${string}`,
+            abi: astroportRouterAbi,
+            functionName: "swapExactTokensForTokens",
+            args: [
+              BigInt(parseFloat(args.amountIn) * 1e18),
+              BigInt(minOutput * 1e18),
+              [tokenInAddress, tokenOutAddress],
+              wallet.walletAdress,
+              BigInt(Math.floor(Date.now() / 1000) + 1800), // 30 minutes
+            ],
+          });
+          
+          const receipt = await wallet.publicClient.waitForTransactionReceipt({
+            hash: swapHash,
+          });
+          
+          return `Swap executed successfully!
+Approval Hash: ${approveHash}
+Swap Hash: ${swapHash}
+Gas Used: ${receipt.gasUsed}`;
+        } catch (error) {
+          return `Swap failed: ${error.message}`;
+        }
+      },
+    }),
+  ],
+});
+```
+
+### 4. Portfolio Manager
+
+An agent that manages a multi-token portfolio with automated rebalancing.
+
+```typescript
+interface PortfolioToken {
+  ticker: string;
+  targetWeight: number; // Percentage of portfolio
+  currentAmount: number;
+  currentValue: number;
+}
+
+const portfolioContext = context({
+  type: "portfolio-manager",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  create: () => ({
+    portfolio: [] as PortfolioToken[],
+    lastRebalance: new Date().toISOString(),
+    totalValue: 0,
+  }),
+  
+  actions: [
+    action({
+      name: "add-token-to-portfolio",
+      description: "Add a token to the portfolio with target allocation",
+      schema: z.object({
+        ticker: z.string().describe("Token ticker"),
+        targetWeight: z.number().min(0).max(100).describe("Target percentage of portfolio"),
+      }),
+      handler: async (args, { memory }) => {
+        const tokenAddress = await wallet.getTokenAddressFromTicker(args.ticker);
+        if (!tokenAddress) {
+          return `Token '${args.ticker}' not found`;
+        }
+        
+        const balance = await wallet.getERC20Balance(tokenAddress);
+        const amount = parseFloat(balance);
+        
+        // Get current price
+        const response = await fetch(
+          `https://api.dexscreener.com/latest/dex/search?q=${args.ticker}`
+        );
+        const data = await response.json();
+        const pair = data.pairs?.find((p: any) => 
+          p.chainId === "seiv2" && p.baseToken.symbol === args.ticker
+        );
+        
+        if (!pair) {
+          return "Price data not available";
+        }
+        
+        const price = parseFloat(pair.priceUsd);
+        const value = amount * price;
+        
+        const token: PortfolioToken = {
+          ticker: args.ticker,
+          targetWeight: args.targetWeight,
+          currentAmount: amount,
+          currentValue: value,
+        };
+        
+        // Remove existing token if present
+        memory.portfolio = memory.portfolio.filter(t => t.ticker !== args.ticker);
+        memory.portfolio.push(token);
+        
+        // Recalculate total value
+        memory.totalValue = memory.portfolio.reduce((sum, t) => sum + t.currentValue, 0);
+        
+        return `Added ${args.ticker} to portfolio with ${args.targetWeight}% target allocation.
+Current amount: ${amount} ${args.ticker}
+Current value: $${value.toFixed(2)}`;
+      },
+    }),
+    
+    action({
+      name: "analyze-portfolio",
+      description: "Analyze current portfolio composition and performance",
+      schema: z.object({}),
+      handler: async (args, { memory }) => {
+        if (memory.portfolio.length === 0) {
+          return "Portfolio is empty. Add tokens first.";
+        }
+        
+        // Update current values
+        for (const token of memory.portfolio) {
+          const tokenAddress = await wallet.getTokenAddressFromTicker(token.ticker);
+          if (tokenAddress) {
+            const balance = await wallet.getERC20Balance(tokenAddress);
+            token.currentAmount = parseFloat(balance);
+            
+            // Get current price
+            const response = await fetch(
+              `https://api.dexscreener.com/latest/dex/search?q=${token.ticker}`
+            );
+            const data = await response.json();
+            const pair = data.pairs?.find((p: any) => 
+              p.chainId === "seiv2" && p.baseToken.symbol === token.ticker
+            );
+            
+            if (pair) {
+              const price = parseFloat(pair.priceUsd);
+              token.currentValue = token.currentAmount * price;
+            }
+          }
+        }
+        
+        memory.totalValue = memory.portfolio.reduce((sum, t) => sum + t.currentValue, 0);
+        
+        const analysis = memory.portfolio
+          .map(token => {
+            const currentWeight = (token.currentValue / memory.totalValue) * 100;
+            const deviation = currentWeight - token.targetWeight;
+            
+            return `${token.ticker}:
+  Target: ${token.targetWeight}%
+  Current: ${currentWeight.toFixed(2)}%
+  Deviation: ${deviation >= 0 ? '+' : ''}${deviation.toFixed(2)}%
+  Value: $${token.currentValue.toFixed(2)}`;
+          })
+          .join("\n\n");
+        
+        return `Portfolio Analysis:
+Total Value: $${memory.totalValue.toFixed(2)}
+
+${analysis}`;
+      },
+    }),
+    
+    action({
+      name: "rebalance-portfolio",
+      description: "Rebalance portfolio to target allocations",
+      schema: z.object({
+        maxSlippage: z.number().optional().describe("Maximum slippage tolerance (default: 1%)"),
+      }),
+      handler: async (args, { memory }) => {
+        if (memory.portfolio.length === 0) {
+          return "Portfolio is empty. Add tokens first.";
+        }
+        
+        const maxSlippage = args.maxSlippage || 1;
+        const rebalanceActions = [];
+        
+        // Calculate required trades
+        for (const token of memory.portfolio) {
+          const currentWeight = (token.currentValue / memory.totalValue) * 100;
+          const deviation = currentWeight - token.targetWeight;
+          
+          if (Math.abs(deviation) > 2) { // Rebalance if deviation > 2%
+            const targetValue = (token.targetWeight / 100) * memory.totalValue;
+            const valueDifference = targetValue - token.currentValue;
+            
+            if (valueDifference > 0) {
+              // Need to buy more of this token
+              rebalanceActions.push({
+                action: "buy",
+                token: token.ticker,
+                amount: Math.abs(valueDifference),
+              });
+            } else {
+              // Need to sell some of this token
+              rebalanceActions.push({
+                action: "sell",
+                token: token.ticker,
+                amount: Math.abs(valueDifference),
+              });
+            }
+          }
+        }
+        
+        if (rebalanceActions.length === 0) {
+          return "Portfolio is already balanced within tolerance.";
+        }
+        
+        // Execute rebalancing trades (simplified)
+        const results = [];
+        for (const action of rebalanceActions) {
+          try {
+            // In practice, you'd execute actual trades here
+            results.push(`Would ${action.action} $${action.amount.toFixed(2)} worth of ${action.token}`);
+          } catch (error) {
+            results.push(`Failed to ${action.action} ${action.token}: ${error.message}`);
+          }
+        }
+        
+        memory.lastRebalance = new Date().toISOString();
+        
+        return `Rebalancing Actions:
+${results.join("\n")}
+
+Note: This is a simulation. Actual trades would be executed with proper slippage protection.`;
+      },
+    }),
+  ],
+});
+```
+
+## Advanced Examples
+
+### 5. Yield Farming Bot
+
+An agent that automatically manages yield farming positions.
+
+```typescript
+const yieldFarmingContext = context({
+  type: "yield-farming",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  create: () => ({
+    positions: [] as Array<{
+      protocol: string;
+      token: string;
+      amount: number;
+      apy: number;
+      startDate: string;
+    }>,
+    totalYield: 0,
+  }),
+  
+  actions: [
+    action({
+      name: "find-yield-opportunities",
+      description: "Find high-yield farming opportunities",
+      schema: z.object({
+        minAPY: z.number().optional().describe("Minimum APY threshold (default: 10%)"),
+      }),
+      handler: async (args) => {
+        const minAPY = args.minAPY || 10;
+        
+        // Simulate finding yield opportunities
+        const opportunities = [
+          {
+            protocol: "Astroport",
+            token: "SEI/USDC",
+            apy: 15.5,
+            tvl: 2500000,
+            risk: "Low",
+          },
+          {
+            protocol: "Kujira",
+            token: "SEI/ATOM",
+            apy: 22.3,
+            tvl: 1800000,
+            risk: "Medium",
+          },
+          {
+            protocol: "Osmosis",
+            token: "SEI/OSMO",
+            apy: 18.7,
+            tvl: 3200000,
+            risk: "Low",
+          },
+        ];
+        
+        const filtered = opportunities.filter(opp => opp.apy >= minAPY);
+        
+        const report = filtered
+          .map(opp => 
+            `${opp.protocol} - ${opp.token}
+  APY: ${opp.apy}%
+  TVL: $${opp.tvl.toLocaleString()}
+  Risk: ${opp.risk}`
+          )
+          .join("\n\n");
+        
+        return `Yield Farming Opportunities (APY >= ${minAPY}%):
+${report}`;
+      },
+    }),
+    
+    action({
+      name: "stake-liquidity",
+      description: "Stake liquidity in a yield farming pool",
+      schema: z.object({
+        protocol: z.string().describe("Protocol name"),
+        token: z.string().describe("Token pair"),
+        amount: z.string().describe("Amount to stake"),
+      }),
+      handler: async (args, { memory }) => {
+        try {
+          // Simulate staking process
+          const position = {
+            protocol: args.protocol,
+            token: args.token,
+            amount: parseFloat(args.amount),
+            apy: 15.5, // Would be fetched from protocol
+            startDate: new Date().toISOString(),
+          };
+          
+          memory.positions.push(position);
+          
+          return `Successfully staked ${args.amount} in ${args.protocol} ${args.token} pool.
+Expected APY: ${position.apy}%
+Start Date: ${position.startDate}`;
+        } catch (error) {
+          return `Staking failed: ${error.message}`;
+        }
+      },
+    }),
+    
+    action({
+      name: "calculate-yield",
+      description: "Calculate earned yield from farming positions",
+      schema: z.object({}),
+      handler: async (args, { memory }) => {
+        if (memory.positions.length === 0) {
+          return "No active farming positions.";
+        }
+        
+        const yieldReport = memory.positions
+          .map(position => {
+            const daysSinceStart = (Date.now() - new Date(position.startDate).getTime()) / (1000 * 60 * 60 * 24);
+            const dailyRate = position.apy / 365 / 100;
+            const earnedYield = position.amount * dailyRate * daysSinceStart;
+            
+            return `${position.protocol} - ${position.token}:
+  Staked: ${position.amount}
+  APY: ${position.apy}%
+  Days Active: ${daysSinceStart.toFixed(1)}
+  Earned Yield: ${earnedYield.toFixed(6)}`;
+          })
+          .join("\n\n");
+        
+        const totalYield = memory.positions.reduce((sum, position) => {
+          const daysSinceStart = (Date.now() - new Date(position.startDate).getTime()) / (1000 * 60 * 60 * 24);
+          const dailyRate = position.apy / 365 / 100;
+          return sum + (position.amount * dailyRate * daysSinceStart);
+        }, 0);
+        
+        return `Yield Farming Report:
+${yieldReport}
+
+Total Earned Yield: ${totalYield.toFixed(6)}`;
+      },
+    }),
+  ],
+});
+```
+
+### 6. Arbitrage Bot
+
+An agent that identifies and executes arbitrage opportunities across SEI DEXs.
+
+```typescript
+const arbitrageContext = context({
+  type: "arbitrage-bot",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  create: () => ({
+    opportunities: [] as Array<{
+      token: string;
+      dex1: string;
+      dex2: string;
+      price1: number;
+      price2: number;
+      profit: number;
+      timestamp: string;
+    }>,
+    totalProfit: 0,
+  }),
+  
+  actions: [
+    action({
+      name: "scan-arbitrage-opportunities",
+      description: "Scan for arbitrage opportunities across DEXs",
+      schema: z.object({
+        minProfit: z.number().optional().describe("Minimum profit threshold (default: 0.5%)"),
+      }),
+      handler: async (args, { memory }) => {
+        const minProfit = args.minProfit || 0.5;
+        
+        // Simulate scanning multiple DEXs for price differences
+        const dexes = ["Astroport", "Kujira", "Osmosis"];
+        const tokens = ["SEI", "USDC", "USDT", "WETH"];
+        const opportunities = [];
+        
+        for (const token of tokens) {
+          const prices = [];
+          
+          for (const dex of dexes) {
+            // Simulate price fetching
+            const basePrice = 1.0 + Math.random() * 0.1; // Random price variation
+            const dexPrice = basePrice * (0.95 + Math.random() * 0.1); // DEX-specific variation
+            prices.push({ dex, price: dexPrice });
+          }
+          
+          // Find price differences
+          for (let i = 0; i < prices.length; i++) {
+            for (let j = i + 1; j < prices.length; j++) {
+              const price1 = prices[i];
+              const price2 = prices[j];
+              const profit = Math.abs(price1.price - price2.price) / Math.min(price1.price, price2.price) * 100;
+              
+              if (profit >= minProfit) {
+                opportunities.push({
+                  token,
+                  dex1: price1.dex,
+                  dex2: price2.dex,
+                  price1: price1.price,
+                  price2: price2.price,
+                  profit,
+                  timestamp: new Date().toISOString(),
+                });
+              }
+            }
+          }
+        }
+        
+        // Sort by profit
+        opportunities.sort((a, b) => b.profit - a.profit);
+        memory.opportunities = opportunities.slice(0, 10); // Keep top 10
+        
+        if (opportunities.length === 0) {
+          return `No arbitrage opportunities found with profit >= ${minProfit}%`;
+        }
+        
+        const report = opportunities
+          .slice(0, 5) // Show top 5
+          .map(opp => 
+            `${opp.token}:
+  ${opp.dex1}: $${opp.price1.toFixed(6)}
+  ${opp.dex2}: $${opp.price2.toFixed(6)}
+  Profit: ${opp.profit.toFixed(2)}%`
+          )
+          .join("\n\n");
+        
+        return `Arbitrage Opportunities (Top 5):
+${report}`;
+      },
+    }),
+    
+    action({
+      name: "execute-arbitrage",
+      description: "Execute an arbitrage trade",
+      schema: z.object({
+        token: z.string().describe("Token to arbitrage"),
+        dex1: z.string().describe("First DEX (buy from)"),
+        dex2: z.string().describe("Second DEX (sell to)"),
+        amount: z.string().describe("Amount to arbitrage"),
+      }),
+      handler: async (args, { memory }) => {
+        try {
+          // Find the opportunity
+          const opportunity = memory.opportunities.find(opp => 
+            opp.token === args.token && 
+            opp.dex1 === args.dex1 && 
+            opp.dex2 === args.dex2
+          );
+          
+          if (!opportunity) {
+            return "Arbitrage opportunity not found or expired";
+          }
+          
+          const amount = parseFloat(args.amount);
+          const buyPrice = opportunity.price1;
+          const sellPrice = opportunity.price2;
+          const profit = (sellPrice - buyPrice) * amount;
+          
+          // Simulate arbitrage execution
+          const buyHash = `0x${Math.random().toString(16).substr(2, 8)}`;
+          const sellHash = `0x${Math.random().toString(16).substr(2, 8)}`;
+          
+          memory.totalProfit += profit;
+          
+          return `Arbitrage executed successfully!
+Token: ${args.token}
+Amount: ${args.amount}
+Buy from ${args.dex1}: $${buyPrice.toFixed(6)}
+Sell to ${args.dex2}: $${sellPrice.toFixed(6)}
+Profit: $${profit.toFixed(6)}
+Buy TX: ${buyHash}
+Sell TX: ${sellHash}
+Total Profit: $${memory.totalProfit.toFixed(6)}`;
+        } catch (error) {
+          return `Arbitrage execution failed: ${error.message}`;
+        }
+      },
+    }),
+  ],
+});
+```
+
+## Complete Agent Examples
+
+### 7. Multi-Purpose DeFi Agent
+
+A comprehensive agent that combines all DeFi functionalities.
+
+```typescript
+const createDeFiAgent = (wallet: AxiomSeiWallet) => {
+  return createAgent({
+    model: groq("gemma2-9b-it", { apiKey: env.GROQ_API_KEY }),
+    contexts: [
+      balanceContext,
+      transferContext,
+      tradingContext,
+      portfolioContext,
+      yieldFarmingContext,
+      arbitrageContext,
+    ],
+  });
+};
+
+// Usage
+const wallet = new AxiomSeiWallet({
+  rpcUrl: env.SEI_RPC_URL,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+const defiAgent = createDeFiAgent(wallet);
+
+// Example interactions
+const interactions = [
+  "What's my SEI balance?",
+  "Transfer 1 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  "Find yield farming opportunities with APY > 15%",
+  "Scan for arbitrage opportunities",
+  "Add USDC to my portfolio with 30% allocation",
+  "Analyze my portfolio performance",
+  "Get a quote for swapping 100 USDC to SEI",
+];
+
+for (const query of interactions) {
+  console.log(`\n🤖 Query: ${query}`);
+  
+  const response = await defiAgent.send({
+    context: balanceContext, // Use appropriate context
+    args: { walletAddress: wallet.walletAdress },
+    input: { type: "text", data: { text: query } },
+  });
+  
+  console.log(`✅ Response: ${response[response.length - 1]?.data?.content || "No response"}`);
+}
+```
+
+## Best Practices
+
+### 1. **Error Handling**
+Always implement comprehensive error handling:
+
+```typescript
+action({
+  name: "safe-operation",
+  description: "Example of safe operation with error handling",
+  schema: z.object({
+    operation: z.string().describe("Operation to perform"),
+  }),
+  handler: async (args) => {
+    try {
+      // Validate inputs
+      if (!args.operation) {
+        return "Operation parameter is required";
+      }
+      
+      // Perform operation
+      const result = await performOperation(args.operation);
+      
+      return `Operation successful: ${result}`;
+    } catch (error) {
+      // Log error for debugging
+      console.error("Operation failed:", error);
+      
+      // Return user-friendly error message
+      if (error instanceof Error) {
+        return `Operation failed: ${error.message}`;
+      }
+      
+      return "Operation failed due to an unknown error";
+    }
+  },
+}),
+```
+
+### 2. **Input Validation**
+Validate all inputs before processing:
+
+```typescript
+const validateAddress = (address: string): boolean => {
+  return address.startsWith("0x") && address.length === 42;
+};
+
+const validateAmount = (amount: string): boolean => {
+  const num = parseFloat(amount);
+  return !isNaN(num) && num > 0;
+};
+```
+
+### 3. **Rate Limiting**
+Implement rate limiting for API calls:
+
+```typescript
+class RateLimiter {
+  private requests = new Map<string, number[]>();
+  
+  async waitForSlot(key: string, maxRequests = 10, windowMs = 60000) {
+    const now = Date.now();
+    const requests = this.requests.get(key) || [];
+    const validRequests = requests.filter(time => now - time < windowMs);
+    
+    if (validRequests.length >= maxRequests) {
+      const waitTime = windowMs - (now - Math.min(...validRequests));
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    validRequests.push(now);
+    this.requests.set(key, validRequests);
+  }
+}
+```
+
+### 4. **Security**
+Implement proper security measures:
+
+```typescript
+// Never expose private keys
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+// Validate all addresses
+const isValidAddress = (address: string): boolean => {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+};
+
+// Use proper gas limits
+const gasEstimate = await wallet.publicClient.estimateContractGas({
+  // ... contract call parameters
+});
+```
+
+## Testing Your Agents
+
+### Unit Testing
+
+```typescript
+import { describe, it, expect, beforeEach } from "vitest";
+
+describe("SEI Agent", () => {
+  let wallet: AxiomSeiWallet;
+  
+  beforeEach(() => {
+    wallet = new AxiomSeiWallet({
+      rpcUrl: "https://evm-rpc-testnet.sei-apis.com/",
+      privateKey: "0x...", // Test private key
+    });
+  });
+  
+  it("should check SEI balance", async () => {
+    const balance = await wallet.getERC20Balance();
+    expect(balance).toBeDefined();
+    expect(typeof balance).toBe("string");
+  });
+  
+  it("should find token by ticker", async () => {
+    const address = await wallet.getTokenAddressFromTicker("USDC");
+    expect(address).toBeDefined();
+    expect(address).toMatch(/^0x[a-fA-F0-9]{40}$/);
+  });
+});
+```
+
+### Integration Testing
+
+```typescript
+describe("Agent Integration", () => {
+  it("should handle complete workflow", async () => {
+    const agent = createDeFiAgent(wallet);
+    await agent.start();
+    
+    // Test balance check
+    const balanceResponse = await agent.send({
+      context: balanceContext,
+      args: { walletAddress: wallet.walletAdress },
+      input: { type: "text", data: { text: "What's my SEI balance?" } },
+    });
+    
+    expect(balanceResponse).toBeDefined();
+    expect(balanceResponse.length).toBeGreaterThan(0);
+    
+    await agent.stop();
+  });
+});
+```
+
+These examples demonstrate the full power of SEI AI agents, from simple balance checking to sophisticated DeFi strategies. Each example includes proper error handling, input validation, and security considerations.
+
+## Next Steps
+
+- [Quick Start Guide](/docs/sei/quick-start) - Get started with your first SEI agent
+- [Wallet Management](/docs/sei/wallet-management) - Learn advanced wallet operations
+- [Token Operations](/docs/sei/token-operations) - Master token interactions
+- [Smart Contracts](/docs/sei/smart-contracts) - Interact with smart contracts
+- [Providers & Integrations](/docs/sei/providers-integrations) - Use external services
+
+Start with the basic examples and gradually work your way up to the advanced DeFi strategies. Remember to always test on testnet first and implement proper security measures for production use.

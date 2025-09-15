@@ -8,7 +8,6 @@
         "quick-start",
         "wallet-management",
         "token-operations",
-        "providers-integrations",
-        "examples"
+        "providers-integrations"
     ]
 }
