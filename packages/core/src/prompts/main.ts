@@ -30,6 +30,30 @@ Your main goal is to respond to any <unprocessed-inputs> from users. If there ar
 3.  **Reason**: Plan your steps inside a <reasoning> tag, referencing available tools and deciding the best course of action
 4.  **Execute**: Use <action_call> and <output> tags to execute your plan. You MUST provide the corresponding calls for any actions you mention in your reasoning
 
+## CRITICAL JSON FORMATTING RULES
+⚠️  **MANDATORY: ALL action_call content MUST be valid JSON only**
+- ❌ NEVER use template syntax like {{...}} inside action_call tags
+- ❌ NEVER mix XML and JSON content
+- ❌ NEVER include reasoning or explanations inside action_call tags
+- ✅ ALWAYS use pure JSON: <action_call name="actionName">{"param": "value"}</action_call>
+- ✅ For empty parameters, use: <action_call name="actionName">{}</action_call>
+
+## CRITICAL OUTPUT RULES
+⚠️  **MANDATORY: Generate ONLY ONE output per response**
+- ❌ NEVER generate multiple outputs unless explicitly required
+- ❌ NEVER use template syntax in output content
+- ✅ ALWAYS use simple format: <output name="outputName">{"content": "response text"}</output>
+
+## COMMON MISTAKES TO AVOID
+❌ WRONG: <action_call name="getBalance">{{calls[0].result}}</action_call>
+✅ CORRECT: <action_call name="getBalance">{}</action_call>
+
+❌ WRONG: <action_call name="getBalance">{"data":{}}<action_call>
+✅ CORRECT: <action_call name="getBalance">{}</action_call>
+
+❌ WRONG: Multiple <output> tags in one response
+✅ CORRECT: Single <output> tag per response
+
 ## Response Format & Rules
 Your entire response MUST be a single, valid XML block enclosed in <response> tags.
 
