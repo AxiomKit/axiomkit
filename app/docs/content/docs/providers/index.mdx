@@ -1,0 +1,119 @@
+---
+title: Extensions Overview
+description: Complete guide to all AxiomKit Extensions and their capabilities
+icon: Package
+---
+
+# AxiomKit Extensions
+
+AxiomKit is built as a modular ecosystem of Extensions, each designed to handle specific aspects of AI agent development.
+
+## Core Package
+
+### @axiomkit/core
+
+The foundation of the AxiomKit ecosystem, providing essential building blocks for AI agents.
+
+**Key Features:**
+- 🧠 Advanced Memory System - Episodic, semantic, and working memory
+- 🎯 Context Management - Isolated state containers with persistence
+- ⚡ Action System - Type-safe function interfaces with validation
+- 🔄 Extension Framework - Plugin architecture for custom functionality
+- 📊 Monitoring & Logging - Comprehensive observability tools
+
+**Installation:**
+```bash
+pnpm add @axiomkit/core
+```
+
+## Platform Extensions
+
+### @axiomkit/cli
+
+Command-line interface extension for building terminal-based AI agents.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/cli
+```
+
+### @axiomkit/discord
+
+Discord bot integration for creating AI-powered Discord servers.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/discord discord.js
+```
+
+### @axiomkit/telegram
+
+Telegram bot integration for creating AI-powered Telegram bots.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/telegram telegraf
+```
+
+## Storage & Database
+
+### @axiomkit/mongodb
+
+MongoDB-based memory storage for persistent agent memory.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/mongodb mongodb
+```
+
+### @axiomkit/supabase
+
+Supabase integration for vector storage and real-time features.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/supabase @supabase/supabase-js
+```
+
+## Specialized Integrations
+
+### @axiomkit/mcp
+
+Model Context Protocol (MCP) integration for tool and resource access.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/mcp @modelcontextprotocol/sdk
+```
+
+### @axiomkit/sei
+
+SEI blockchain integration for Web3 AI agents.
+
+**Installation:**
+```bash
+pnpm add @axiomkit/sei @sei-js/evm ethers viem
+```
+
+## Development Tools
+
+### @axiomkit/create-agent
+
+CLI tool for scaffolding new AxiomKit agent projects.
+
+**Usage:**
+```bash
+npx @axiomkit/create-agent@latest my-agent
+```
+
+## Quick Installation
+
+### Minimal Setup
+```bash
+pnpm add @axiomkit/core @axiomkit/cli @ai-sdk/groq
+```
+
+### Full Stack Setup
+```bash
+pnpm add @axiomkit/core @axiomkit/cli @axiomkit/discord @axiomkit/telegram @axiomkit/mongodb @axiomkit/supabase @axiomkit/mcp @axiomkit/sei
+```

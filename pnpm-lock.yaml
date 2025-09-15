@@ -7,17 +7,17 @@ settings:
 catalogs:
   default:
     '@ai-sdk/anthropic':
-      specifier: 2.0.1
-      version: 2.0.1
+      specifier: 2.0.6
+      version: 2.0.6
     '@ai-sdk/google':
-      specifier: 2.0.2
-      version: 2.0.2
+      specifier: 2.0.8
+      version: 2.0.8
     '@ai-sdk/groq':
-      specifier: 2.0.2
-      version: 2.0.2
+      specifier: 2.0.14
+      version: 2.0.14
     '@ai-sdk/openai':
-      specifier: 2.0.4
-      version: 2.0.4
+      specifier: 2.0.20
+      version: 2.0.20
     '@ai-sdk/provider':
       specifier: 2.0.0
       version: 2.0.0
@@ -31,8 +31,8 @@ catalogs:
       specifier: 3.2.4
       version: 3.2.4
     ai:
-      specifier: 5.0.5
-      version: 5.0.5
+      specifier: 5.0.22
+      version: 5.0.22
     chalk:
       specifier: 5.3.0
       version: 5.3.0
@@ -42,6 +42,9 @@ catalogs:
     tsup:
       specifier: 8.5.0
       version: 8.5.0
+    tsx:
+      specifier: 4.6.2
+      version: 4.6.2
     typescript:
       specifier: 5.8.3
       version: 5.8.3
@@ -52,8 +55,8 @@ catalogs:
       specifier: 3.2.4
       version: 3.2.4
     zod:
-      specifier: 3.25.23
-      version: 3.25.23
+      specifier: 4.0.16
+      version: 4.0.16
     zod-to-json-schema:
       specifier: 3.24.3
       version: 3.24.3
@@ -67,16 +70,16 @@ importers:
     dependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'
-        version: 2.0.1(zod@4.0.17)
+        version: 2.0.6(zod@4.0.17)
       '@ai-sdk/google':
         specifier: 'catalog:'
-        version: 2.0.2(zod@4.0.17)
+        version: 2.0.8(zod@4.0.17)
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@4.0.17)
+        version: 2.0.14(zod@4.0.17)
       '@ai-sdk/openai':
         specifier: 'catalog:'
-        version: 2.0.4(zod@4.0.17)
+        version: 2.0.20(zod@4.0.17)
       '@ai-sdk/provider':
         specifier: 'catalog:'
         version: 2.0.0
@@ -85,7 +88,7 @@ importers:
         version: 1.2.11(zod@4.0.17)
       ai:
         specifier: 'catalog:'
-        version: 5.0.5(zod@4.0.17)
+        version: 5.0.22(zod@4.0.17)
       uuid:
         specifier: 'catalog:'
         version: 11.1.0
@@ -240,13 +243,13 @@ importers:
     dependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'
-        version: 2.0.1(zod@3.25.23)
+        version: 2.0.6(zod@4.0.16)
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@3.25.23)
+        version: 2.0.14(zod@4.0.16)
       '@ai-sdk/openai':
         specifier: 'catalog:'
-        version: 2.0.4(zod@3.25.23)
+        version: 2.0.20(zod@4.0.16)
       '@axiomkit/cli':
         specifier: workspace:*
         version: link:../../../packages/cli
@@ -264,10 +267,10 @@ importers:
         version: 5.8.3
       viem:
         specifier: ^2.33.0
-        version: 2.33.0(typescript@5.8.3)(zod@3.25.23)
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
 
   app/examples/mcp:
     dependencies:
@@ -300,17 +303,47 @@ importers:
         specifier: ^5.3.0
         version: 5.9.2
 
-  app/examples/mongodb:
+  app/examples/memory:
     dependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'
-        version: 2.0.1(zod@3.25.23)
+        version: 2.0.6(zod@4.0.16)
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@3.25.23)
+        version: 2.0.14(zod@4.0.16)
       '@ai-sdk/openai':
         specifier: 'catalog:'
-        version: 2.0.4(zod@3.25.23)
+        version: 2.0.20(zod@4.0.16)
+      '@axiomkit/cli':
+        specifier: workspace:*
+        version: link:../../../packages/cli
+      '@axiomkit/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@axiomkit/sei':
+        specifier: workspace:*
+        version: link:../../../packages/sei
+      chalk:
+        specifier: 'catalog:'
+        version: 5.3.0
+      tsx:
+        specifier: 'catalog:'
+        version: 4.6.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      viem:
+        specifier: ^2.33.0
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
+      zod:
+        specifier: 'catalog:'
+        version: 4.0.16
+
+  app/examples/mongodb:
+    dependencies:
+      '@ai-sdk/groq':
+        specifier: 'catalog:'
+        version: 2.0.14(zod@4.0.16)
       '@axiomkit/cli':
         specifier: workspace:*
         version: link:../../../packages/cli
@@ -320,33 +353,33 @@ importers:
       '@axiomkit/mongodb':
         specifier: workspace:*
         version: link:../../../packages/mongodb
-      '@axiomkit/sei':
-        specifier: workspace:*
-        version: link:../../../packages/sei
       chalk:
         specifier: 'catalog:'
         version: 5.3.0
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      dotenv:
+        specifier: 'catalog:'
+        version: 16.4.7
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
-      viem:
-        specifier: ^2.33.0
-        version: 2.33.0(typescript@5.8.3)(zod@3.25.23)
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
 
   app/examples/sei:
     dependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'
-        version: 2.0.1(zod@3.25.23)
+        version: 2.0.6(zod@4.0.16)
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@3.25.23)
+        version: 2.0.14(zod@4.0.16)
       '@ai-sdk/openai':
         specifier: 'catalog:'
-        version: 2.0.4(zod@3.25.23)
+        version: 2.0.20(zod@4.0.16)
       '@axiomkit/core':
         specifier: workspace:*
         version: link:../../../packages/core
@@ -358,16 +391,16 @@ importers:
         version: 5.8.3
       viem:
         specifier: ^2.33.0
-        version: 2.33.0(typescript@5.8.3)(zod@3.25.23)
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
 
   app/examples/socials:
     dependencies:
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@3.25.23)
+        version: 2.0.14(zod@4.0.16)
       '@axiomkit/core':
         specifier: workspace:*
         version: link:../../../packages/core
@@ -379,17 +412,62 @@ importers:
         version: 0.5.10
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
         version: 1.2.19(@types/react@19.1.9)
 
+  app/examples/supabase:
+    dependencies:
+      '@ai-sdk/anthropic':
+        specifier: 'catalog:'
+        version: 2.0.6(zod@4.0.16)
+      '@ai-sdk/groq':
+        specifier: 'catalog:'
+        version: 2.0.14(zod@4.0.16)
+      '@ai-sdk/openai':
+        specifier: 'catalog:'
+        version: 2.0.20(zod@4.0.16)
+      '@axiomkit/cli':
+        specifier: workspace:*
+        version: link:../../../packages/cli
+      '@axiomkit/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@axiomkit/sei':
+        specifier: workspace:*
+        version: link:../../../packages/sei
+      '@axiomkit/supabase':
+        specifier: workspace:*
+        version: link:../../../packages/supabase
+      chalk:
+        specifier: 'catalog:'
+        version: 5.3.0
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      dotenv:
+        specifier: 'catalog:'
+        version: 16.4.7
+      express:
+        specifier: ^4.18.2
+        version: 4.21.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      viem:
+        specifier: ^2.33.0
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
+      zod:
+        specifier: 'catalog:'
+        version: 4.0.16
+
   app/examples/telegram:
     dependencies:
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@3.25.23)
+        version: 2.0.14(zod@4.0.16)
       '@axiomkit/cli':
         specifier: workspace:*
         version: link:../../../packages/cli
@@ -401,7 +479,7 @@ importers:
         version: link:../../../packages/telegram
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
@@ -417,7 +495,7 @@ importers:
         version: 5.8.3
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
@@ -436,10 +514,10 @@ importers:
         version: 2.0.0
       '@ai-sdk/ui-utils':
         specifier: 'catalog:'
-        version: 1.2.11(zod@3.25.23)
+        version: 1.2.11(zod@4.0.16)
       ai:
         specifier: 'catalog:'
-        version: 5.0.5(zod@3.25.23)
+        version: 5.0.22(zod@4.0.16)
       dotenv:
         specifier: 'catalog:'
         version: 16.4.7
@@ -451,20 +529,20 @@ importers:
         version: 11.1.0
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
       zod-to-json-schema:
         specifier: 'catalog:'
-        version: 3.24.3(zod@3.25.23)
+        version: 3.24.3(zod@4.0.16)
     devDependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'
-        version: 2.0.1(zod@3.25.23)
+        version: 2.0.6(zod@4.0.16)
       '@ai-sdk/groq':
         specifier: 'catalog:'
-        version: 2.0.2(zod@3.25.23)
+        version: 2.0.14(zod@4.0.16)
       '@ai-sdk/openai':
         specifier: 'catalog:'
-        version: 2.0.4(zod@3.25.23)
+        version: 2.0.20(zod@4.0.16)
       '@vitest/ui':
         specifier: 'catalog:'
         version: 3.2.4(vitest@3.2.4)
@@ -543,7 +621,7 @@ importers:
         version: 5.8.3
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: latest
@@ -561,14 +639,14 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@modelcontextprotocol/sdk':
-        specifier: ^1.17.2
-        version: 1.17.2
+        specifier: ^1.17.5
+        version: 1.17.5
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: latest
@@ -596,7 +674,7 @@ importers:
         version: 5.8.3
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: latest
@@ -618,7 +696,7 @@ importers:
         version: link:../core
       '@sei-js/evm':
         specifier: ^2.0.5
-        version: 2.0.5(ethers@6.15.0)(viem@2.33.0(typescript@5.8.3)(zod@3.25.23))
+        version: 2.0.5(ethers@6.15.0)(viem@2.33.0(typescript@5.8.3)(zod@4.0.16))
       bs58:
         specifier: ^6.0.0
         version: 6.0.0
@@ -633,10 +711,10 @@ importers:
         version: 5.8.3
       viem:
         specifier: ^2.33.0
-        version: 2.33.0(typescript@5.8.3)(zod@3.25.23)
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       tsup:
         specifier: 'catalog:'
@@ -655,13 +733,13 @@ importers:
         version: 2.53.0
       ai:
         specifier: 'catalog:'
-        version: 5.0.5(zod@3.25.23)
+        version: 5.0.22(zod@4.0.16)
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
@@ -689,7 +767,7 @@ importers:
         version: 5.8.3
       zod:
         specifier: 'catalog:'
-        version: 3.25.23
+        version: 4.0.16
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
@@ -709,32 +787,32 @@ packages:
   '@adraffy/ens-normalize@1.11.0':
     resolution: {integrity: sha512-/3DDPKHqqIqxUULp8yP4zODUY1i+2xvVWsv8A79xGWdCAG+8sb0hRh0Rk2QyOJUnnbyPUAZYcpBuRe3nS2OIUg==}
 
-  '@ai-sdk/anthropic@2.0.1':
-    resolution: {integrity: sha512-HtNbpNV9qXQosHu00+CBMEcdTerwZY+kpVMNak0xP/P5TF6XkPf7IyizhLuc7y5zcXMjZCMA7jDGkcEdZCEdkw==}
+  '@ai-sdk/anthropic@2.0.6':
+    resolution: {integrity: sha512-ZSAU1xUebumWF1ldgkq9nz8iT7Ew9DGTX8Z4c2mvmlexifxzOMdj9cNLld5DlRD5dr4ULjSnTZywPKyMlAEcdQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/gateway@1.0.3':
-    resolution: {integrity: sha512-QRGz2vH1WR9NvCv8gWocoebAKiXcuqj22mug6i8COeVsp33x5K5cK2DT4TwiQx5SfYbqJbVoBT+UqnHF7A3PHA==}
+  '@ai-sdk/gateway@1.0.11':
+    resolution: {integrity: sha512-ErwWS3sPOuWy42eE3AVxlKkTa1XjjKBEtNCOylVKMO5KNyz5qie8QVlLYbULOG56dtxX4zTKX3rQNJudplhcmQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/google@2.0.2':
-    resolution: {integrity: sha512-ZTETUnuXPBErzRiXSFvPjRUJQ6kAZLueFi3qCtpxPe7xgmQAqY+0z4pR+v4zOBgrCtgpuB6nayXXXG/8zUaCjA==}
+  '@ai-sdk/google@2.0.8':
+    resolution: {integrity: sha512-k+5SLtoV0qG4rSCxwWQ+/0qrJFXwYHQ1TcH4GyaP4X0qOuVS4NDtD8ymSu8ej0ejFluogtBfTLev7sbj2AnJzA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/groq@2.0.2':
-    resolution: {integrity: sha512-oiMkruBlXdCN8jPHr0bzZlPB5XCse0daQW8qPcnqx2gCARsAmM1xhoZdpWXxlBPwCueOjkqo1AGA7npKlnzC2Q==}
+  '@ai-sdk/groq@2.0.14':
+    resolution: {integrity: sha512-twgQfti5gmmNgLbPYiqhZJn0P+CDlxKWHEMisl4a7cgbruO+5QCj8XuvAfyfnvGlDAOUIKFastH0pIMp1Hu/Kw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/openai@2.0.4':
-    resolution: {integrity: sha512-PnVUFosX2zWk6emiX4SulZrGvGw79YJjh/DgxahpAcBpz71GlQyzVNTFAQx7ycFGLBg/YniJr1M2WJybYZZ3ug==}
+  '@ai-sdk/openai@2.0.20':
+    resolution: {integrity: sha512-6cBQpb6Sh5pCthSb/rGhIAsVq3EfHYKtFmeYapsBpILMkWI2DiIOajpEVe9DWCQaqTjXglZdbQsxSFJoaWlNQQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -745,8 +823,8 @@ packages:
     peerDependencies:
       zod: ^3.23.8
 
-  '@ai-sdk/provider-utils@3.0.1':
-    resolution: {integrity: sha512-/iP1sKc6UdJgGH98OCly7sWJKv+J9G47PnTjIj40IJMUQKwDrUMyf7zOOfRtPwSuNifYhSoJQ4s1WltI65gJ/g==}
+  '@ai-sdk/provider-utils@3.0.5':
+    resolution: {integrity: sha512-HliwB/yzufw3iwczbFVE2Fiwf1XqROB/I6ng8EKUsPM5+2wnIa8f4VbljZcDx+grhFrPV+PnRZH7zBqi8WZM7Q==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -844,6 +922,12 @@ packages:
     cpu: [ppc64]
     os: [aix]
 
+  '@esbuild/android-arm64@0.18.20':
+    resolution: {integrity: sha512-Nz4rJcchGDtENV0eMKUNa6L12zz2zBDXuhj/Vjh18zGqB44Bi7MBMSXjgunJgjRhCmKOjnPuZp4Mb6OKqtMHLQ==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [android]
+
   '@esbuild/android-arm64@0.25.6':
     resolution: {integrity: sha512-hd5zdUarsK6strW+3Wxi5qWws+rJhCCbMiC9QZyzoxfk5uHRIE8T287giQxzVpEvCwuJ9Qjg6bEjcRJcgfLqoA==}
     engines: {node: '>=18'}
@@ -854,6 +938,12 @@ packages:
     resolution: {integrity: sha512-OD3p7LYzWpLhZEyATcTSJ67qB5D+20vbtr6vHlHWSQYhKtzUYrETuWThmzFpZtFsBIxRvhO07+UgVA9m0i/O1w==}
     engines: {node: '>=18'}
     cpu: [arm64]
+    os: [android]
+
+  '@esbuild/android-arm@0.18.20':
+    resolution: {integrity: sha512-fyi7TDI/ijKKNZTUJAQqiG5T7YjJXgnzkURqmGj13C6dCqckZBLdl4h7bkhHt/t0WP+zO9/zwroDvANaOqO5Sw==}
+    engines: {node: '>=12'}
+    cpu: [arm]
     os: [android]
 
   '@esbuild/android-arm@0.25.6':
@@ -868,6 +958,12 @@ packages:
     cpu: [arm]
     os: [android]
 
+  '@esbuild/android-x64@0.18.20':
+    resolution: {integrity: sha512-8GDdlePJA8D6zlZYJV/jnrRAi6rOiNaCC/JclcXpB+KIuvfBN4owLtgzY2bsxnx666XjJx2kDPUmnTtR8qKQUg==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [android]
+
   '@esbuild/android-x64@0.25.6':
     resolution: {integrity: sha512-0Z7KpHSr3VBIO9A/1wcT3NTy7EB4oNC4upJ5ye3R7taCc2GUdeynSLArnon5G8scPwaU866d3H4BCrE5xLW25A==}
     engines: {node: '>=18'}
@@ -880,6 +976,12 @@ packages:
     cpu: [x64]
     os: [android]
 
+  '@esbuild/darwin-arm64@0.18.20':
+    resolution: {integrity: sha512-bxRHW5kHU38zS2lPTPOyuyTm+S+eobPUnTNkdJEfAddYgEcll4xkT8DB9d2008DtTbl7uJag2HuE5NZAZgnNEA==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [darwin]
+
   '@esbuild/darwin-arm64@0.25.6':
     resolution: {integrity: sha512-FFCssz3XBavjxcFxKsGy2DYK5VSvJqa6y5HXljKzhRZ87LvEi13brPrf/wdyl/BbpbMKJNOr1Sd0jtW4Ge1pAA==}
     engines: {node: '>=18'}
@@ -890,6 +992,12 @@ packages:
     resolution: {integrity: sha512-Jw0mxgIaYX6R8ODrdkLLPwBqHTtYHJSmzzd+QeytSugzQ0Vg4c5rDky5VgkoowbZQahCbsv1rT1KW72MPIkevw==}
     engines: {node: '>=18'}
     cpu: [arm64]
+    os: [darwin]
+
+  '@esbuild/darwin-x64@0.18.20':
+    resolution: {integrity: sha512-pc5gxlMDxzm513qPGbCbDukOdsGtKhfxD1zJKXjCCcU7ju50O7MeAZ8c4krSJcOIJGFR+qx21yMMVYwiQvyTyQ==}
+    engines: {node: '>=12'}
+    cpu: [x64]
     os: [darwin]
 
   '@esbuild/darwin-x64@0.25.6':
@@ -904,6 +1012,12 @@ packages:
     cpu: [x64]
     os: [darwin]
 
+  '@esbuild/freebsd-arm64@0.18.20':
+    resolution: {integrity: sha512-yqDQHy4QHevpMAaxhhIwYPMv1NECwOvIpGCZkECn8w2WFHXjEwrBn3CeNIYsibZ/iZEUemj++M26W3cNR5h+Tw==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [freebsd]
+
   '@esbuild/freebsd-arm64@0.25.6':
     resolution: {integrity: sha512-aoLF2c3OvDn2XDTRvn8hN6DRzVVpDlj2B/F66clWd/FHLiHaG3aVZjxQX2DYphA5y/evbdGvC6Us13tvyt4pWg==}
     engines: {node: '>=18'}
@@ -914,6 +1028,12 @@ packages:
     resolution: {integrity: sha512-YPJ7hDQ9DnNe5vxOm6jaie9QsTwcKedPvizTVlqWG9GBSq+BuyWEDazlGaDTC5NGU4QJd666V0yqCBL2oWKPfA==}
     engines: {node: '>=18'}
     cpu: [arm64]
+    os: [freebsd]
+
+  '@esbuild/freebsd-x64@0.18.20':
+    resolution: {integrity: sha512-tgWRPPuQsd3RmBZwarGVHZQvtzfEBOreNuxEMKFcd5DaDn2PbBxfwLcj4+aenoh7ctXcbXmOQIn8HI6mCSw5MQ==}
+    engines: {node: '>=12'}
+    cpu: [x64]
     os: [freebsd]
 
   '@esbuild/freebsd-x64@0.25.6':
@@ -928,6 +1048,12 @@ packages:
     cpu: [x64]
     os: [freebsd]
 
+  '@esbuild/linux-arm64@0.18.20':
+    resolution: {integrity: sha512-2YbscF+UL7SQAVIpnWvYwM+3LskyDmPhe31pE7/aoTMFKKzIc9lLbyGUpmmb8a8AixOL61sQ/mFh3jEjHYFvdA==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [linux]
+
   '@esbuild/linux-arm64@0.25.6':
     resolution: {integrity: sha512-b967hU0gqKd9Drsh/UuAm21Khpoh6mPBSgz8mKRq4P5mVK8bpA+hQzmm/ZwGVULSNBzKdZPQBRT3+WuVavcWsQ==}
     engines: {node: '>=18'}
@@ -938,6 +1064,12 @@ packages:
     resolution: {integrity: sha512-WIgg00ARWv/uYLU7lsuDK00d/hHSfES5BzdWAdAig1ioV5kaFNrtK8EqGcUBJhYqotlUByUKz5Qo6u8tt7iD/w==}
     engines: {node: '>=18'}
     cpu: [arm64]
+    os: [linux]
+
+  '@esbuild/linux-arm@0.18.20':
+    resolution: {integrity: sha512-/5bHkMWnq1EgKr1V+Ybz3s1hWXok7mDFUMQ4cG10AfW3wL02PSZi5kFpYKrptDsgb2WAJIvRcDm+qIvXf/apvg==}
+    engines: {node: '>=12'}
+    cpu: [arm]
     os: [linux]
 
   '@esbuild/linux-arm@0.25.6':
@@ -952,6 +1084,12 @@ packages:
     cpu: [arm]
     os: [linux]
 
+  '@esbuild/linux-ia32@0.18.20':
+    resolution: {integrity: sha512-P4etWwq6IsReT0E1KHU40bOnzMHoH73aXp96Fs8TIT6z9Hu8G6+0SHSw9i2isWrD2nbx2qo5yUqACgdfVGx7TA==}
+    engines: {node: '>=12'}
+    cpu: [ia32]
+    os: [linux]
+
   '@esbuild/linux-ia32@0.25.6':
     resolution: {integrity: sha512-aHWdQ2AAltRkLPOsKdi3xv0mZ8fUGPdlKEjIEhxCPm5yKEThcUjHpWB1idN74lfXGnZ5SULQSgtr5Qos5B0bPw==}
     engines: {node: '>=18'}
@@ -962,6 +1100,12 @@ packages:
     resolution: {integrity: sha512-A1D9YzRX1i+1AJZuFFUMP1E9fMaYY+GnSQil9Tlw05utlE86EKTUA7RjwHDkEitmLYiFsRd9HwKBPEftNdBfjg==}
     engines: {node: '>=18'}
     cpu: [ia32]
+    os: [linux]
+
+  '@esbuild/linux-loong64@0.18.20':
+    resolution: {integrity: sha512-nXW8nqBTrOpDLPgPY9uV+/1DjxoQ7DoB2N8eocyq8I9XuqJ7BiAMDMf9n1xZM9TgW0J8zrquIb/A7s3BJv7rjg==}
+    engines: {node: '>=12'}
+    cpu: [loong64]
     os: [linux]
 
   '@esbuild/linux-loong64@0.25.6':
@@ -976,6 +1120,12 @@ packages:
     cpu: [loong64]
     os: [linux]
 
+  '@esbuild/linux-mips64el@0.18.20':
+    resolution: {integrity: sha512-d5NeaXZcHp8PzYy5VnXV3VSd2D328Zb+9dEq5HE6bw6+N86JVPExrA6O68OPwobntbNJ0pzCpUFZTo3w0GyetQ==}
+    engines: {node: '>=12'}
+    cpu: [mips64el]
+    os: [linux]
+
   '@esbuild/linux-mips64el@0.25.6':
     resolution: {integrity: sha512-WViNlpivRKT9/py3kCmkHnn44GkGXVdXfdc4drNmRl15zVQ2+D2uFwdlGh6IuK5AAnGTo2qPB1Djppj+t78rzw==}
     engines: {node: '>=18'}
@@ -986,6 +1136,12 @@ packages:
     resolution: {integrity: sha512-uv+dqfRazte3BzfMp8PAQXmdGHQt2oC/y2ovwpTteqrMx2lwaksiFZ/bdkXJC19ttTvNXBuWH53zy/aTj1FgGw==}
     engines: {node: '>=18'}
     cpu: [mips64el]
+    os: [linux]
+
+  '@esbuild/linux-ppc64@0.18.20':
+    resolution: {integrity: sha512-WHPyeScRNcmANnLQkq6AfyXRFr5D6N2sKgkFo2FqguP44Nw2eyDlbTdZwd9GYk98DZG9QItIiTlFLHJHjxP3FA==}
+    engines: {node: '>=12'}
+    cpu: [ppc64]
     os: [linux]
 
   '@esbuild/linux-ppc64@0.25.6':
@@ -1000,6 +1156,12 @@ packages:
     cpu: [ppc64]
     os: [linux]
 
+  '@esbuild/linux-riscv64@0.18.20':
+    resolution: {integrity: sha512-WSxo6h5ecI5XH34KC7w5veNnKkju3zBRLEQNY7mv5mtBmrP/MjNBCAlsM2u5hDBlS3NGcTQpoBvRzqBcRtpq1A==}
+    engines: {node: '>=12'}
+    cpu: [riscv64]
+    os: [linux]
+
   '@esbuild/linux-riscv64@0.25.6':
     resolution: {integrity: sha512-KZh7bAGGcrinEj4qzilJ4hqTY3Dg2U82c8bv+e1xqNqZCrCyc+TL9AUEn5WGKDzm3CfC5RODE/qc96OcbIe33w==}
     engines: {node: '>=18'}
@@ -1012,6 +1174,12 @@ packages:
     cpu: [riscv64]
     os: [linux]
 
+  '@esbuild/linux-s390x@0.18.20':
+    resolution: {integrity: sha512-+8231GMs3mAEth6Ja1iK0a1sQ3ohfcpzpRLH8uuc5/KVDFneH6jtAJLFGafpzpMRO6DzJ6AvXKze9LfFMrIHVQ==}
+    engines: {node: '>=12'}
+    cpu: [s390x]
+    os: [linux]
+
   '@esbuild/linux-s390x@0.25.6':
     resolution: {integrity: sha512-9N1LsTwAuE9oj6lHMyyAM+ucxGiVnEqUdp4v7IaMmrwb06ZTEVCIs3oPPplVsnjPfyjmxwHxHMF8b6vzUVAUGw==}
     engines: {node: '>=18'}
@@ -1022,6 +1190,12 @@ packages:
     resolution: {integrity: sha512-Xutvh6VjlbcHpsIIbwY8GVRbwoviWT19tFhgdA7DlenLGC/mbc3lBoVb7jxj9Z+eyGqvcnSyIltYUrkKzWqSvg==}
     engines: {node: '>=18'}
     cpu: [s390x]
+    os: [linux]
+
+  '@esbuild/linux-x64@0.18.20':
+    resolution: {integrity: sha512-UYqiqemphJcNsFEskc73jQ7B9jgwjWrSayxawS6UVFZGWrAAtkzjxSqnoclCXxWtfwLdzU+vTpcNYhpn43uP1w==}
+    engines: {node: '>=12'}
+    cpu: [x64]
     os: [linux]
 
   '@esbuild/linux-x64@0.25.6':
@@ -1048,6 +1222,12 @@ packages:
     cpu: [arm64]
     os: [netbsd]
 
+  '@esbuild/netbsd-x64@0.18.20':
+    resolution: {integrity: sha512-iO1c++VP6xUBUmltHZoMtCUdPlnPGdBom6IrO4gyKPFFVBKioIImVooR5I83nTew5UOYrk3gIJhbZh8X44y06A==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [netbsd]
+
   '@esbuild/netbsd-x64@0.25.6':
     resolution: {integrity: sha512-dUXuZr5WenIDlMHdMkvDc1FAu4xdWixTCRgP7RQLBOkkGgwuuzaGSYcOpW4jFxzpzL1ejb8yF620UxAqnBrR9g==}
     engines: {node: '>=18'}
@@ -1070,6 +1250,12 @@ packages:
     resolution: {integrity: sha512-j8HgrDuSJFAujkivSMSfPQSAa5Fxbvk4rgNAS5i3K+r8s1X0p1uOO2Hl2xNsGFppOeHOLAVgYwDVlmxhq5h+SQ==}
     engines: {node: '>=18'}
     cpu: [arm64]
+    os: [openbsd]
+
+  '@esbuild/openbsd-x64@0.18.20':
+    resolution: {integrity: sha512-e5e4YSsuQfX4cxcygw/UCPIEP6wbIL+se3sxPdCiMbFLBWu0eiZOJ7WoD+ptCLrmjZBK1Wk7I6D/I3NglUGOxg==}
+    engines: {node: '>=12'}
+    cpu: [x64]
     os: [openbsd]
 
   '@esbuild/openbsd-x64@0.25.6':
@@ -1096,6 +1282,12 @@ packages:
     cpu: [arm64]
     os: [openharmony]
 
+  '@esbuild/sunos-x64@0.18.20':
+    resolution: {integrity: sha512-kDbFRFp0YpTQVVrqUd5FTYmWo45zGaXe0X8E1G/LKFC0v8x0vWrhOWSLITcCn63lmZIxfOMXtCfti/RxN/0wnQ==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [sunos]
+
   '@esbuild/sunos-x64@0.25.6':
     resolution: {integrity: sha512-dyCGxv1/Br7MiSC42qinGL8KkG4kX0pEsdb0+TKhmJZgCUDBGmyo1/ArCjNGiOLiIAgdbWgmWgib4HoCi5t7kA==}
     engines: {node: '>=18'}
@@ -1107,6 +1299,12 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [sunos]
+
+  '@esbuild/win32-arm64@0.18.20':
+    resolution: {integrity: sha512-ddYFR6ItYgoaq4v4JmQQaAI5s7npztfV4Ag6NrhiaW0RrnOXqBkgwZLofVTlq1daVTQNhtI5oieTvkRPfZrePg==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [win32]
 
   '@esbuild/win32-arm64@0.25.6':
     resolution: {integrity: sha512-42QOgcZeZOvXfsCBJF5Afw73t4veOId//XD3i+/9gSkhSV6Gk3VPlWncctI+JcOyERv85FUo7RxuxGy+z8A43Q==}
@@ -1120,6 +1318,12 @@ packages:
     cpu: [arm64]
     os: [win32]
 
+  '@esbuild/win32-ia32@0.18.20':
+    resolution: {integrity: sha512-Wv7QBi3ID/rROT08SABTS7eV4hX26sVduqDOTe1MvGMjNd3EjOz4b7zeexIR62GTIEKrfJXKL9LFxTYgkyeu7g==}
+    engines: {node: '>=12'}
+    cpu: [ia32]
+    os: [win32]
+
   '@esbuild/win32-ia32@0.25.6':
     resolution: {integrity: sha512-4AWhgXmDuYN7rJI6ORB+uU9DHLq/erBbuMoAuB4VWJTu5KtCgcKYPynF0YI1VkBNuEfjNlLrFr9KZPJzrtLkrQ==}
     engines: {node: '>=18'}
@@ -1130,6 +1334,12 @@ packages:
     resolution: {integrity: sha512-hiGgGC6KZ5LZz58OL/+qVVoZiuZlUYlYHNAmczOm7bs2oE1XriPFi5ZHHrS8ACpV5EjySrnoCKmcbQMN+ojnHg==}
     engines: {node: '>=18'}
     cpu: [ia32]
+    os: [win32]
+
+  '@esbuild/win32-x64@0.18.20':
+    resolution: {integrity: sha512-kTdfRcSiDfQca/y9QIkng02avJ+NCaQvrMejlsB3RRv5sE9rRoeBPISaZpKxHELzRxZyLvNts1P27W3wV+8geQ==}
+    engines: {node: '>=12'}
+    cpu: [x64]
     os: [win32]
 
   '@esbuild/win32-x64@0.25.6':
@@ -1333,6 +1543,10 @@ packages:
 
   '@modelcontextprotocol/sdk@1.17.2':
     resolution: {integrity: sha512-EFLRNXR/ixpXQWu6/3Cu30ndDFIFNaqUXcTqsGebujeMan9FzhAaFFswLRiFj61rgygDRr8WO1N+UijjgRxX9g==}
+    engines: {node: '>=18'}
+
+  '@modelcontextprotocol/sdk@1.17.5':
+    resolution: {integrity: sha512-QakrKIGniGuRVfWBdMsDea/dx1PNE739QJ7gCM41s9q+qaCYTHCdsIBXQVVXry3mfWAiaM9kT22Hyz53Uw8mfg==}
     engines: {node: '>=18'}
 
   '@mongodb-js/saslprep@1.3.0':
@@ -2371,8 +2585,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@5.0.5:
-    resolution: {integrity: sha512-NPQ8Yv4lR7o/1rM+HQ0JT18zKxVFy/DrFDpvxlBQqmemSwsf3FlLNTK0asWXo9YtDAc0BOFL/y4kB56Hffi4yg==}
+  ai@5.0.22:
+    resolution: {integrity: sha512-RZiYhj7Ux7hrLtXkHPcxzdiSZt4NOiC69O5AkNfMCsz3twwz/KRkl9ASptosoOsg833s5yRcTSdIu5z53Sl6Pw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -2821,6 +3035,11 @@ packages:
 
   esast-util-from-js@2.0.1:
     resolution: {integrity: sha512-8Ja+rNJ0Lt56Pcf3TAmpBZjmx8ZcK5Ts4cAzIOjsjevg9oSXJnl6SUQ2EevU8tv3h6ZLWmoKL5H4fgWvdvfETw==}
+
+  esbuild@0.18.20:
+    resolution: {integrity: sha512-ceqxoedUrcayh7Y7ZX6NdbbDzGROiyVBgC4PriJThBKSVPWnnFHZAkfI1lJT8QFkOwH4qOS2SJkS4wvpGl8BpA==}
+    engines: {node: '>=12'}
+    hasBin: true
 
   esbuild@0.25.6:
     resolution: {integrity: sha512-GVuzuUwtdsghE3ocJ9Bs8PNoF13HNQ5TXbEi2AhvVb8xU1Iwt9Fos9FEamfoee+u/TOsn7GUWc04lz46n2bbTg==}
@@ -4613,6 +4832,11 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  tsx@4.6.2:
+    resolution: {integrity: sha512-QPpBdJo+ZDtqZgAnq86iY/PD2KYCUPSUGIunHdGwyII99GKH+f3z3FZ8XNFLSGQIA4I365ui8wnQpl8OKLqcsg==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   tw-animate-css@1.3.7:
     resolution: {integrity: sha512-lvLb3hTIpB5oGsk8JmLoAjeCHV58nKa2zHYn8yWOoG5JJusH3bhJlF2DLAZ/5NmJ+jyH3ssiAx/2KmbhavJy/A==}
 
@@ -4931,6 +5155,9 @@ packages:
   zod@3.25.23:
     resolution: {integrity: sha512-Od2bdMosahjSrSgJtakrwjMDb1zM1A3VIHCPGveZt/3/wlrTWBya2lmEh2OYe4OIu8mPTmmr0gnLHIWQXdtWBg==}
 
+  zod@4.0.16:
+    resolution: {integrity: sha512-Djo/cM339grjI7/HmN+ixYO2FzEMcWr/On50UlQ/RjrWK1I/hPpWhpC76heCptnRFpH0LMwrEbUY50HDc0V8wg==}
+
   zod@4.0.17:
     resolution: {integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==}
 
@@ -4943,66 +5170,66 @@ snapshots:
 
   '@adraffy/ens-normalize@1.11.0': {}
 
-  '@ai-sdk/anthropic@2.0.1(zod@3.25.23)':
+  '@ai-sdk/anthropic@2.0.6(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.23)
-      zod: 3.25.23
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.16)
+      zod: 4.0.16
 
-  '@ai-sdk/anthropic@2.0.1(zod@4.0.17)':
+  '@ai-sdk/anthropic@2.0.6(zod@4.0.17)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.17)
       zod: 4.0.17
 
-  '@ai-sdk/gateway@1.0.3(zod@3.25.23)':
+  '@ai-sdk/gateway@1.0.11(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.23)
-      zod: 3.25.23
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.16)
+      zod: 4.0.16
 
-  '@ai-sdk/gateway@1.0.3(zod@4.0.17)':
+  '@ai-sdk/gateway@1.0.11(zod@4.0.17)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.17)
       zod: 4.0.17
 
-  '@ai-sdk/google@2.0.2(zod@4.0.17)':
+  '@ai-sdk/google@2.0.8(zod@4.0.17)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.17)
       zod: 4.0.17
 
-  '@ai-sdk/groq@2.0.2(zod@3.25.23)':
+  '@ai-sdk/groq@2.0.14(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.23)
-      zod: 3.25.23
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.16)
+      zod: 4.0.16
 
-  '@ai-sdk/groq@2.0.2(zod@4.0.17)':
+  '@ai-sdk/groq@2.0.14(zod@4.0.17)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.17)
       zod: 4.0.17
 
-  '@ai-sdk/openai@2.0.4(zod@3.25.23)':
+  '@ai-sdk/openai@2.0.20(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.23)
-      zod: 3.25.23
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.16)
+      zod: 4.0.16
 
-  '@ai-sdk/openai@2.0.4(zod@4.0.17)':
+  '@ai-sdk/openai@2.0.20(zod@4.0.17)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.17)
       zod: 4.0.17
 
-  '@ai-sdk/provider-utils@2.2.8(zod@3.25.23)':
+  '@ai-sdk/provider-utils@2.2.8(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       nanoid: 3.3.11
       secure-json-parse: 2.7.0
-      zod: 3.25.23
+      zod: 4.0.16
 
   '@ai-sdk/provider-utils@2.2.8(zod@4.0.17)':
     dependencies:
@@ -5011,15 +5238,15 @@ snapshots:
       secure-json-parse: 2.7.0
       zod: 4.0.17
 
-  '@ai-sdk/provider-utils@3.0.1(zod@3.25.23)':
+  '@ai-sdk/provider-utils@3.0.5(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.3
-      zod: 3.25.23
-      zod-to-json-schema: 3.24.6(zod@3.25.23)
+      zod: 4.0.16
+      zod-to-json-schema: 3.24.6(zod@4.0.16)
 
-  '@ai-sdk/provider-utils@3.0.1(zod@4.0.17)':
+  '@ai-sdk/provider-utils@3.0.5(zod@4.0.17)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
@@ -5035,12 +5262,12 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/ui-utils@1.2.11(zod@3.25.23)':
+  '@ai-sdk/ui-utils@1.2.11(zod@4.0.16)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.23)
-      zod: 3.25.23
-      zod-to-json-schema: 3.24.6(zod@3.25.23)
+      '@ai-sdk/provider-utils': 2.2.8(zod@4.0.16)
+      zod: 4.0.16
+      zod-to-json-schema: 3.24.6(zod@4.0.16)
 
   '@ai-sdk/ui-utils@1.2.11(zod@4.0.17)':
     dependencies:
@@ -5137,10 +5364,16 @@ snapshots:
   '@esbuild/aix-ppc64@0.25.8':
     optional: true
 
+  '@esbuild/android-arm64@0.18.20':
+    optional: true
+
   '@esbuild/android-arm64@0.25.6':
     optional: true
 
   '@esbuild/android-arm64@0.25.8':
+    optional: true
+
+  '@esbuild/android-arm@0.18.20':
     optional: true
 
   '@esbuild/android-arm@0.25.6':
@@ -5149,10 +5382,16 @@ snapshots:
   '@esbuild/android-arm@0.25.8':
     optional: true
 
+  '@esbuild/android-x64@0.18.20':
+    optional: true
+
   '@esbuild/android-x64@0.25.6':
     optional: true
 
   '@esbuild/android-x64@0.25.8':
+    optional: true
+
+  '@esbuild/darwin-arm64@0.18.20':
     optional: true
 
   '@esbuild/darwin-arm64@0.25.6':
@@ -5161,10 +5400,16 @@ snapshots:
   '@esbuild/darwin-arm64@0.25.8':
     optional: true
 
+  '@esbuild/darwin-x64@0.18.20':
+    optional: true
+
   '@esbuild/darwin-x64@0.25.6':
     optional: true
 
   '@esbuild/darwin-x64@0.25.8':
+    optional: true
+
+  '@esbuild/freebsd-arm64@0.18.20':
     optional: true
 
   '@esbuild/freebsd-arm64@0.25.6':
@@ -5173,10 +5418,16 @@ snapshots:
   '@esbuild/freebsd-arm64@0.25.8':
     optional: true
 
+  '@esbuild/freebsd-x64@0.18.20':
+    optional: true
+
   '@esbuild/freebsd-x64@0.25.6':
     optional: true
 
   '@esbuild/freebsd-x64@0.25.8':
+    optional: true
+
+  '@esbuild/linux-arm64@0.18.20':
     optional: true
 
   '@esbuild/linux-arm64@0.25.6':
@@ -5185,10 +5436,16 @@ snapshots:
   '@esbuild/linux-arm64@0.25.8':
     optional: true
 
+  '@esbuild/linux-arm@0.18.20':
+    optional: true
+
   '@esbuild/linux-arm@0.25.6':
     optional: true
 
   '@esbuild/linux-arm@0.25.8':
+    optional: true
+
+  '@esbuild/linux-ia32@0.18.20':
     optional: true
 
   '@esbuild/linux-ia32@0.25.6':
@@ -5197,10 +5454,16 @@ snapshots:
   '@esbuild/linux-ia32@0.25.8':
     optional: true
 
+  '@esbuild/linux-loong64@0.18.20':
+    optional: true
+
   '@esbuild/linux-loong64@0.25.6':
     optional: true
 
   '@esbuild/linux-loong64@0.25.8':
+    optional: true
+
+  '@esbuild/linux-mips64el@0.18.20':
     optional: true
 
   '@esbuild/linux-mips64el@0.25.6':
@@ -5209,10 +5472,16 @@ snapshots:
   '@esbuild/linux-mips64el@0.25.8':
     optional: true
 
+  '@esbuild/linux-ppc64@0.18.20':
+    optional: true
+
   '@esbuild/linux-ppc64@0.25.6':
     optional: true
 
   '@esbuild/linux-ppc64@0.25.8':
+    optional: true
+
+  '@esbuild/linux-riscv64@0.18.20':
     optional: true
 
   '@esbuild/linux-riscv64@0.25.6':
@@ -5221,10 +5490,16 @@ snapshots:
   '@esbuild/linux-riscv64@0.25.8':
     optional: true
 
+  '@esbuild/linux-s390x@0.18.20':
+    optional: true
+
   '@esbuild/linux-s390x@0.25.6':
     optional: true
 
   '@esbuild/linux-s390x@0.25.8':
+    optional: true
+
+  '@esbuild/linux-x64@0.18.20':
     optional: true
 
   '@esbuild/linux-x64@0.25.6':
@@ -5239,6 +5514,9 @@ snapshots:
   '@esbuild/netbsd-arm64@0.25.8':
     optional: true
 
+  '@esbuild/netbsd-x64@0.18.20':
+    optional: true
+
   '@esbuild/netbsd-x64@0.25.6':
     optional: true
 
@@ -5249,6 +5527,9 @@ snapshots:
     optional: true
 
   '@esbuild/openbsd-arm64@0.25.8':
+    optional: true
+
+  '@esbuild/openbsd-x64@0.18.20':
     optional: true
 
   '@esbuild/openbsd-x64@0.25.6':
@@ -5263,10 +5544,16 @@ snapshots:
   '@esbuild/openharmony-arm64@0.25.8':
     optional: true
 
+  '@esbuild/sunos-x64@0.18.20':
+    optional: true
+
   '@esbuild/sunos-x64@0.25.6':
     optional: true
 
   '@esbuild/sunos-x64@0.25.8':
+    optional: true
+
+  '@esbuild/win32-arm64@0.18.20':
     optional: true
 
   '@esbuild/win32-arm64@0.25.6':
@@ -5275,10 +5562,16 @@ snapshots:
   '@esbuild/win32-arm64@0.25.8':
     optional: true
 
+  '@esbuild/win32-ia32@0.18.20':
+    optional: true
+
   '@esbuild/win32-ia32@0.25.6':
     optional: true
 
   '@esbuild/win32-ia32@0.25.8':
+    optional: true
+
+  '@esbuild/win32-x64@0.18.20':
     optional: true
 
   '@esbuild/win32-x64@0.25.6':
@@ -5481,6 +5774,23 @@ snapshots:
       - supports-color
 
   '@modelcontextprotocol/sdk@1.17.2':
+    dependencies:
+      ajv: 6.12.6
+      content-type: 1.0.5
+      cors: 2.8.5
+      cross-spawn: 7.0.6
+      eventsource: 3.0.7
+      eventsource-parser: 3.0.3
+      express: 5.1.0
+      express-rate-limit: 7.5.1(express@5.1.0)
+      pkce-challenge: 5.0.0
+      raw-body: 3.0.0
+      zod: 3.25.23
+      zod-to-json-schema: 3.24.6(zod@3.25.23)
+    transitivePeerDependencies:
+      - supports-color
+
+  '@modelcontextprotocol/sdk@1.17.5':
     dependencies:
       ajv: 6.12.6
       content-type: 1.0.5
@@ -6075,10 +6385,10 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
 
-  '@sei-js/evm@2.0.5(ethers@6.15.0)(viem@2.33.0(typescript@5.8.3)(zod@3.25.23))':
+  '@sei-js/evm@2.0.5(ethers@6.15.0)(viem@2.33.0(typescript@5.8.3)(zod@4.0.16))':
     dependencies:
       ethers: 6.15.0
-      viem: 2.33.0(typescript@5.8.3)(zod@3.25.23)
+      viem: 2.33.0(typescript@5.8.3)(zod@4.0.16)
 
   '@shikijs/core@3.11.0':
     dependencies:
@@ -6539,10 +6849,10 @@ snapshots:
 
   '@vladfrangu/async_event_emitter@2.4.6': {}
 
-  abitype@1.0.8(typescript@5.8.3)(zod@3.25.23):
+  abitype@1.0.8(typescript@5.8.3)(zod@4.0.16):
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.23
+      zod: 4.0.16
 
   abort-controller@3.0.0:
     dependencies:
@@ -6568,19 +6878,19 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.5(zod@3.25.23):
+  ai@5.0.22(zod@4.0.16):
     dependencies:
-      '@ai-sdk/gateway': 1.0.3(zod@3.25.23)
+      '@ai-sdk/gateway': 1.0.11(zod@4.0.16)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.23)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.16)
       '@opentelemetry/api': 1.9.0
-      zod: 3.25.23
+      zod: 4.0.16
 
-  ai@5.0.5(zod@4.0.17):
+  ai@5.0.22(zod@4.0.17):
     dependencies:
-      '@ai-sdk/gateway': 1.0.3(zod@4.0.17)
+      '@ai-sdk/gateway': 1.0.11(zod@4.0.17)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.5(zod@4.0.17)
       '@opentelemetry/api': 1.9.0
       zod: 4.0.17
 
@@ -6991,6 +7301,31 @@ snapshots:
       acorn: 8.15.0
       esast-util-from-estree: 2.0.0
       vfile-message: 4.0.3
+
+  esbuild@0.18.20:
+    optionalDependencies:
+      '@esbuild/android-arm': 0.18.20
+      '@esbuild/android-arm64': 0.18.20
+      '@esbuild/android-x64': 0.18.20
+      '@esbuild/darwin-arm64': 0.18.20
+      '@esbuild/darwin-x64': 0.18.20
+      '@esbuild/freebsd-arm64': 0.18.20
+      '@esbuild/freebsd-x64': 0.18.20
+      '@esbuild/linux-arm': 0.18.20
+      '@esbuild/linux-arm64': 0.18.20
+      '@esbuild/linux-ia32': 0.18.20
+      '@esbuild/linux-loong64': 0.18.20
+      '@esbuild/linux-mips64el': 0.18.20
+      '@esbuild/linux-ppc64': 0.18.20
+      '@esbuild/linux-riscv64': 0.18.20
+      '@esbuild/linux-s390x': 0.18.20
+      '@esbuild/linux-x64': 0.18.20
+      '@esbuild/netbsd-x64': 0.18.20
+      '@esbuild/openbsd-x64': 0.18.20
+      '@esbuild/sunos-x64': 0.18.20
+      '@esbuild/win32-arm64': 0.18.20
+      '@esbuild/win32-ia32': 0.18.20
+      '@esbuild/win32-x64': 0.18.20
 
   esbuild@0.25.6:
     optionalDependencies:
@@ -8527,7 +8862,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.1.0
 
-  ox@0.8.1(typescript@5.8.3)(zod@3.25.23):
+  ox@0.8.1(typescript@5.8.3)(zod@4.0.16):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/ciphers': 1.3.0
@@ -8535,7 +8870,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.0.8(typescript@5.8.3)(zod@3.25.23)
+      abitype: 1.0.8(typescript@5.8.3)(zod@4.0.16)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.8.3
@@ -9343,6 +9678,13 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  tsx@4.6.2:
+    dependencies:
+      esbuild: 0.18.20
+      get-tsconfig: 4.10.1
+    optionalDependencies:
+      fsevents: 2.3.3
+
   tw-animate-css@1.3.7: {}
 
   twoslash-protocol@0.3.4: {}
@@ -9473,15 +9815,15 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  viem@2.33.0(typescript@5.8.3)(zod@3.25.23):
+  viem@2.33.0(typescript@5.8.3)(zod@4.0.16):
     dependencies:
       '@noble/curves': 1.9.2
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.0.8(typescript@5.8.3)(zod@3.25.23)
+      abitype: 1.0.8(typescript@5.8.3)(zod@4.0.16)
       isows: 1.0.7(ws@8.18.2)
-      ox: 0.8.1(typescript@5.8.3)(zod@3.25.23)
+      ox: 0.8.1(typescript@5.8.3)(zod@4.0.16)
       ws: 8.18.2
     optionalDependencies:
       typescript: 5.8.3
@@ -9794,13 +10136,17 @@ snapshots:
 
   yaml@2.8.0: {}
 
-  zod-to-json-schema@3.24.3(zod@3.25.23):
+  zod-to-json-schema@3.24.3(zod@4.0.16):
     dependencies:
-      zod: 3.25.23
+      zod: 4.0.16
 
   zod-to-json-schema@3.24.6(zod@3.25.23):
     dependencies:
       zod: 3.25.23
+
+  zod-to-json-schema@3.24.6(zod@4.0.16):
+    dependencies:
+      zod: 4.0.16
 
   zod-to-json-schema@3.24.6(zod@4.0.17):
     dependencies:
@@ -9809,6 +10155,8 @@ snapshots:
   zod@3.24.1: {}
 
   zod@3.25.23: {}
+
+  zod@4.0.16: {}
 
   zod@4.0.17: {}
 

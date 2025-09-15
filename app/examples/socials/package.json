@@ -1,5 +1,5 @@
 {
-  "name": "social",
+  "name": "axiom-social-example",
   "module": "index.ts",
   "type": "module",
   "private": true,

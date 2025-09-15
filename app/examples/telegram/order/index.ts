@@ -8,7 +8,7 @@ import {
 } from "@axiomkit/core";
 import { telegram } from "@axiomkit/telegram";
 
-import * as z from "zod/v4";
+import { z } from "zod";
 
 const env = validateEnv(
   z.object({
@@ -24,16 +24,26 @@ const groq = createGroq({
 // Define an Action to confirm the order
 const confirmOrder = action({
   name: "confirmOrder",
-  description: "Mark the order as confirmed",
+  description: "Mark the order as confirmed and process it",
   schema: z.object({
     confirmed: z.boolean(),
+    orderSummary: z.string().optional(),
   }),
-  handler: async ({ confirmed }, ctx) => {
+  handler: async (
+    { confirmed, orderSummary }: { confirmed: boolean; orderSummary?: string },
+    ctx: any
+  ) => {
     const memory = ctx.memory;
     memory.update({
       confirmed: confirmed,
+      orderSummary: orderSummary,
     });
-    return `✅ Order has been ${confirmed ? "confirmed" : "cancelled"}.`;
+
+    if (confirmed) {
+      return `✅ Order confirmed! Here's your order summary:\n${orderSummary}\n\nYour order has been processed and will be shipped soon.`;
+    } else {
+      return `❌ Order cancelled. Feel free to start a new order anytime!`;
+    }
   },
 });
 
@@ -46,30 +56,55 @@ const orderContext = context({
     quantity: z.number().optional(),
     address: z.string().optional(),
     confirmed: z.boolean().default(false),
-    chatId: z.number().optional(), // Add chatId to link with Telegram
+    orderSummary: z.string().optional(),
+    chatId: z.number().optional(),
   }),
   instructions: `
-You are an AI order assistant on Telegram.
-Help the user place an order by:
-1. Asking for missing details (name, product, quantity, address).
-2. Confirming the final order before marking it confirmed.
-Keep responses short and friendly.
+You are a helpful AI order assistant on Telegram. Your job is to help users place orders for products.
 
-Current order state:
+## How to handle order requests:
+
+1. **When user says "create order about product" or similar:**
+   - Ask them what specific product they want to order
+   - Be friendly and helpful
+
+2. **When user mentions a product:**
+   - Ask for the quantity they want
+   - Ask for their name for the order
+   - Ask for their delivery address
+
+3. **When all details are provided:**
+   - Summarize the order
+   - Ask for confirmation before processing
+
+4. **Keep responses natural and conversational:**
+   - Don't use JSON format Example   {"content": "Great! Can you please tell me your name for the order?"} => let only reply Great! Can you please tell me your name for the order?
+   - Be friendly and helpful
+   - Keep messages concise but informative
+
+## Current order state:
 - Customer Name: {{memory.customerName || 'Not provided'}}
 - Product: {{memory.product || 'Not provided'}}
 - Quantity: {{memory.quantity || 'Not provided'}}
 - Address: {{memory.address || 'Not provided'}}
 - Confirmed: {{memory.confirmed ? 'Yes' : 'No'}}
 
-Ask for missing information and guide the user through the ordering process.
+## Response guidelines:
+- Always respond in plain text, never JSON
+- Be conversational and friendly
+- Ask one question at a time to avoid overwhelming the user
+- When all details are collected, provide a clear order summary
+- Use the confirmOrder action when ready to process the order
+
+Remember: You're helping a real person place an order, so be patient and helpful!
 `,
-  create: ({ args }) => ({
+  create: ({ args }, ctx) => ({
     customerName: args.customerName,
     product: args.product,
     quantity: args.quantity,
     address: args.address,
     confirmed: args.confirmed ?? false,
+    orderSummary: args.orderSummary,
     chatId: args.chatId,
   }),
   // Add outputs to handle Telegram responses
@@ -79,8 +114,9 @@ Ask for missing information and guide the user through the ordering process.
         userId: z.string().describe("the userId to send the message to"),
       },
       schema: z.string().describe("the content of the message to send"),
-      description: "use this to send a telegram message to user",
+      description: "use this to send a telegram message to user ",
       handler: async (data, ctx, { container }) => {
+        console.log("Reply with this content");
         const tg = container.resolve("telegraf").telegram;
         const chunks = data.match(/.{1,4096}/g) || [data];
 
@@ -89,7 +125,6 @@ Ask for missing information and guide the user through the ordering process.
             parse_mode: "Markdown",
           });
         }
-
         return {
           data,
           timestamp: Date.now(),
@@ -99,11 +134,10 @@ Ask for missing information and guide the user through the ordering process.
   },
 });
 
-// Create agent with orderContext as the PRIMARY context
 createAgent({
   logLevel: LogLevel.DEBUG,
   model: groq("deepseek-r1-distill-llama-70b"),
-  context: orderContext, // Make this the primary context
+  context: orderContext,
   actions: [confirmOrder],
-  extensions: [telegram],
-}).start({ confirmed: false }); // Pass required field
+  providers: [telegram],
+}).start({ confirmed: false });

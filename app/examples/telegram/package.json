@@ -1,5 +1,5 @@
 {
-  "name": "telegram",
+  "name": "axiom-telegram-example",
   "module": "index.ts",
   "type": "module",
   "description": "Example Telegram Bot built by Axiom",

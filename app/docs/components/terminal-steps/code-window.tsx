@@ -31,7 +31,7 @@ export function CodeWindow({
   return (
     <div
       className={[
-        "bg-black/90 border border-slate-700/50 rounded-xl p-4 md:p-6 mb-8",
+        "bg-black/90 border border-slate-700/50 rounded-2xl p-4 md:p-6 mb-8",
         "w-full mx-auto backdrop-blur-sm group transition-all duration-300",
         "hover:border-slate-600 hover:shadow-2xl",
         className,

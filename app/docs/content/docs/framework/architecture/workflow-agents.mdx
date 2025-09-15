@@ -1,0 +1,94 @@
+---
+title: Workflow Agents
+description: 
+  A core objective is to comprehend the fundamental building blocks that
+  constitute the Axiomkit framework.
+
+icon: Shell
+---
+## 🌀 Overview
+
+At its core, an agent follows a simple loop:
+
+1. **Input** – Something happens (an input arrives)
+2. **Think** – The agent uses an LLM to decide what to do
+3. **Act** – It performs an action or sends a response
+4. **Remember** – The agent stores what happened in memory
+5. **Repeat** – The cycle continues
+
+This loop runs continuously, allowing the agent to process new inputs and respond intelligently based on its memory and current context.
+
+## Technical Overview
+
+At the heart of the Axiomkit framework is the agent execution lifecycle - a structured loop that governs how agents process inputs, invoke LLM-based reasoning, execute registered actions, and manage outputs. A clear understanding of this lifecycle is essential for developing, extending, and debugging agent behaviour.
+
+Walk through the lifecycle of a typical request:
+
+### 1. Input Reception
+
+* **Source**: An external system - such as Discord, Telegram, CLI, or a custom API - delivers incoming data to the agent. These systems are integrated via **extensions**.
+* **Listener**: An **input** handler, defined either within the agent or an extension, continuously listens for specific external events (e.g., a new user message).
+* **Trigger**: When such an event occurs, the listener is activated.
+* **Invocation**: The listener invokes `agent.send()`with:
+  * A **target context definition** specifying which part of the agent should handle the input.
+  * **args** to identify or initialize the relevant context instance (e.g., a specific chat thread).
+  * The **input data** itself (e.g., message text or event payload).
+
+### 2. agent.send - Start Process
+
+* **Log Input**: The framework records the incoming data as an `InputRef`, creating a persistent reference for traceability and debugging.
+* **Initiate Run**: It then calls the internal `agent.run(...)` method, initiating or resuming the agent’s processing loop for the specified context instance, with the `InputRef` passed as input.
+
+### 3. agent.run - Managing the execution cycle
+
+* **Load/Initialize Context**: The framework locates the `ContextState` for the specified instance (e.g., chat session #123). If this is the first interaction, it initializes the state, including persistent memory (`ContextState.memory`) and a fresh `WorkingMemory` scoped to the current run.
+* **Concurrency Handling**: If the context is already mid-execution, the new `InputRef` is typically queued or merged into the active run. Otherwise, a new run instance is initialized.
+* **Run Environment Setup**: The framework prepares the full execution environment—loading available actions, output handlers, context metadata, and any relevant system state needed for reasoning.
+* **Start Step Loop**: It enters the main execution loop, progressing through one or more reasoning steps (LLM calls and action executions) until the run is complete or paused.
+
+### 4. Inside the Step Loop – Perception, Reasoning, Action
+
+Each iteration of the `agent.run` loop represents a full reasoning cycle, consisting of the following phases:
+
+* **Prepare State**:
+  * Gather the latest `ContextState.memory` via each context’s `render()` method.
+  * Retrieve interaction history from `WorkingMemory` (inputs, outputs, past actions).
+  * Include new, unprocessed data such as the initial `InputRef` or completed action results.
+  * Collect the current set of available `actions` and `outputs`.
+* **Prompt Generation**:
+  * All state and interaction data are compiled into a structured XML-based prompt.
+  * This prompt defines available tools (actions, outputs), current state snapshots, new inputs, and clear execution instructions for the LLM.\
+    &#xNAN;_(See: Prompting Format & Specification)_
+* **LLM Inference**:
+  * The prompt is sent to the configured LLM provider.
+  * The response is streamed token-by-token and parsed in real-time.
+* **Response Parsing**:
+  * The stream is scanned for structured XML tags such as:
+    * `<reasoning>` – logged for interpretability and debugging.
+    * `<action_call>` – instructs which action to execute with what args.
+    * `<output>` – specifies external communications or responses to emit.
+  * The agent interprets and queues these instructions accordingly.
+* **Action & Output Execution**:
+  * For each `<action_call>`:
+    * Arguments are validated against the action’s schema.
+    * Execution is delegated to the `TaskRunner`, which handles async task scheduling.
+  * For each `<output>`:
+    * Output data is validated and dispatched via the output handler.
+* **Await Results**:
+  * The loop suspends until any required async tasks complete.
+  * All resulting `ActionResult`s are appended to `WorkingMemory`.
+* **Completion Check**:
+  * The agent evaluates whether another step is needed, based on:
+    * Remaining unprocessed events.
+    * `shouldContinue` hook results.
+    * Explicit halting conditions from the LLM or agent logic
+
+### &#x20;5. Run Completion
+
+* **Exit Step Loop**: The reasoning loop exits once continuation conditions are no longer met.
+* **Finalization**:
+  * Executes any `onRunEnd` or cleanup hooks defined by the context.
+  * Persists final `ContextState.memory` snapshots to the `MemoryStore`.
+* **Return Response**:
+  * Resolves the original `agent.send` or `agent.run` call.
+  * Returns a full `AgentRunResult`, including the complete interaction log.

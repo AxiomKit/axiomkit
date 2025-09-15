@@ -1,22 +1,33 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "lib": ["ESNext", "DOM"],
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "allowJs": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/core/*": ["src/core/*"],
+      "@/types": ["src/types"],
+      "@/types/*": ["src/types/*"],
+      "@/utils": ["src/utils"],
+      "@/utils/*": ["src/utils/*"],
+      "@/memory/*": ["src/memory/*"],
+      "@/context/*": ["src/context/*"],
+      "@/handlers/*": ["src/handlers/*"],
+      "@/providers/*": ["src/providers/*"],
+      "@/tasks/*": ["src/tasks/*"],
+      "@/parsing/*": ["src/parsing/*"],
+      "@/prompts/*": ["src/prompts/*"],
+      "@/response/*": ["src/response/*"],
+      "@/config/*": ["src/config/*"],
+      "@/engine/*": ["src/engine/*"],
+      "@/logger": ["src/logger"],
+      "@/benchmark/*": ["src/benchmark/*"]
+    },
+    "outDir": "./dist",
+    "rootDir": "./src",
 
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "declaration": true,
+    "declarationMap": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
 }

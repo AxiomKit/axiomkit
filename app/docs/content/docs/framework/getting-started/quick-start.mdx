@@ -8,12 +8,13 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 # Prerequisites
 Before you begin, ensure you have:
-
 - **Node.js** (v18 or higher)
-- **pnpm** package manager
-- A **Groq API key** (free tier available at [console.groq.com](https://console.groq.com))
-You can use any provider different to build
-
+- **Package manager** (pnpm,yarn or npm)
+- Get an **API Key**:
+  - **Groq API key** [here](https://console.groq.com)
+  - [**Gemini API key**](https://aistudio.google.com/app/apikey)
+  - [**OpenAI API key**](https://platform.openai.com/api-keys)
+  - See other supported [AI SDK Providers](https://ai-sdk.dev/providers/ai-sdk-providers)
 
 # Install Guide
 ## Quick Start
@@ -264,24 +265,6 @@ chmod +x index.ts
 node --loader ts-node/esm index.ts
 ```
 
-## Project Structure
-
-As your agent grows, organize it like this:
-
-```
-my-first-agent/
-├── index.ts              # Main entry point
-├── package.json          # Dependencies
-├── .env                  # Environment variables
-├── tsconfig.json         # TypeScript config
-├── src/
-│   ├── contexts/         # Custom contexts
-│   ├── actions/          # Custom actions
-│   ├── services/         # External services
-│   └── utils/            # Utility functions
-├── tests/                # Test files
-└── README.md            # Documentation
-```
 
 ## Advanced Configuration
 
@@ -338,11 +321,11 @@ const agent = createAgent({
 
 Now that you have a basic agent running, explore:
 
-1. **[Architecture Guide](/docs/framework/architecture)** - Understand core concepts
-2. **[Memory System](/docs/framework/architecture/memory)** - Add persistent memory
-3. **[Built-in Extensions](/docs/built-in-extensions)** - Integrate with platforms
-4. **[Examples](/docs/examples)** - See more complex examples
-5. **[API Reference](/docs/api)** - Detailed API documentation
+1. **[Packages Documentation](/docs/packages)** - Learn about all available packages
+2. **[Architecture Guide](/docs/framework/architecture)** - Understand core concepts
+3. **[Memory System](/docs/framework/architecture/memory)** - Add persistent memory
+4. **[Platform Extensions](/docs/packages)** - Integrate with Discord, Telegram, and more
+5. **[Examples](/docs/examples)** - See more complex examples
 
 ## Getting Help
 

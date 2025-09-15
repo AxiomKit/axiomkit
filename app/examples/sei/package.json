@@ -1,5 +1,5 @@
 {
-    "name": "sei",
+    "name": "axiom-sei-example",
     "module": "index.ts",
     "type": "module",
     "private": true,

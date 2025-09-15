@@ -27,8 +27,8 @@ export default function Layout({ children }: { children: any }) {
               icon: <Book />,
             },
             {
-              text: "Extensions",
-              url: "/docs/extensions",
+              text: "Providers",
+              url: "/docs/providers",
               icon: <ComponentIcon />,
             },
           ],
@@ -73,13 +73,13 @@ export default function Layout({ children }: { children: any }) {
                   </p>
                 </NavbarMenuLink>
                 <NavbarMenuLink
-                  href="/docs/extensions"
+                  href="/docs/providers"
                   className="lg:col-start-2"
                 >
                   <ComponentIcon className="bg-fd-primary text-fd-primary-foreground p-1 mb-2 rounded-md" />
-                  <p className="font-medium">Extensions</p>
+                  <p className="font-medium">Providers</p>
                   <p className="text-fd-muted-foreground text-sm">
-                    Add Custom Extension Axiomkit.
+                    Add Custom Providers Axiomkit.
                   </p>
                 </NavbarMenuLink>
 

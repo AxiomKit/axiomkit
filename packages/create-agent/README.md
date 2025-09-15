@@ -21,25 +21,25 @@ create-agent my-agent
 ```
 
 ## ⚙️ Options
-You can specify extensions directly when creating a new agent using the following flags:
+You can specify providers directly when creating a new agent using the following flags:
 
 ```bash
 npx @axiomkit/create-agent my-agent --telegram --cli
 ```
-**Available Extensions**
-- --cli – Include the CLI extension
-- --telegram – Include the Telegram extension
-- --all – Include all available extensions
+**Available Providers**
+- --cli – Include the CLI provider
+- --telegram – Include the Telegram provider
+- --all – Include all available providers
 - --twitter – (Upcoming)
 - --discord – (Upcoming)
 
-💡 If no extensions are specified, the CLI will prompt you to select which ones to include interactively.
+💡 If no providers are specified, the CLI will prompt you to select which ones to include interactively.
 
 ## 🛠️ What It Does
 This tool automates the initial setup by performing the following actions:
 - Creates a new directory for your agent (or uses the current one if specified).
 - Sets up package.json with all necessary dependencies.
-- Generates an index.js file pre-configured with your selected extensions.
+- Generates an index.js file pre-configured with your selected providers.
 - Creates a .env.example file, outlining all required environment variables.
 - Installs all project dependencies.
 

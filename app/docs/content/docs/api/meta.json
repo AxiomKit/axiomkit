@@ -8,7 +8,7 @@
         "context",
         "action",
         "memory",
-        "extension",
+        "providers",
         "types"
     ]
 }

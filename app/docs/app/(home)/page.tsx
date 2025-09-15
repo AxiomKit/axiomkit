@@ -1,52 +1,69 @@
 "use client";
 import Link from "next/link";
 
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
 import { CodeWindow } from "@/components/terminal-steps/code-window";
 import Footer from "@/components/footer";
 
-// Utility function for combining classnames
-function cn(...inputs: any[]) {
-  return twMerge(clsx(inputs));
-}
-
 export default function Home() {
   const tsSnippet = `import { createAgent } from "@axiomkit/core";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
+export const echoCliProvider = createCliProvider({
+  name: "echo",
+  instructions: [
+    "You are a simple echo bot.",
+  ],
+});
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  modelSettings: {
-    maxTokens: 1000,
-    temperature: 0.7,
-  },
+  providers: [echoCliProvider],
 });
-
-// Start the agent
-await agent.start();`;
+async function main() {
+  await agent.start({
+    id: "echo-handle",
+  });
+}
+main();
+`;
   return (
     <main className="min-h-screen  font-mono">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="min-h-screen flex flex-col items-center justify-center text-center w-full">
-          <p className="text-3xl font-bold mb-2">
-            Build Agents That Think & Evolve
-          </p>
+        <div className="min-h-screen flex flex-col items-center  text-center w-full">
           <CodeWindow
             filename="agent.ts"
             languageBadge="TypeScript"
             code={tsSnippet}
           />
-          <p className="mb-4">
-            Create intelligent agents with memory, planning, collaboration -
-            andcontinuous learning.
+          <p className="mb-2 font-bold text-lg">
+            Build Complex Autonomous Agent
           </p>
-          <Link href={`/docs/framework`}>
-            <button className="text-white px-6 py-4 text-lg glow-blue float-animation relative overflow-hidden group font-mono bg-gray-600/40 rounded-xl">
-              START_BUILDING
-            </button>
-          </Link>
+          <p className="mb-4">
+            Create intelligent agents with memory, planning, collaboration - and
+            continuous learning.
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link href={`/docs/framework`}>
+              <button
+                className="px-4 py-3 font-bold text-white bg-red-400 font-mono hover:opacity-75 shadow-lg"
+                style={{
+                  borderRadius: "6px",
+                }}
+              >
+                Get Started
+              </button>
+            </Link>
+            <Link href={`/docs/framework/getting-started/quick-start`}>
+              <button
+                className="px-4 py-3 font-bold  relative overflow-hidden group font-mono border rounded-md hover:opacity-75"
+                style={{
+                  borderRadius: "6px",
+                }}
+              >
+                {`Quick Start >`}
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
       <Footer />

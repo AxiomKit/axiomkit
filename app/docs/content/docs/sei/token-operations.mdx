@@ -1,0 +1,633 @@
+---
+title: Token Operations
+description: Native SEI and ERC-20 token transfers, balance queries, and token discovery
+icon: Coins
+---
+
+# Token Operations
+
+The SEI provider provides comprehensive token operation capabilities, supporting both native SEI tokens and ERC-20 tokens. This guide covers everything from basic balance queries to complex token transfers and discovery.
+
+## Supported Token Types
+
+### Native SEI Token
+- **Symbol**: SEI
+- **Decimals**: 18
+- **Address**: `0x0` (native token)
+- **Use Cases**: Gas fees, transfers, DeFi interactions
+
+### ERC-20 Tokens
+Popular tokens on SEI include:
+- **USDC**: `0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1`
+- **USDT**: `0xb75d0b03c06a926e488e2659df1a861f860bd3d1`
+- **WETH**: `0x160345fc359604fc6e70e3c5facbde5f7a9342d8`
+- **WSEI**: `0xe30fedd158a2e3b13e9badaeabafc5516e95e8c7`
+
+## Balance Operations
+
+### Getting Native SEI Balance
+
+```typescript
+import { AxiomSeiWallet } from "@axiomkit/sei";
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey: "0x...",
+});
+
+// Get native SEI balance
+const seiBalance = await wallet.getERC20Balance();
+console.log(`SEI Balance: ${seiBalance} SEI`);
+```
+
+### Getting ERC-20 Token Balance
+
+```typescript
+// Get USDC balance
+const usdcAddress = "0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1";
+const usdcBalance = await wallet.getERC20Balance(usdcAddress);
+console.log(`USDC Balance: ${usdcBalance} USDC`);
+```
+
+### Multi-Token Balance Checker
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { z } from "zod";
+
+const tokenContext = context({
+  type: "token-operations",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "check-balances",
+      description: "Check balances for multiple tokens",
+      schema: z.object({
+        tokens: z.array(z.string()).describe("List of token tickers to check (e.g., ['SEI', 'USDC', 'USDT'])"),
+      }),
+      handler: async (args) => {
+        const balances: Record<string, string> = {};
+        
+        for (const token of args.tokens) {
+          try {
+            if (token === "SEI") {
+              // Native SEI token
+              balances[token] = await wallet.getERC20Balance();
+            } else {
+              // ERC-20 token
+              const tokenAddress = await wallet.getTokenAddressFromTicker(token);
+              if (tokenAddress) {
+                balances[token] = await wallet.getERC20Balance(tokenAddress);
+              } else {
+                balances[token] = "Token not found";
+              }
+            }
+          } catch (error) {
+            balances[token] = `Error: ${error.message}`;
+          }
+        }
+        
+        const balanceReport = Object.entries(balances)
+          .map(([token, balance]) => `${token}: ${balance}`)
+          .join("\n");
+        
+        return `Token Balances:\n${balanceReport}`;
+      },
+    }),
+  ],
+});
+```
+
+## Token Discovery
+
+### Finding Tokens by Ticker
+
+The SEI provider integrates with DexScreener to discover tokens by their ticker symbols:
+
+```typescript
+// Find token address by ticker
+const tokenAddress = await wallet.getTokenAddressFromTicker("USDC");
+console.log("USDC Address:", tokenAddress);
+
+if (tokenAddress) {
+  const balance = await wallet.getERC20Balance(tokenAddress);
+  console.log("USDC Balance:", balance);
+}
+```
+
+### Token Discovery Action
+
+```typescript
+action({
+  name: "discover-token",
+  description: "Find token information by ticker symbol",
+  schema: z.object({
+    ticker: z.string().describe("Token ticker symbol (e.g., 'USDC', 'WETH')"),
+  }),
+  handler: async (args) => {
+    try {
+      console.log(`🔍 Discovering token: ${args.ticker}`);
+      
+      const tokenAddress = await wallet.getTokenAddressFromTicker(args.ticker);
+      
+      if (!tokenAddress) {
+        return `Token '${args.ticker}' not found on SEI network`;
+      }
+      
+      // Get token balance
+      const balance = await wallet.getERC20Balance(tokenAddress);
+      
+      return `Token: ${args.ticker}
+Address: ${tokenAddress}
+Your Balance: ${balance} ${args.ticker}`;
+    } catch (error) {
+      return `Error discovering token: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Token Transfers
+
+### Native SEI Transfers
+
+```typescript
+// Transfer native SEI
+const result = await wallet.ERC20Transfer(
+  "1.5", // Amount in SEI
+  "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6" // Recipient address
+);
+console.log("Transfer result:", result);
+```
+
+### ERC-20 Token Transfers
+
+```typescript
+// Transfer USDC tokens
+const result = await wallet.ERC20Transfer(
+  "100", // Amount in USDC
+  "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6", // Recipient address
+  "USDC" // Token ticker
+);
+console.log("USDC Transfer result:", result);
+```
+
+### Advanced Transfer Action
+
+```typescript
+action({
+  name: "transfer-tokens",
+  description: "Transfer SEI or ERC-20 tokens to another address",
+  schema: z.object({
+    amount: z.string().describe("Amount to transfer (e.g., '1.5' for 1.5 tokens)"),
+    recipient: z.string().describe("Recipient wallet address"),
+    token: z.string().optional().describe("Token ticker (e.g., 'USDC'). If not provided, transfers native SEI"),
+  }),
+  handler: async (args) => {
+    try {
+      console.log(`💸 Transferring ${args.amount} ${args.token || "SEI"} to ${args.recipient}...`);
+      
+      // Validate recipient address
+      if (!args.recipient.startsWith("0x") || args.recipient.length !== 42) {
+        return "Invalid recipient address format";
+      }
+      
+      // Validate amount
+      const amount = parseFloat(args.amount);
+      if (isNaN(amount) || amount <= 0) {
+        return "Invalid transfer amount";
+      }
+      
+      // Check balance before transfer
+      let currentBalance: string;
+      if (args.token) {
+        const tokenAddress = await wallet.getTokenAddressFromTicker(args.token);
+        if (!tokenAddress) {
+          return `Token '${args.token}' not found`;
+        }
+        currentBalance = await wallet.getERC20Balance(tokenAddress);
+      } else {
+        currentBalance = await wallet.getERC20Balance();
+      }
+      
+      if (parseFloat(currentBalance) < amount) {
+        return `Insufficient balance. Current: ${currentBalance} ${args.token || "SEI"}, Required: ${args.amount}`;
+      }
+      
+      // Execute transfer
+      const result = await wallet.ERC20Transfer(
+        args.amount,
+        args.recipient as `0x${string}`,
+        args.token
+      );
+      
+      // Get updated balance
+      let newBalance: string;
+      if (args.token) {
+        const tokenAddress = await wallet.getTokenAddressFromTicker(args.token);
+        newBalance = await wallet.getERC20Balance(tokenAddress!);
+      } else {
+        newBalance = await wallet.getERC20Balance();
+      }
+      
+      return `Transfer successful! ${result}
+New balance: ${newBalance} ${args.token || "SEI"}`;
+    } catch (error) {
+      return `Transfer failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Token Information
+
+### Getting Token Details
+
+```typescript
+// Get token information from constants
+import { TOKENS } from "@axiomkit/sei";
+
+const usdcInfo = TOKENS["0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1"];
+console.log("USDC Info:", usdcInfo);
+
+// Output:
+// {
+//   id: "sei_0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1",
+//   attributes: {
+//     address: "0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1",
+//     name: "usd coin",
+//     symbol: "usdc",
+//     decimals: 6,
+//     initialSupply: "10000000000000000000",
+//     logoUrl: "..."
+//   }
+// }
+```
+
+### Token Information Action
+
+```typescript
+action({
+  name: "get-token-info",
+  description: "Get detailed information about a token",
+  schema: z.object({
+    ticker: z.string().describe("Token ticker symbol"),
+  }),
+  handler: async (args) => {
+    try {
+      const tokenAddress = await wallet.getTokenAddressFromTicker(args.ticker);
+      
+      if (!tokenAddress) {
+        return `Token '${args.ticker}' not found on SEI`;
+      }
+      
+      // Get token info from constants
+      const tokenInfo = TOKENS[tokenAddress];
+      
+      if (!tokenInfo) {
+        return `Token information not available for '${args.ticker}'`;
+      }
+      
+      const { attributes } = tokenInfo;
+      
+      return `Token Information:
+Name: ${attributes.name}
+Symbol: ${attributes.symbol}
+Address: ${attributes.address}
+Decimals: ${attributes.decimals}
+Logo: ${attributes.logoUrl}`;
+    } catch (error) {
+      return `Error getting token info: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Batch Operations
+
+### Batch Balance Check
+
+```typescript
+action({
+  name: "batch-balance-check",
+  description: "Check balances for multiple wallets and tokens",
+  schema: z.object({
+    wallets: z.array(z.string()).describe("List of wallet addresses"),
+    tokens: z.array(z.string()).describe("List of token tickers"),
+  }),
+  handler: async (args) => {
+    const results: Record<string, Record<string, string>> = {};
+    
+    for (const walletAddress of args.wallets) {
+      results[walletAddress] = {};
+      
+      // Create temporary wallet instance for each address
+      // Note: This is a simplified example - in practice you'd need private keys
+      for (const token of args.tokens) {
+        try {
+          if (token === "SEI") {
+            // For native SEI, you'd need to create a wallet instance
+            results[walletAddress][token] = "Requires wallet instance";
+          } else {
+            const tokenAddress = await wallet.getTokenAddressFromTicker(token);
+            if (tokenAddress) {
+              // You'd need to create a read-only client for each address
+              results[walletAddress][token] = "Requires read-only client";
+            } else {
+              results[walletAddress][token] = "Token not found";
+            }
+          }
+        } catch (error) {
+          results[walletAddress][token] = `Error: ${error.message}`;
+        }
+      }
+    }
+    
+    const report = Object.entries(results)
+      .map(([wallet, balances]) => {
+        const balanceStr = Object.entries(balances)
+          .map(([token, balance]) => `${token}: ${balance}`)
+          .join(", ");
+        return `${wallet}: ${balanceStr}`;
+      })
+      .join("\n");
+    
+    return `Batch Balance Report:\n${report}`;
+  },
+}),
+```
+
+## Error Handling
+
+### Common Token Operation Errors
+
+```typescript
+class TokenOperationError extends Error {
+  constructor(message: string, public code: string, public token?: string) {
+    super(message);
+    this.name = "TokenOperationError";
+  }
+}
+
+async function safeTokenOperation<T>(
+  operation: () => Promise<T>,
+  context: string
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (error instanceof Error) {
+      // Handle specific token errors
+      if (error.message.includes("insufficient funds")) {
+        throw new TokenOperationError("Insufficient token balance", "INSUFFICIENT_BALANCE");
+      }
+      if (error.message.includes("token not found")) {
+        throw new TokenOperationError("Token not found on SEI network", "TOKEN_NOT_FOUND");
+      }
+      if (error.message.includes("invalid address")) {
+        throw new TokenOperationError("Invalid token or recipient address", "INVALID_ADDRESS");
+      }
+      if (error.message.includes("gas")) {
+        throw new TokenOperationError("Gas estimation failed", "GAS_ERROR");
+      }
+    }
+    
+    throw new TokenOperationError(`${context}: ${error.message}`, "UNKNOWN_ERROR");
+  }
+}
+
+// Usage with error handling
+const balance = await safeTokenOperation(
+  () => wallet.getERC20Balance(tokenAddress),
+  "Failed to get token balance"
+);
+```
+
+## Advanced Token Operations
+
+### Token Approval (for DeFi)
+
+```typescript
+import { erc20Abi } from "viem";
+
+action({
+  name: "approve-token",
+  description: "Approve token spending for DeFi contracts",
+  schema: z.object({
+    token: z.string().describe("Token ticker to approve"),
+    spender: z.string().describe("Contract address to approve"),
+    amount: z.string().describe("Amount to approve (use 'max' for unlimited)"),
+  }),
+  handler: async (args) => {
+    try {
+      const tokenAddress = await wallet.getTokenAddressFromTicker(args.token);
+      if (!tokenAddress) {
+        return `Token '${args.token}' not found`;
+      }
+      
+      let approvalAmount: bigint;
+      if (args.amount === "max") {
+        approvalAmount = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+      } else {
+        const tokenInfo = TOKENS[tokenAddress];
+        const decimals = tokenInfo?.attributes.decimals || 18;
+        approvalAmount = BigInt(parseFloat(args.amount) * Math.pow(10, decimals));
+      }
+      
+      const hash = await wallet.walletClient.writeContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [args.spender as `0x${string}`, approvalAmount],
+      });
+      
+      return `Token approval successful! Transaction hash: ${hash}`;
+    } catch (error) {
+      return `Token approval failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Token Swap Simulation
+
+```typescript
+action({
+  name: "simulate-swap",
+  description: "Simulate a token swap (read-only operation)",
+  schema: z.object({
+    tokenIn: z.string().describe("Input token ticker"),
+    tokenOut: z.string().describe("Output token ticker"),
+    amountIn: z.string().describe("Amount of input token"),
+  }),
+  handler: async (args) => {
+    try {
+      // This is a simplified simulation
+      // In practice, you'd integrate with a DEX like Astroport or Kujira
+      
+      const tokenInAddress = await wallet.getTokenAddressFromTicker(args.tokenIn);
+      const tokenOutAddress = await wallet.getTokenAddressFromTicker(args.tokenOut);
+      
+      if (!tokenInAddress || !tokenOutAddress) {
+        return "One or both tokens not found";
+      }
+      
+      // Simulate price (in real implementation, query DEX)
+      const simulatedPrice = 1.5; // Example: 1 USDC = 1.5 SEI
+      const amountOut = parseFloat(args.amountIn) * simulatedPrice;
+      
+      return `Swap Simulation:
+Input: ${args.amountIn} ${args.tokenIn}
+Output: ${amountOut.toFixed(6)} ${args.tokenOut}
+Price: 1 ${args.tokenIn} = ${simulatedPrice} ${args.tokenOut}
+Note: This is a simulation. Actual prices may vary.`;
+    } catch (error) {
+      return `Swap simulation failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Best Practices
+
+### 1. **Balance Validation**
+Always check balances before transfers:
+
+```typescript
+// Check balance before transfer
+const balance = await wallet.getERC20Balance(tokenAddress);
+if (parseFloat(balance) < parseFloat(amount)) {
+  throw new Error("Insufficient balance");
+}
+```
+
+### 2. **Token Discovery**
+Use the built-in token discovery for flexibility:
+
+```typescript
+// Flexible token lookup
+const tokenAddress = await wallet.getTokenAddressFromTicker("USDC");
+if (!tokenAddress) {
+  throw new Error("USDC token not found on SEI");
+}
+```
+
+### 3. **Error Handling**
+Implement comprehensive error handling:
+
+```typescript
+try {
+  const result = await wallet.ERC20Transfer(amount, recipient, token);
+  return result;
+} catch (error) {
+  if (error.message.includes("insufficient")) {
+    return "Insufficient balance for transfer";
+  }
+  throw error;
+}
+```
+
+### 4. **Gas Optimization**
+Consider gas costs for token operations:
+
+```typescript
+// Native SEI transfers are cheaper than ERC-20 transfers
+// Use native SEI when possible for gas efficiency
+```
+
+## Complete Token Operations Context
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { TOKENS } from "@axiomkit/sei";
+import { z } from "zod";
+
+const createTokenContext = (wallet: AxiomSeiWallet) => context({
+  type: "token-operations",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    // Balance checking
+    action({
+      name: "check-balance",
+      description: "Check balance for a specific token",
+      schema: z.object({
+        token: z.string().describe("Token ticker (e.g., 'SEI', 'USDC')"),
+      }),
+      handler: async (args) => {
+        if (args.token === "SEI") {
+          const balance = await wallet.getERC20Balance();
+          return `SEI Balance: ${balance} SEI`;
+        } else {
+          const tokenAddress = await wallet.getTokenAddressFromTicker(args.token);
+          if (!tokenAddress) return `Token '${args.token}' not found`;
+          
+          const balance = await wallet.getERC20Balance(tokenAddress);
+          return `${args.token} Balance: ${balance} ${args.token}`;
+        }
+      },
+    }),
+    
+    // Token transfer
+    action({
+      name: "transfer-token",
+      description: "Transfer tokens to another address",
+      schema: z.object({
+        token: z.string().describe("Token ticker"),
+        amount: z.string().describe("Amount to transfer"),
+        recipient: z.string().describe("Recipient address"),
+      }),
+      handler: async (args) => {
+        const result = await wallet.ERC20Transfer(
+          args.amount,
+          args.recipient as `0x${string}`,
+          args.token === "SEI" ? undefined : args.token
+        );
+        return result;
+      },
+    }),
+    
+    // Token discovery
+    action({
+      name: "discover-token",
+      description: "Find token information by ticker",
+      schema: z.object({
+        ticker: z.string().describe("Token ticker symbol"),
+      }),
+      handler: async (args) => {
+        const tokenAddress = await wallet.getTokenAddressFromTicker(args.ticker);
+        if (!tokenAddress) return `Token '${args.ticker}' not found`;
+        
+        const tokenInfo = TOKENS[tokenAddress];
+        if (!tokenInfo) return `Token info not available for '${args.ticker}'`;
+        
+        return `Token: ${tokenInfo.attributes.name} (${tokenInfo.attributes.symbol})
+Address: ${tokenInfo.attributes.address}
+Decimals: ${tokenInfo.attributes.decimals}`;
+      },
+    }),
+  ],
+});
+
+// Usage
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+const tokenContext = createTokenContext(wallet);
+```
+
+This comprehensive token operations system provides everything you need to work with SEI and ERC-20 tokens in your AI agents. The system handles both native SEI tokens and ERC-20 tokens seamlessly, with built-in token discovery and comprehensive error handling.
+
+## Next Steps
+
+- [Smart Contracts](/docs/sei/smart-contracts) - Learn about smart contract interactions
+- [Providers & Integrations](/docs/sei/providers-integrations) - Explore external service integrations
+- [Examples](/docs/sei/examples) - See real-world token operation examples

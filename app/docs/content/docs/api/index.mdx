@@ -39,12 +39,10 @@ Multi-layered memory system for persistent storage.
 - **[Memory Providers](/docs/api/memory#providers)** - Storage backends
 - **[Memory Operations](/docs/api/memory#operations)** - Store, retrieve, and query
 
-### 🔌 **Extension**
+### 🔌 **Provider**
 Pluggable modules for platform integrations.
 
-- **[extension](/docs/api/extension#extension)** - Create extension bundles
-- **[Extension Components](/docs/api/extension#components)** - Contexts, actions, services
-- **[Extension Lifecycle](/docs/api/extension#lifecycle)** - Loading and initialization
+- **[provider](/docs/api/provider#provider)** - Create provider bundles
 
 ### 📝 **Types**
 TypeScript type definitions and interfaces.
@@ -63,8 +61,8 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [],
   contexts: [],
+  providers: [],
   actions: [],
 });
 ```
@@ -113,12 +111,12 @@ const memory = new MemorySystem({
 });
 ```
 
-### Extension Creation
+### Provider Creation
 
 ```typescript
-import { extension } from "@axiomkit/core";
+import { provider } from "@axiomkit/core";
 
-const customExtension = extension({
+const customProvider = provider({
   name: "custom",
   contexts: { custom: customContext },
   actions: [customAction],
@@ -129,19 +127,6 @@ const customExtension = extension({
 ## Type Definitions
 
 ### Agent Configuration
-
-```typescript
-interface Config<TContext extends AnyContext = AnyContext> {
-  model: LanguageModel;
-  modelSettings?: ModelSettings;
-  extensions?: Extension[];
-  contexts?: Context<TContext>[];
-  actions?: Action[];
-  memory?: MemorySystem;
-  logger?: Logger;
-  errorHandling?: ErrorHandlingConfig;
-}
-```
 
 ### Context Definition
 

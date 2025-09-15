@@ -1,0 +1,805 @@
+---
+title: Smart Contracts
+description: Interact with smart contracts, read state, execute methods, and monitor events
+icon: FileCode
+---
+
+# Smart Contract Interactions
+
+The SEI provider enables your AI agents to interact with smart contracts deployed on the SEI blockchain. This guide covers reading contract state, executing contract methods, monitoring events, and building sophisticated DeFi interactions.
+
+## Smart Contract Basics
+
+### What are Smart Contracts?
+
+Smart contracts are self-executing programs deployed on the blockchain that automatically execute when predetermined conditions are met. On SEI, smart contracts are EVM-compatible, meaning you can deploy Ethereum smart contracts seamlessly.
+
+### Common Smart Contract Types on SEI
+
+- **DEX Contracts**: Automated market makers (AMMs) like Astroport
+- **Lending Protocols**: Money markets and lending platforms
+- **NFT Contracts**: ERC-721 and ERC-1155 token standards
+- **Governance Contracts**: DAO voting and proposal systems
+- **Oracle Contracts**: Price feeds and external data sources
+
+## Contract Interaction Methods
+
+### Reading Contract State (View Functions)
+
+```typescript
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { erc20Abi } from "viem";
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey: "0x...",
+});
+
+// Read ERC-20 token balance
+async function getTokenBalance(contractAddress: string, userAddress: string) {
+  const balance = await wallet.publicClient.readContract({
+    address: contractAddress as `0x${string}`,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [userAddress as `0x${string}`],
+  });
+  
+  return balance;
+}
+
+// Read token name and symbol
+async function getTokenInfo(contractAddress: string) {
+  const [name, symbol, decimals] = await Promise.all([
+    wallet.publicClient.readContract({
+      address: contractAddress as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "name",
+    }),
+    wallet.publicClient.readContract({
+      address: contractAddress as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "symbol",
+    }),
+    wallet.publicClient.readContract({
+      address: contractAddress as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "decimals",
+    }),
+  ]);
+  
+  return { name, symbol, decimals };
+}
+```
+
+### Executing Contract Methods (Write Functions)
+
+```typescript
+// Execute a contract method that changes state
+async function executeContractMethod(
+  contractAddress: string,
+  abi: any,
+  functionName: string,
+  args: any[]
+) {
+  const hash = await wallet.walletClient.writeContract({
+    address: contractAddress as `0x${string}`,
+    abi,
+    functionName,
+    args,
+  });
+  
+  // Wait for transaction confirmation
+  const receipt = await wallet.publicClient.waitForTransactionReceipt({
+    hash,
+  });
+  
+  return { hash, receipt };
+}
+```
+
+## Smart Contract Actions
+
+### Basic Contract Reader
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { z } from "zod";
+
+const contractContext = context({
+  type: "smart-contracts",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "read-contract",
+      description: "Read data from a smart contract",
+      schema: z.object({
+        contractAddress: z.string().describe("Contract address to read from"),
+        functionName: z.string().describe("Function name to call"),
+        args: z.array(z.string()).optional().describe("Function arguments"),
+        abi: z.string().optional().describe("Contract ABI (JSON string)"),
+      }),
+      handler: async (args) => {
+        try {
+          let abi;
+          if (args.abi) {
+            abi = JSON.parse(args.abi);
+          } else {
+            // Default to ERC-20 ABI for common functions
+            abi = erc20Abi;
+          }
+          
+          const result = await wallet.publicClient.readContract({
+            address: args.contractAddress as `0x${string}`,
+            abi,
+            functionName: args.functionName,
+            args: args.args as `0x${string}`[],
+          });
+          
+          return `Contract read result: ${JSON.stringify(result)}`;
+        } catch (error) {
+          return `Contract read failed: ${error.message}`;
+        }
+      },
+    }),
+  ],
+});
+```
+
+### Contract Writer
+
+```typescript
+action({
+  name: "write-contract",
+  description: "Execute a smart contract method",
+  schema: z.object({
+    contractAddress: z.string().describe("Contract address to write to"),
+    functionName: z.string().describe("Function name to execute"),
+    args: z.array(z.string()).optional().describe("Function arguments"),
+    abi: z.string().optional().describe("Contract ABI (JSON string)"),
+    value: z.string().optional().describe("ETH value to send (in wei)"),
+  }),
+  handler: async (args) => {
+    try {
+      let abi;
+      if (args.abi) {
+        abi = JSON.parse(args.abi);
+      } else {
+        abi = erc20Abi;
+      }
+      
+      const hash = await wallet.walletClient.writeContract({
+        address: args.contractAddress as `0x${string}`,
+        abi,
+        functionName: args.functionName,
+        args: args.args as `0x${string}`[],
+        value: args.value ? BigInt(args.value) : undefined,
+      });
+      
+      // Wait for confirmation
+      const receipt = await wallet.publicClient.waitForTransactionReceipt({
+        hash,
+      });
+      
+      return `Contract execution successful!
+Transaction Hash: ${hash}
+Block Number: ${receipt.blockNumber}
+Gas Used: ${receipt.gasUsed}`;
+    } catch (error) {
+      return `Contract execution failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+## DeFi Contract Interactions
+
+### DEX Integration (Astroport Example)
+
+```typescript
+// Astroport Router ABI (simplified)
+const astroportRouterAbi = [
+  {
+    "inputs": [
+      {"name": "amountIn", "type": "uint256"},
+      {"name": "amountOutMin", "type": "uint256"},
+      {"name": "path", "type": "address[]"},
+      {"name": "to", "type": "address"},
+      {"name": "deadline", "type": "uint256"}
+    ],
+    "name": "swapExactTokensForTokens",
+    "outputs": [{"name": "amounts", "type": "uint256[]"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const;
+
+action({
+  name: "swap-tokens",
+  description: "Execute a token swap on Astroport DEX",
+  schema: z.object({
+    tokenIn: z.string().describe("Input token address"),
+    tokenOut: z.string().describe("Output token address"),
+    amountIn: z.string().describe("Amount of input tokens"),
+    amountOutMin: z.string().describe("Minimum amount of output tokens"),
+    deadline: z.number().optional().describe("Transaction deadline (timestamp)"),
+  }),
+  handler: async (args) => {
+    try {
+      const routerAddress = "0x..."; // Astroport router address
+      const deadline = args.deadline || Math.floor(Date.now() / 1000) + 1800; // 30 minutes
+      
+      // First, approve the router to spend tokens
+      const approveHash = await wallet.walletClient.writeContract({
+        address: args.tokenIn as `0x${string}`,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [routerAddress as `0x${string}`, BigInt(args.amountIn)],
+      });
+      
+      await wallet.publicClient.waitForTransactionReceipt({ hash: approveHash });
+      
+      // Execute the swap
+      const swapHash = await wallet.walletClient.writeContract({
+        address: routerAddress as `0x${string}`,
+        abi: astroportRouterAbi,
+        functionName: "swapExactTokensForTokens",
+        args: [
+          BigInt(args.amountIn),
+          BigInt(args.amountOutMin),
+          [args.tokenIn, args.tokenOut] as `0x${string}`[],
+          wallet.walletAdress,
+          BigInt(deadline),
+        ],
+      });
+      
+      const receipt = await wallet.publicClient.waitForTransactionReceipt({
+        hash: swapHash,
+      });
+      
+      return `Token swap successful!
+Approval Hash: ${approveHash}
+Swap Hash: ${swapHash}
+Gas Used: ${receipt.gasUsed}`;
+    } catch (error) {
+      return `Token swap failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Lending Protocol Integration
+
+```typescript
+// Compound-style lending ABI (simplified)
+const lendingAbi = [
+  {
+    "inputs": [
+      {"name": "amount", "type": "uint256"}
+    ],
+    "name": "supply",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"name": "amount", "type": "uint256"}
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"name": "account", "type": "address"}
+    ],
+    "name": "getAccountLiquidity",
+    "outputs": [
+      {"name": "total", "type": "uint256"},
+      {"name": "borrowable", "type": "uint256"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;
+
+action({
+  name: "lend-tokens",
+  description: "Supply tokens to a lending protocol",
+  schema: z.object({
+    marketAddress: z.string().describe("Lending market contract address"),
+    amount: z.string().describe("Amount of tokens to supply"),
+  }),
+  handler: async (args) => {
+    try {
+      // Check account liquidity first
+      const liquidity = await wallet.publicClient.readContract({
+        address: args.marketAddress as `0x${string}`,
+        abi: lendingAbi,
+        functionName: "getAccountLiquidity",
+        args: [wallet.walletAdress],
+      });
+      
+      console.log("Account liquidity:", liquidity);
+      
+      // Supply tokens
+      const hash = await wallet.walletClient.writeContract({
+        address: args.marketAddress as `0x${string}`,
+        abi: lendingAbi,
+        functionName: "supply",
+        args: [BigInt(args.amount)],
+      });
+      
+      const receipt = await wallet.publicClient.waitForTransactionReceipt({
+        hash,
+      });
+      
+      return `Token supply successful!
+Transaction Hash: ${hash}
+Gas Used: ${receipt.gasUsed}
+Account Liquidity: ${liquidity[0].toString()}`;
+    } catch (error) {
+      return `Token supply failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Event Monitoring
+
+### Contract Event Listeners
+
+```typescript
+action({
+  name: "monitor-events",
+  description: "Monitor smart contract events",
+  schema: z.object({
+    contractAddress: z.string().describe("Contract address to monitor"),
+    eventName: z.string().describe("Event name to listen for"),
+    fromBlock: z.number().optional().describe("Starting block number"),
+    abi: z.string().optional().describe("Contract ABI (JSON string)"),
+  }),
+  handler: async (args) => {
+    try {
+      let abi;
+      if (args.abi) {
+        abi = JSON.parse(args.abi);
+      } else {
+        abi = erc20Abi;
+      }
+      
+      const fromBlock = args.fromBlock || "latest";
+      
+      // Get past events
+      const events = await wallet.publicClient.getLogs({
+        address: args.contractAddress as `0x${string}`,
+        event: {
+          type: "event",
+          name: args.eventName,
+          inputs: [], // You'd specify the actual event inputs here
+        },
+        fromBlock: fromBlock as any,
+        toBlock: "latest",
+      });
+      
+      const eventData = events.map(event => ({
+        blockNumber: event.blockNumber,
+        transactionHash: event.transactionHash,
+        data: event.data,
+        topics: event.topics,
+      }));
+      
+      return `Found ${events.length} events:
+${JSON.stringify(eventData, null, 2)}`;
+    } catch (error) {
+      return `Event monitoring failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Real-time Event Streaming
+
+```typescript
+// Set up real-time event monitoring
+async function setupEventStream(
+  contractAddress: string,
+  eventName: string,
+  abi: any,
+  callback: (event: any) => void
+) {
+  // Watch for new events
+  const unwatch = wallet.publicClient.watchContractEvent({
+    address: contractAddress as `0x${string}`,
+    abi,
+    eventName,
+    onLogs: (logs) => {
+      logs.forEach(log => callback(log));
+    },
+  });
+  
+  return unwatch;
+}
+
+// Usage in action
+action({
+  name: "start-event-monitor",
+  description: "Start monitoring contract events in real-time",
+  schema: z.object({
+    contractAddress: z.string().describe("Contract address to monitor"),
+    eventName: z.string().describe("Event name to listen for"),
+  }),
+  handler: async (args) => {
+    try {
+      const unwatch = await setupEventStream(
+        args.contractAddress,
+        args.eventName,
+        erc20Abi,
+        (event) => {
+          console.log("New event:", event);
+        }
+      );
+      
+      return `Started monitoring events for ${args.eventName} on ${args.contractAddress}.
+Use the returned unwatch function to stop monitoring.`;
+    } catch (error) {
+      return `Failed to start event monitoring: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Gas Optimization
+
+### Gas Estimation
+
+```typescript
+action({
+  name: "estimate-gas",
+  description: "Estimate gas cost for a contract interaction",
+  schema: z.object({
+    contractAddress: z.string().describe("Contract address"),
+    functionName: z.string().describe("Function name"),
+    args: z.array(z.string()).optional().describe("Function arguments"),
+    abi: z.string().optional().describe("Contract ABI"),
+    value: z.string().optional().describe("ETH value to send"),
+  }),
+  handler: async (args) => {
+    try {
+      let abi;
+      if (args.abi) {
+        abi = JSON.parse(args.abi);
+      } else {
+        abi = erc20Abi;
+      }
+      
+      const gasEstimate = await wallet.publicClient.estimateContractGas({
+        address: args.contractAddress as `0x${string}`,
+        abi,
+        functionName: args.functionName,
+        args: args.args as `0x${string}`[],
+        value: args.value ? BigInt(args.value) : undefined,
+        account: wallet.walletAdress,
+      });
+      
+      // Get current gas price
+      const gasPrice = await wallet.publicClient.getGasPrice();
+      const estimatedCost = gasEstimate * gasPrice;
+      
+      return `Gas Estimation:
+Estimated Gas: ${gasEstimate.toString()}
+Gas Price: ${gasPrice.toString()} wei
+Estimated Cost: ${estimatedCost.toString()} wei (${(Number(estimatedCost) / 1e18).toFixed(6)} SEI)`;
+    } catch (error) {
+      return `Gas estimation failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Gas Price Optimization
+
+```typescript
+action({
+  name: "optimize-gas",
+  description: "Get optimal gas price for transaction",
+  schema: z.object({}),
+  handler: async () => {
+    try {
+      const [gasPrice, maxFeePerGas, maxPriorityFeePerGas] = await Promise.all([
+        wallet.publicClient.getGasPrice(),
+        wallet.publicClient.getMaxFeePerGas(),
+        wallet.publicClient.getMaxPriorityFeePerGas(),
+      ]);
+      
+      return `Gas Price Information:
+Current Gas Price: ${gasPrice.toString()} wei
+Max Fee Per Gas: ${maxFeePerGas?.toString() || "N/A"} wei
+Max Priority Fee: ${maxPriorityFeePerGas?.toString() || "N/A"} wei
+Recommended: Use maxFeePerGas for EIP-1559 transactions`;
+    } catch (error) {
+      return `Failed to get gas prices: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Error Handling
+
+### Contract Interaction Errors
+
+```typescript
+class ContractError extends Error {
+  constructor(message: string, public code: string, public contractAddress?: string) {
+    super(message);
+    this.name = "ContractError";
+  }
+}
+
+async function safeContractOperation<T>(
+  operation: () => Promise<T>,
+  context: string
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (error instanceof Error) {
+      // Handle specific contract errors
+      if (error.message.includes("execution reverted")) {
+        throw new ContractError("Contract execution reverted", "EXECUTION_REVERTED");
+      }
+      if (error.message.includes("insufficient funds")) {
+        throw new ContractError("Insufficient funds for transaction", "INSUFFICIENT_FUNDS");
+      }
+      if (error.message.includes("gas")) {
+        throw new ContractError("Gas estimation failed", "GAS_ERROR");
+      }
+      if (error.message.includes("nonce")) {
+        throw new ContractError("Invalid nonce", "NONCE_ERROR");
+      }
+    }
+    
+    throw new ContractError(`${context}: ${error.message}`, "UNKNOWN_ERROR");
+  }
+}
+```
+
+## Advanced Contract Patterns
+
+### Multi-Call Operations
+
+```typescript
+action({
+  name: "multicall",
+  description: "Execute multiple contract calls in a single transaction",
+  schema: z.object({
+    calls: z.array(z.object({
+      contractAddress: z.string(),
+      functionName: z.string(),
+      args: z.array(z.string()).optional(),
+    })).describe("Array of contract calls to execute"),
+  }),
+  handler: async (args) => {
+    try {
+      // This is a simplified multicall implementation
+      // In practice, you'd use a multicall contract
+      
+      const results = [];
+      
+      for (const call of args.calls) {
+        try {
+          const result = await wallet.publicClient.readContract({
+            address: call.contractAddress as `0x${string}`,
+            abi: erc20Abi, // You'd pass the correct ABI
+            functionName: call.functionName,
+            args: call.args as `0x${string}`[],
+          });
+          
+          results.push({
+            contract: call.contractAddress,
+            function: call.functionName,
+            result: result.toString(),
+            success: true,
+          });
+        } catch (error) {
+          results.push({
+            contract: call.contractAddress,
+            function: call.functionName,
+            error: error.message,
+            success: false,
+          });
+        }
+      }
+      
+      return `Multicall Results:
+${JSON.stringify(results, null, 2)}`;
+    } catch (error) {
+      return `Multicall failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Contract Factory Pattern
+
+```typescript
+class ContractFactory {
+  constructor(private wallet: AxiomSeiWallet) {}
+  
+  createContract(address: string, abi: any) {
+    return {
+      address: address as `0x${string}`,
+      abi,
+      
+      async read(functionName: string, args: any[] = []) {
+        return this.wallet.publicClient.readContract({
+          address: this.address,
+          abi: this.abi,
+          functionName,
+          args,
+        });
+      },
+      
+      async write(functionName: string, args: any[] = [], value?: bigint) {
+        const hash = await this.wallet.walletClient.writeContract({
+          address: this.address,
+          abi: this.abi,
+          functionName,
+          args,
+          value,
+        });
+        
+        return this.wallet.publicClient.waitForTransactionReceipt({ hash });
+      },
+    };
+  }
+}
+
+// Usage
+const factory = new ContractFactory(wallet);
+const usdcContract = factory.createContract(
+  "0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1",
+  erc20Abi
+);
+
+// Read balance
+const balance = await usdcContract.read("balanceOf", [wallet.walletAdress]);
+
+// Transfer tokens
+const receipt = await usdcContract.write("transfer", [
+  "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  BigInt("1000000"), // 1 USDC (6 decimals)
+]);
+```
+
+## Best Practices
+
+### 1. **ABI Management**
+- Store ABIs in separate files
+- Use TypeScript for type safety
+- Validate ABI structure before use
+
+### 2. **Error Handling**
+- Always wrap contract calls in try-catch
+- Handle specific error types appropriately
+- Provide meaningful error messages
+
+### 3. **Gas Management**
+- Estimate gas before transactions
+- Use appropriate gas limits
+- Monitor gas prices for optimization
+
+### 4. **Security**
+- Validate all inputs
+- Use proper access controls
+- Test on testnet first
+
+### 5. **Performance**
+- Batch operations when possible
+- Use multicall contracts for efficiency
+- Cache contract instances
+
+## Complete Smart Contract Context
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { erc20Abi } from "viem";
+import { z } from "zod";
+
+const createContractContext = (wallet: AxiomSeiWallet) => context({
+  type: "smart-contracts",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    // Contract reader
+    action({
+      name: "read-contract",
+      description: "Read data from a smart contract",
+      schema: z.object({
+        contractAddress: z.string().describe("Contract address"),
+        functionName: z.string().describe("Function name"),
+        args: z.array(z.string()).optional().describe("Function arguments"),
+      }),
+      handler: async (args) => {
+        const result = await wallet.publicClient.readContract({
+          address: args.contractAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: args.functionName,
+          args: args.args as `0x${string}`[],
+        });
+        return `Result: ${result}`;
+      },
+    }),
+    
+    // Contract writer
+    action({
+      name: "write-contract",
+      description: "Execute a smart contract method",
+      schema: z.object({
+        contractAddress: z.string().describe("Contract address"),
+        functionName: z.string().describe("Function name"),
+        args: z.array(z.string()).optional().describe("Function arguments"),
+      }),
+      handler: async (args) => {
+        const hash = await wallet.walletClient.writeContract({
+          address: args.contractAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: args.functionName,
+          args: args.args as `0x${string}`[],
+        });
+        
+        const receipt = await wallet.publicClient.waitForTransactionReceipt({
+          hash,
+        });
+        
+        return `Transaction successful! Hash: ${hash}`;
+      },
+    }),
+    
+    // Gas estimation
+    action({
+      name: "estimate-gas",
+      description: "Estimate gas for a contract call",
+      schema: z.object({
+        contractAddress: z.string().describe("Contract address"),
+        functionName: z.string().describe("Function name"),
+        args: z.array(z.string()).optional().describe("Function arguments"),
+      }),
+      handler: async (args) => {
+        const gasEstimate = await wallet.publicClient.estimateContractGas({
+          address: args.contractAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: args.functionName,
+          args: args.args as `0x${string}`[],
+          account: wallet.walletAdress,
+        });
+        
+        return `Estimated gas: ${gasEstimate.toString()}`;
+      },
+    }),
+  ],
+});
+
+// Usage
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+const contractContext = createContractContext(wallet);
+```
+
+This comprehensive smart contract system provides everything you need to interact with smart contracts on SEI. From basic read/write operations to advanced DeFi integrations, your AI agents can now interact with the full SEI ecosystem.
+
+## Next Steps
+
+- [Providers & Integrations](/docs/sei/providers-integrations) - Learn about external service integrations
+- [Examples](/docs/sei/examples) - See real-world smart contract examples
+- [DeFi Strategies](/docs/sei/examples#defi-strategies) - Advanced DeFi interaction patterns

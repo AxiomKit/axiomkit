@@ -1,6 +1,6 @@
 {
-    "name": "bot-examples-bots",
-    "module": "index.ts",
+    "name": "axiom-examples-bots",
+    "module": "echo.ts",
     "type": "module",
     "private": true,
     "dependencies": {

@@ -2,146 +2,164 @@
 
 This example demonstrates how to create a Telegram bot that helps users place orders. The bot will ask for missing order details and confirm the order before processing.
 
-## The Problem with the Original Code
+## Features
 
-The original `index.ts` has a fundamental issue: **the `orderContext` is never actually used by the agent**.
+- **Natural Conversation Flow**: Handles "create order about product" requests naturally
+- **Progressive Information Gathering**: Asks for one detail at a time to avoid overwhelming users
+- **Order Confirmation**: Provides clear order summaries and confirmation before processing
+- **State Management**: Maintains order state throughout the conversation
+- **Friendly Responses**: Uses conversational, helpful language instead of JSON responses
 
-### Why the Original Code Doesn't Work
+## How It Works
 
-1. **Context Registration**: The `orderContext` is defined but never registered with the agent's context registry
-2. **Message Routing**: Telegram messages are routed to the `telegramChat` context (from the telegram extension), not the `orderContext`
-3. **Missing Primary Context**: The agent doesn't have a primary context to handle business logic
+### 1. Order Request Handling
+When a user says "create order about product" or similar:
+- The bot asks what specific product they want to order
+- Maintains a friendly, conversational tone
 
-### What Happens in the Original Code
+### 2. Information Collection
+The bot progressively collects:
+- **Product**: What the user wants to order
+- **Quantity**: How many they want
+- **Customer Name**: For the order
+- **Delivery Address**: Where to ship
 
-```typescript
-// This creates the agent with orderContext in the contexts array
-createAgent({
-  contexts: [orderContext], // ❌ This doesn't make it the primary context
-  extensions: [telegram],
-}).start();
+### 3. Order Confirmation
+When all details are provided:
+- The bot summarizes the complete order
+- Asks for confirmation before processing
+- Uses the `confirmOrder` action to finalize
+
+### 4. Response Format
+- **Natural Language**: All responses are in plain text, never JSON
+- **Conversational**: Friendly and helpful tone
+- **Concise**: Clear information without overwhelming the user
+
+## Example Conversation Flow
+
+```
+User: "let create order about product"
+Bot: "Sure! What product would you like to order?"
+
+User: "I want a laptop"
+Bot: "Great! How many laptops would you like to order?"
+
+User: "1"
+Bot: "Perfect! What's your name for the order?"
+
+User: "John Smith"
+Bot: "Thanks John! What's your delivery address?"
+
+User: "123 Main St, City, State 12345"
+Bot: "Perfect! Here's your order summary:
+      - Product: Laptop
+      - Quantity: 1
+      - Customer: John Smith
+      - Address: 123 Main St, City, State 12345
+      
+      Should I confirm this order for you?"
+
+User: "Yes"
+Bot: "✅ Order confirmed! Here's your order summary:
+      [Order details]
+      
+      Your order has been processed and will be shipped soon."
 ```
 
-When a Telegram message arrives:
-1. The telegram extension receives the message
-2. It routes the message to the `telegramChat` context
-3. The `orderContext` is never activated or used
-4. The agent responds with generic behavior, not order-specific logic
+## Key Improvements
 
-## The Solution
+### 1. Better Instructions
+The context now has detailed instructions for handling different types of requests:
+- Specific handling for "create order about product" requests
+- Progressive information gathering
+- Clear response guidelines
 
-### Option 1: Make orderContext the Primary Context (Recommended)
+### 2. Enhanced Order Action
+The `confirmOrder` action now:
+- Accepts an optional order summary
+- Provides detailed confirmation messages
+- Handles both confirmation and cancellation gracefully
 
+### 3. Improved State Management
+- Added `orderSummary` to track the complete order details
+- Better memory management for order state
+- Clear state tracking for debugging
+
+### 4. Natural Response Format
+- No more JSON responses
+- Conversational, friendly language
+- Clear, structured information presentation
+
+## Technical Implementation
+
+### Context Structure
 ```typescript
-// ✅ Make orderContext the primary context
-createAgent({
-  context: orderContext, // This makes it the main context
-  extensions: [telegram],
-}).start();
-```
-
-### Option 2: Integrate Order Logic into Telegram Context
-
-Modify the telegram extension to include order functionality directly.
-
-### Option 3: Use Context Composition
-
-Use the `.use()` method to compose contexts together.
-
-## Fixed Implementation
-
-The `fixed-index.ts` file shows the correct implementation:
-
-1. **Primary Context**: `orderContext` is set as the primary context
-2. **Telegram Integration**: The context includes Telegram output handling
-3. **State Management**: Order state is properly maintained in memory
-4. **Instructions**: Clear instructions guide the AI's behavior
-
-### Key Changes
-
-```typescript
-// ✅ Set as primary context
-createAgent({
-  context: orderContext, // Primary context
-  actions: [confirmOrder],
-  extensions: [telegram],
-}).start();
-```
-
-```typescript
-// ✅ Add Telegram output handling
-outputs: {
-  "telegram:message": {
-    // ... telegram message handling
-  },
-}
-```
-
-## Testing the Fix
-
-1. **Start the bot**: `node fixed-index.ts`
-2. **Send a message**: "I want to place an order"
-3. **Expected behavior**: The bot should ask for order details
-4. **Verify state**: The bot should remember and track order information
-
-## Understanding AxiomKit Context Architecture
-
-In AxiomKit, there are typically two types of contexts:
-
-1. **Primary Context**: Handles business logic (like order processing)
-2. **Extension Contexts**: Handle communication (like Telegram, CLI)
-
-The key insight is that **one context should be primary** and handle the core business logic, while extensions provide the communication layer.
-
-## Common Patterns
-
-### Pattern 1: Primary Context + Extensions
-```typescript
-createAgent({
-  context: businessContext, // Primary context
-  extensions: [telegram, cli], // Communication extensions
-})
-```
-
-### Pattern 2: Context Composition
-```typescript
-const businessContext = context({
-  // ... business logic
-}).use((state) => [
-  { context: telegramContext, args: { chatId: state.args.chatId } }
-]);
-```
-
-### Pattern 3: Extension-Only
-```typescript
-// Define business logic in the extension itself
-const telegramExtension = extension({
-  contexts: {
-    chat: context({
-      // Include business logic here
-    })
-  }
+const orderContext = context({
+  type: "order-context",
+  schema: z.object({
+    customerName: z.string().optional(),
+    product: z.string().optional(),
+    quantity: z.number().optional(),
+    address: z.string().optional(),
+    confirmed: z.boolean().default(false),
+    orderSummary: z.string().optional(),
+    chatId: z.number().optional(),
+  }),
+  // ... instructions and outputs
 });
 ```
 
-## Best Practices
+### Action Definition
+```typescript
+const confirmOrder = action({
+  name: "confirmOrder",
+  description: "Mark the order as confirmed and process it",
+  schema: z.object({
+    confirmed: z.boolean(),
+    orderSummary: z.string().optional(),
+  }),
+  handler: async ({ confirmed, orderSummary }: { confirmed: boolean; orderSummary?: string }, ctx: any) => {
+    // ... order processing logic
+  },
+});
+```
 
-1. **One Primary Context**: Use one context for core business logic
-2. **Clear Separation**: Keep communication and business logic separate
-3. **State Management**: Use context memory for persistent state
-4. **Instructions**: Provide clear, specific instructions to the AI
-5. **Testing**: Test with various user inputs to ensure robustness
+## Testing the Bot
+
+1. **Start the bot**: `node index.ts`
+2. **Test order creation**: Send "let create order about product"
+3. **Follow the flow**: Provide product, quantity, name, and address
+4. **Confirm order**: Say "yes" to confirm the order
+5. **Verify response**: Check that you get a proper confirmation message
+
+## Best Practices Demonstrated
+
+1. **Progressive Disclosure**: Ask for one piece of information at a time
+2. **State Persistence**: Maintain order state throughout the conversation
+3. **Clear Instructions**: Provide detailed guidance for the AI
+4. **Natural Language**: Use conversational responses instead of JSON
+5. **Error Handling**: Graceful handling of cancellations and confirmations
+6. **User Experience**: Friendly, helpful tone throughout the interaction
 
 ## Troubleshooting
 
-### Issue: Context not being used
-**Solution**: Make sure the context is set as the primary context or properly composed
+### Issue: Bot responds with JSON
+**Solution**: Make sure the instructions emphasize responding in plain text, not JSON
 
-### Issue: State not persisting
-**Solution**: Use the `create` function to initialize memory and `memory.update()` to modify state
+### Issue: Order state not persisting
+**Solution**: Verify that `memory.update()` is being called correctly in the action handler
 
-### Issue: Instructions not followed
-**Solution**: Provide clear, specific instructions and test with various inputs
+### Issue: Bot doesn't ask for all required information
+**Solution**: Check that the instructions include all the required order fields
 
-### Issue: Telegram messages not sending
-**Solution**: Ensure the context has proper output handlers for Telegram 
+### Issue: Confirmation not working
+**Solution**: Ensure the `confirmOrder` action is properly defined and called
+
+## Next Steps
+
+To extend this example, you could:
+1. Add product catalog integration
+2. Implement payment processing
+3. Add order tracking functionality
+4. Integrate with inventory management
+5. Add multi-language support 

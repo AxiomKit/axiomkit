@@ -1,72 +1,278 @@
 ---
-title: Output
-description:
-  A core objective is to comprehend the fundamental building blocks that
-  constitute the Axiomkit framework.
+title: Actions
+description: Define executable functions that enable your Axiom agent to perform tasks and interact with external systems.
+icon: Workflow
 ---
 
-## Example
+# Actions
 
-#### CLI
+Actions are the core building blocks that define what your Axiom agent can **do**. They are typed functions that your agent can execute to perform operations, fetch data, or interact with external systems.
+
+## What is an Action?
+
+An **Action** is a function your agent can call to:
+- 🔍 **Fetch data** from APIs, databases, or external services
+- ⚙️ **Perform operations** like calculations, file processing, or data manipulation  
+- 🔗 **Interact with systems** like sending emails, creating tickets, or updating records
+- 📊 **Process information** and return structured results for the LLM to use
+
+Think of actions as your agent's "hands" - they're how it actually accomplishes tasks in the real world.
+
+## Actions vs Inputs vs Outputs
+
+| Building Block | Purpose | When LLM Uses It | Returns Data |
+|---------------|---------|------------------|--------------|
+| **Actions** | Execute functions, get data, perform operations | When it needs information for reasoning | ✅ Yes - LLM uses results |
+| **Inputs** | Listen for external events (user messages, webhooks) | Never - inputs trigger the agent | ❌ No - triggers conversation |
+| **Outputs** | Communicate results to users | When it wants to respond/notify | ❌ No - final communication step |
+
+## Basic Action Structure
 
 ```typescript
-import { context, input, output } from "@axiomkit/core";
-import z from "zod/v4";
-import * as readline from "readline/promises";
-const outputCLI = output({
-  description: "Send messages to the user",
-  instructions: "Respond to the user's message according to your instructions",
-  schema: z.string(),
-  handler(data) {
-    console.log("Agent:", data);
-    return { data };
-  },
-});
+import { action } from "@axiomkit/core";
+import { z } from "zod";
 
-// And configure into context
-export const cliContext = context({
-  type: "cli",
-  // A schema to identify a specific CLI session. Here, we use a simple string.
-  schema: z.object({
-    sessionId: z.string(),
+const myAction = action({
+  name: "action-name",                    // Unique identifier
+  description: "What this action does",   // Human-readable description
+  schema: z.object({                      // Input validation schema
+    param1: z.string(),
+    param2: z.number().optional(),
   }),
-
-  // The 'inputs' block defines how the agent receives data from the outside world.
-  inputs: {
-    // We name our input 'cli:message'
-    "cli:message": input({
-      // The subscribe function is where the listening happens. It's async.
-      async subscribe(send, { container }) {
-        const rl = container.resolve<readline.Interface>("readline");
-        const controller = new AbortController();
-
-        // This loop waits for the user to type something and press Enter.
-        while (!controller.signal.aborted) {
-          const userInput = await rl.question("> ");
-
-          // Typing 'exit' will break the loop and end the program.
-          if (userInput.toLowerCase() === "exit") {
-            break;
-          }
-
-          // Send the user's input to the agent for processing.
-          // 1. context: Tells the agent which context to use (this one).
-          // 2. args: Identifies the specific session (e.g., { sessionId: "user123" }).
-          // 3. data: The actual message from the user.
-          send(cliContext, { sessionId: "main_session" }, userInput);
-        }
-
-        // This function is called to clean up and stop listening.
-        return () => {
-          controller.abort();
-          rl.close();
-        };
-      },
-    }),
-  },
-
-  outputs: {
-    outputCLI,
+  handler: async (args, ctx) => {         // The actual function
+    // Your logic here
+    return { result: "success" };
   },
 });
 ```
+
+## Example Actions
+
+### 1. Weather Lookup Action
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+const getWeather = action({
+  name: "get-weather",
+  description: "Get current weather information for a city",
+  schema: z.object({
+    city: z.string().describe("The city name to get weather for"),
+    units: z.enum(["celsius", "fahrenheit"]).default("celsius"),
+  }),
+  handler: async (args, ctx) => {
+    const { city, units } = args;
+    
+    // Simulate API call
+    const weatherData = {
+      city,
+      temperature: units === "celsius" ? "22°C" : "72°F",
+      condition: "Sunny",
+      humidity: "65%",
+    };
+    
+    return {
+      success: true,
+      data: weatherData,
+    };
+  },
+});
+```
+
+### 2. Database Query Action
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+const searchUsers = action({
+  name: "search-users",
+  description: "Search for users in the database",
+  schema: z.object({
+    query: z.string().describe("Search term for user name or email"),
+    limit: z.number().min(1).max(100).default(10),
+  }),
+  handler: async (args, ctx) => {
+    const { query, limit } = args;
+    
+    // Simulate database query
+    const users = [
+      { id: 1, name: "John Doe", email: "john@example.com" },
+      { id: 2, name: "Jane Smith", email: "jane@example.com" },
+    ].filter(user => 
+      user.name.toLowerCase().includes(query.toLowerCase()) ||
+      user.email.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, limit);
+    
+    return {
+      success: true,
+      users,
+      total: users.length,
+    };
+  },
+});
+```
+
+### 3. File Processing Action
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+import * as fs from "fs/promises";
+
+const processFile = action({
+  name: "process-file",
+  description: "Read and process a text file",
+  schema: z.object({
+    filePath: z.string().describe("Path to the file to process"),
+    operation: z.enum(["count-words", "count-lines", "get-content"]),
+  }),
+  handler: async (args, ctx) => {
+    const { filePath, operation } = args;
+    
+    try {
+      const content = await fs.readFile(filePath, "utf-8");
+      
+      let result;
+      switch (operation) {
+        case "count-words":
+          result = content.split(/\s+/).length;
+          break;
+        case "count-lines":
+          result = content.split("\n").length;
+          break;
+        case "get-content":
+          result = content;
+          break;
+      }
+      
+      return {
+        success: true,
+        operation,
+        result,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to process file: ${error.message}`,
+      };
+    }
+  },
+});
+```
+
+### 4. API Integration Action
+
+```typescript
+import { action } from "@axiomkit/core";
+import { z } from "zod";
+
+const sendNotification = action({
+  name: "send-notification",
+  description: "Send a notification via external service",
+  schema: z.object({
+    message: z.string().describe("The notification message"),
+    recipient: z.string().email().describe("Email address of recipient"),
+    priority: z.enum(["low", "medium", "high"]).default("medium"),
+  }),
+  handler: async (args, ctx) => {
+    const { message, recipient, priority } = args;
+    
+    // Simulate API call to notification service
+    const notificationId = `notif_${Date.now()}`;
+    
+    // In real implementation, you'd call an actual API
+    console.log(`Sending ${priority} notification to ${recipient}: ${message}`);
+    
+    return {
+      success: true,
+      notificationId,
+      status: "sent",
+      timestamp: new Date().toISOString(),
+    };
+  },
+});
+```
+
+## Adding Actions to Your Context
+
+```typescript
+import { context } from "@axiomkit/core";
+import { z } from "zod";
+
+const myContext = context({
+  type: "my-agent",
+  schema: z.object({
+    userId: z.string(),
+  }),
+  
+  // Add your actions here
+  actions: [
+    getWeather,
+    searchUsers,
+    processFile,
+    sendNotification,
+  ],
+  
+  // ... rest of your context configuration
+});
+```
+
+## Action Features
+
+### Type Safety
+Actions use Zod schemas for complete type safety:
+- Input validation happens automatically
+- TypeScript types are inferred
+- Runtime errors are caught early
+
+### Error Handling
+```typescript
+const riskyAction = action({
+  name: "risky-action",
+  description: "An action that might fail",
+  schema: z.object({
+    input: z.string(),
+  }),
+  handler: async (args, ctx) => {
+    try {
+      // Risky operation
+      const result = await someRiskyOperation(args.input);
+      return { success: true, result };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+  },
+});
+```
+
+### Conditional Execution
+```typescript
+const conditionalAction = action({
+  name: "conditional-action",
+  description: "Only runs under certain conditions",
+  schema: z.object({
+    data: z.string(),
+  }),
+  enabled: (ctx) => {
+    // Only enable if user has permission
+    return ctx.memory.userRole === "admin";
+  },
+  handler: async (args, ctx) => {
+    // This only runs if enabled() returns true
+    return { processed: args.data };
+  },
+});
+```
+
+## Best Practices
+
+1. **Clear Descriptions**: Write descriptive names and descriptions so the LLM knows when to use each action
+2. **Proper Schemas**: Use detailed Zod schemas with descriptions for better LLM understanding
+3. **Error Handling**: Always handle errors gracefully and return structured responses
+4. **Type Safety**: Leverage TypeScript and Zod for compile-time and runtime safety
+5. **Idempotent Operations**: Make actions safe to retry when possible

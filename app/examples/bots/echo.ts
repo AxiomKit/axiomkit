@@ -1,9 +1,8 @@
-import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createAgent, LogLevel } from "@axiomkit/core";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-// Pre-configured extensions for common use cases
-export const echoCliExtension = createCliExtension({
+export const echoCliProvider = createCliProvider({
   name: "echo",
   instructions: [
     "You are a simple echo bot.",
@@ -17,17 +16,17 @@ export const echoCliExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [echoCliExtension],
+  logLevel: LogLevel.DISABLED,
+  providers: [echoCliProvider],
 });
 
 // Start the agent
 async function main() {
-  await agent.start();
+  await agent.start({
+    id: "echo-handle",
+  });
   console.log("Echo bot started. Type 'exit' to quit.");
   console.log("I will repeat exactly what you say.");
-
-  // The CLI extension will handle the input/output loop
-  // It will use the echo instructions we defined in the extension
 }
 
 main();

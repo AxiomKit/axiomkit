@@ -1,0 +1,742 @@
+---
+title: Providers & Integrations
+description: External service integrations, APIs, and data providers for SEI ecosystem
+icon: Plug
+---
+
+# Providers & Integrations
+
+The SEI provider includes integrations with external services and APIs that enhance your AI agents' capabilities. This guide covers DexScreener integration, price feeds, and other ecosystem services.
+
+## Available Providers
+
+### DexScreener Integration
+
+DexScreener provides real-time token data, price information, and trading pairs for the SEI ecosystem.
+
+#### Features
+- 🔍 **Token Discovery**: Find tokens by ticker symbol
+- 📊 **Price Data**: Real-time price feeds
+- 📈 **Trading Pairs**: DEX pair information
+- 🏷️ **Token Metadata**: Name, symbol, decimals, and more
+
+#### Basic Usage
+
+```typescript
+import { AxiomSeiWallet } from "@axiomkit/sei";
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey: "0x...",
+});
+
+// Find token address by ticker
+const tokenAddress = await wallet.getTokenAddressFromTicker("USDC");
+console.log("USDC Address:", tokenAddress);
+```
+
+#### DexScreener Actions
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { z } from "zod";
+
+const dexScreenerContext = context({
+  type: "dexscreener-integration",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "find-token",
+      description: "Find token information by ticker symbol",
+      schema: z.object({
+        ticker: z.string().describe("Token ticker symbol (e.g., 'USDC', 'WETH')"),
+      }),
+      handler: async (args) => {
+        try {
+          console.log(`🔍 Searching for token: ${args.ticker}`);
+          
+          const tokenAddress = await wallet.getTokenAddressFromTicker(args.ticker);
+          
+          if (!tokenAddress) {
+            return `Token '${args.ticker}' not found on SEI network`;
+          }
+          
+          return `Token Found:
+Ticker: ${args.ticker}
+Address: ${tokenAddress}
+Network: SEI v2`;
+        } catch (error) {
+          return `Token search failed: ${error.message}`;
+        }
+      },
+    }),
+    
+    action({
+      name: "get-token-pairs",
+      description: "Get trading pairs for a token",
+      schema: z.object({
+        ticker: z.string().describe("Token ticker symbol"),
+      }),
+      handler: async (args) => {
+        try {
+          const response = await fetch(
+            `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(args.ticker)}`
+          );
+          
+          if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Filter for SEI v2 pairs
+          const seiPairs = data.pairs?.filter((pair: any) => 
+            pair.chainId === "seiv2" && 
+            pair.baseToken?.symbol?.toLowerCase() === args.ticker.toLowerCase()
+          ) || [];
+          
+          if (seiPairs.length === 0) {
+            return `No trading pairs found for ${args.ticker} on SEI`;
+          }
+          
+          const pairInfo = seiPairs.slice(0, 5).map((pair: any) => 
+            `Pair: ${pair.baseToken.symbol}/${pair.quoteToken.symbol}
+Price: $${parseFloat(pair.priceUsd).toFixed(6)}
+Volume 24h: $${parseFloat(pair.volume?.h24 || 0).toLocaleString()}
+Liquidity: $${parseFloat(pair.liquidity?.usd || 0).toLocaleString()}`
+          ).join("\n\n");
+          
+          return `Trading Pairs for ${args.ticker}:
+${pairInfo}`;
+        } catch (error) {
+          return `Failed to get trading pairs: ${error.message}`;
+        }
+      },
+    }),
+  ],
+});
+```
+
+### Price Feed Integration
+
+#### Real-time Price Data
+
+```typescript
+action({
+  name: "get-price-data",
+  description: "Get real-time price data for tokens",
+  schema: z.object({
+    tokens: z.array(z.string()).describe("List of token tickers to get prices for"),
+  }),
+  handler: async (args) => {
+    try {
+      const priceData: Record<string, any> = {};
+      
+      for (const ticker of args.tokens) {
+        try {
+          const response = await fetch(
+            `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(ticker)}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            const seiPair = data.pairs?.find((pair: any) => 
+              pair.chainId === "seiv2" && 
+              pair.baseToken?.symbol?.toLowerCase() === ticker.toLowerCase()
+            );
+            
+            if (seiPair) {
+              priceData[ticker] = {
+                price: parseFloat(seiPair.priceUsd),
+                change24h: parseFloat(seiPair.priceChange?.h24 || 0),
+                volume24h: parseFloat(seiPair.volume?.h24 || 0),
+                liquidity: parseFloat(seiPair.liquidity?.usd || 0),
+              };
+            } else {
+              priceData[ticker] = { error: "Token not found on SEI" };
+            }
+          }
+        } catch (error) {
+          priceData[ticker] = { error: error.message };
+        }
+      }
+      
+      const priceReport = Object.entries(priceData)
+        .map(([ticker, data]) => {
+          if (data.error) {
+            return `${ticker}: ${data.error}`;
+          }
+          return `${ticker}: $${data.price.toFixed(6)} (${data.change24h >= 0 ? '+' : ''}${data.change24h.toFixed(2)}%)`;
+        })
+        .join("\n");
+      
+      return `Price Data:
+${priceReport}`;
+    } catch (error) {
+      return `Failed to get price data: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Market Data Provider
+
+```typescript
+class MarketDataProvider {
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private cacheTimeout = 60000; // 1 minute
+  
+  async getTokenData(ticker: string) {
+    const cacheKey = `token_${ticker}`;
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+    
+    try {
+      const response = await fetch(
+        `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(ticker)}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const seiPair = data.pairs?.find((pair: any) => 
+        pair.chainId === "seiv2" && 
+        pair.baseToken?.symbol?.toLowerCase() === ticker.toLowerCase()
+      );
+      
+      const tokenData = seiPair ? {
+        address: seiPair.baseToken.address,
+        name: seiPair.baseToken.name,
+        symbol: seiPair.baseToken.symbol,
+        price: parseFloat(seiPair.priceUsd),
+        change24h: parseFloat(seiPair.priceChange?.h24 || 0),
+        volume24h: parseFloat(seiPair.volume?.h24 || 0),
+        liquidity: parseFloat(seiPair.liquidity?.usd || 0),
+        fdv: parseFloat(seiPair.fdv || 0),
+        marketCap: parseFloat(seiPair.marketCap || 0),
+      } : null;
+      
+      this.cache.set(cacheKey, { data: tokenData, timestamp: Date.now() });
+      return tokenData;
+    } catch (error) {
+      console.error(`Failed to get token data for ${ticker}:`, error);
+      return null;
+    }
+  }
+  
+  async getTopTokens(limit = 10) {
+    try {
+      const response = await fetch(
+        `https://api.dexscreener.com/latest/dex/tokens/0x0` // SEI native token
+      );
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const seiTokens = data.pairs
+        ?.filter((pair: any) => pair.chainId === "seiv2")
+        ?.slice(0, limit)
+        ?.map((pair: any) => ({
+          symbol: pair.baseToken.symbol,
+          name: pair.baseToken.name,
+          address: pair.baseToken.address,
+          price: parseFloat(pair.priceUsd),
+          change24h: parseFloat(pair.priceChange?.h24 || 0),
+          volume24h: parseFloat(pair.volume?.h24 || 0),
+        })) || [];
+      
+      return seiTokens;
+    } catch (error) {
+      console.error("Failed to get top tokens:", error);
+      return [];
+    }
+  }
+}
+
+// Usage in action
+const marketProvider = new MarketDataProvider();
+
+action({
+  name: "get-market-overview",
+  description: "Get overview of SEI market data",
+  schema: z.object({
+    limit: z.number().optional().describe("Number of top tokens to show (default: 10)"),
+  }),
+  handler: async (args) => {
+    try {
+      const topTokens = await marketProvider.getTopTokens(args.limit || 10);
+      
+      if (topTokens.length === 0) {
+        return "No market data available";
+      }
+      
+      const marketReport = topTokens
+        .map((token, index) => 
+          `${index + 1}. ${token.symbol} (${token.name})
+     Price: $${token.price.toFixed(6)}
+     Change 24h: ${token.change24h >= 0 ? '+' : ''}${token.change24h.toFixed(2)}%
+     Volume 24h: $${token.volume24h.toLocaleString()}`
+        )
+        .join("\n\n");
+      
+      return `SEI Market Overview (Top ${topTokens.length}):
+${marketReport}`;
+    } catch (error) {
+      return `Failed to get market overview: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Custom Provider Integration
+
+### Building Custom Providers
+
+```typescript
+interface ProviderConfig {
+  name: string;
+  baseUrl: string;
+  apiKey?: string;
+  rateLimit?: number;
+}
+
+class CustomProvider {
+  private config: ProviderConfig;
+  private requestQueue: Array<() => Promise<any>> = [];
+  private isProcessing = false;
+  
+  constructor(config: ProviderConfig) {
+    this.config = config;
+  }
+  
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push(async () => {
+        try {
+          const url = `${this.config.baseUrl}${endpoint}`;
+          const headers = {
+            ...options.headers,
+            ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
+          };
+          
+          const response = await fetch(url, {
+            ...options,
+            headers,
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          resolve(data);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      
+      this.processQueue();
+    });
+  }
+  
+  private async processQueue() {
+    if (this.isProcessing || this.requestQueue.length === 0) {
+      return;
+    }
+    
+    this.isProcessing = true;
+    
+    while (this.requestQueue.length > 0) {
+      const request = this.requestQueue.shift();
+      if (request) {
+        await request();
+        
+        // Rate limiting
+        if (this.config.rateLimit) {
+          await new Promise(resolve => setTimeout(resolve, this.config.rateLimit));
+        }
+      }
+    }
+    
+    this.isProcessing = false;
+  }
+}
+
+// Example: CoinGecko provider
+class CoinGeckoProvider extends CustomProvider {
+  constructor(apiKey?: string) {
+    super({
+      name: "coingecko",
+      baseUrl: "https://api.coingecko.com/api/v3",
+      apiKey,
+      rateLimit: 1000, // 1 second between requests
+    });
+  }
+  
+  async getTokenPrice(tokenId: string, vsCurrency = "usd") {
+    return this.request(`/simple/price?ids=${tokenId}&vs_currencies=${vsCurrency}`);
+  }
+  
+  async getTokenMarketData(tokenId: string) {
+    return this.request(`/coins/${tokenId}/market_chart?vs_currency=usd&days=7`);
+  }
+}
+```
+
+### Provider Manager
+
+```typescript
+class ProviderManager {
+  private providers = new Map<string, CustomProvider>();
+  
+  register(name: string, provider: CustomProvider) {
+    this.providers.set(name, provider);
+  }
+  
+  get(name: string): CustomProvider | undefined {
+    return this.providers.get(name);
+  }
+  
+  async getTokenPrice(ticker: string, provider = "dexscreener") {
+    const providerInstance = this.providers.get(provider);
+    if (!providerInstance) {
+      throw new Error(`Provider '${provider}' not found`);
+    }
+    
+    // Implementation depends on provider API
+    return providerInstance.request(`/price/${ticker}`);
+  }
+}
+
+// Usage
+const providerManager = new ProviderManager();
+providerManager.register("dexscreener", new CustomProvider({
+  name: "dexscreener",
+  baseUrl: "https://api.dexscreener.com/latest",
+}));
+providerManager.register("coingecko", new CoinGeckoProvider());
+```
+
+## Advanced Integrations
+
+### DEX Integration
+
+```typescript
+action({
+  name: "get-dex-liquidity",
+  description: "Get liquidity information from DEXs",
+  schema: z.object({
+    tokenA: z.string().describe("First token ticker"),
+    tokenB: z.string().describe("Second token ticker"),
+  }),
+  handler: async (args) => {
+    try {
+      // Get token addresses
+      const [tokenAAddress, tokenBAddress] = await Promise.all([
+        wallet.getTokenAddressFromTicker(args.tokenA),
+        wallet.getTokenAddressFromTicker(args.tokenB),
+      ]);
+      
+      if (!tokenAAddress || !tokenBAddress) {
+        return "One or both tokens not found";
+      }
+      
+      // Search for trading pairs
+      const response = await fetch(
+        `https://api.dexscreener.com/latest/dex/pairs/seiv2/${tokenAAddress}/${tokenBAddress}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const pairs = data.pairs || [];
+      
+      if (pairs.length === 0) {
+        return `No trading pairs found for ${args.tokenA}/${args.tokenB}`;
+      }
+      
+      const pairInfo = pairs.map((pair: any) => 
+        `DEX: ${pair.dexId}
+Pair: ${pair.baseToken.symbol}/${pair.quoteToken.symbol}
+Price: $${parseFloat(pair.priceUsd).toFixed(6)}
+Liquidity: $${parseFloat(pair.liquidity?.usd || 0).toLocaleString()}
+Volume 24h: $${parseFloat(pair.volume?.h24 || 0).toLocaleString()}`
+      ).join("\n\n");
+      
+      return `DEX Liquidity for ${args.tokenA}/${args.tokenB}:
+${pairInfo}`;
+    } catch (error) {
+      return `Failed to get DEX liquidity: ${error.message}`;
+    }
+  },
+}),
+```
+
+### Portfolio Analytics
+
+```typescript
+action({
+  name: "analyze-portfolio",
+  description: "Analyze portfolio performance and composition",
+  schema: z.object({
+    tokens: z.array(z.string()).describe("List of token tickers in portfolio"),
+    amounts: z.array(z.string()).describe("Corresponding amounts for each token"),
+  }),
+  handler: async (args) => {
+    try {
+      if (args.tokens.length !== args.amounts.length) {
+        return "Tokens and amounts arrays must have the same length";
+      }
+      
+      const portfolio = [];
+      let totalValue = 0;
+      
+      for (let i = 0; i < args.tokens.length; i++) {
+        const ticker = args.tokens[i];
+        const amount = parseFloat(args.amounts[i]);
+        
+        const tokenData = await marketProvider.getTokenData(ticker);
+        
+        if (tokenData) {
+          const value = amount * tokenData.price;
+          totalValue += value;
+          
+          portfolio.push({
+            ticker,
+            amount,
+            price: tokenData.price,
+            value,
+            change24h: tokenData.change24h,
+          });
+        }
+      }
+      
+      const portfolioReport = portfolio
+        .sort((a, b) => b.value - a.value)
+        .map((item, index) => 
+          `${index + 1}. ${item.ticker}
+     Amount: ${item.amount}
+     Price: $${item.price.toFixed(6)}
+     Value: $${item.value.toFixed(2)}
+     Change 24h: ${item.change24h >= 0 ? '+' : ''}${item.change24h.toFixed(2)}%`
+        )
+        .join("\n\n");
+      
+      return `Portfolio Analysis:
+Total Value: $${totalValue.toFixed(2)}
+
+Holdings:
+${portfolioReport}`;
+    } catch (error) {
+      return `Portfolio analysis failed: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Error Handling & Rate Limiting
+
+### API Error Handling
+
+```typescript
+class APIError extends Error {
+  constructor(message: string, public status: number, public provider: string) {
+    super(message);
+    this.name = "APIError";
+  }
+}
+
+async function safeAPIRequest<T>(
+  request: () => Promise<T>,
+  provider: string,
+  retries = 3
+): Promise<T> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await request();
+    } catch (error) {
+      if (attempt === retries) {
+        throw new APIError(
+          `API request failed after ${retries} attempts: ${error.message}`,
+          0,
+          provider
+        );
+      }
+      
+      // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+    }
+  }
+  
+  throw new Error("Unreachable");
+}
+```
+
+### Rate Limiting
+
+```typescript
+class RateLimiter {
+  private requests = new Map<string, number[]>();
+  
+  constructor(private maxRequests: number, private windowMs: number) {}
+  
+  async waitForSlot(key: string): Promise<void> {
+    const now = Date.now();
+    const requests = this.requests.get(key) || [];
+    
+    // Remove old requests outside the window
+    const validRequests = requests.filter(time => now - time < this.windowMs);
+    
+    if (validRequests.length >= this.maxRequests) {
+      const oldestRequest = Math.min(...validRequests);
+      const waitTime = this.windowMs - (now - oldestRequest);
+      
+      if (waitTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+    
+    // Add current request
+    validRequests.push(now);
+    this.requests.set(key, validRequests);
+  }
+}
+
+// Usage
+const rateLimiter = new RateLimiter(10, 60000); // 10 requests per minute
+
+action({
+  name: "rate-limited-request",
+  description: "Make a rate-limited API request",
+  schema: z.object({
+    endpoint: z.string().describe("API endpoint to call"),
+  }),
+  handler: async (args) => {
+    await rateLimiter.waitForSlot("dexscreener");
+    
+    const response = await fetch(`https://api.dexscreener.com/latest${args.endpoint}`);
+    const data = await response.json();
+    
+    return `API Response: ${JSON.stringify(data, null, 2)}`;
+  },
+}),
+```
+
+## Best Practices
+
+### 1. **API Management**
+- Use proper rate limiting
+- Implement caching for frequently accessed data
+- Handle API errors gracefully
+- Use environment variables for API keys
+
+### 2. **Data Validation**
+- Validate API responses
+- Handle missing or malformed data
+- Implement fallback mechanisms
+- Use TypeScript for type safety
+
+### 3. **Performance**
+- Cache frequently accessed data
+- Use batch requests when possible
+- Implement request queuing
+- Monitor API usage and costs
+
+### 4. **Security**
+- Never expose API keys in client code
+- Use HTTPS for all API requests
+- Validate all inputs
+- Implement proper error handling
+
+## Complete Provider Integration Context
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { z } from "zod";
+
+const createProviderContext = (wallet: AxiomSeiWallet) => {
+  const marketProvider = new MarketDataProvider();
+  const rateLimiter = new RateLimiter(10, 60000);
+  
+  return context({
+    type: "provider-integrations",
+    schema: z.object({
+      walletAddress: z.string(),
+    }),
+    
+    actions: [
+      // Token discovery
+      action({
+        name: "discover-token",
+        description: "Find token information using DexScreener",
+        schema: z.object({
+          ticker: z.string().describe("Token ticker symbol"),
+        }),
+        handler: async (args) => {
+          await rateLimiter.waitForSlot("dexscreener");
+          const tokenData = await marketProvider.getTokenData(args.ticker);
+          
+          if (!tokenData) {
+            return `Token '${args.ticker}' not found on SEI`;
+          }
+          
+          return `Token: ${tokenData.name} (${tokenData.symbol})
+Address: ${tokenData.address}
+Price: $${tokenData.price.toFixed(6)}
+Change 24h: ${tokenData.change24h >= 0 ? '+' : ''}${tokenData.change24h.toFixed(2)}%`;
+        },
+      }),
+      
+      // Market overview
+      action({
+        name: "market-overview",
+        description: "Get SEI market overview",
+        schema: z.object({
+          limit: z.number().optional().describe("Number of tokens to show"),
+        }),
+        handler: async (args) => {
+          await rateLimiter.waitForSlot("dexscreener");
+          const topTokens = await marketProvider.getTopTokens(args.limit || 10);
+          
+          const report = topTokens
+            .map((token, index) => 
+              `${index + 1}. ${token.symbol}: $${token.price.toFixed(6)} (${token.change24h >= 0 ? '+' : ''}${token.change24h.toFixed(2)}%)`
+            )
+            .join("\n");
+          
+          return `SEI Market Overview:\n${report}`;
+        },
+      }),
+    ],
+  });
+};
+
+// Usage
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+const providerContext = createProviderContext(wallet);
+```
+
+This comprehensive provider integration system enables your SEI AI agents to access real-time market data, discover tokens, and interact with external services. The system includes proper error handling, rate limiting, and caching to ensure reliable and efficient operation.
+
+## Next Steps
+
+- [Examples](/docs/sei/examples) - See real-world provider integration examples
+- [Advanced DeFi](/docs/sei/examples#advanced-defi) - Complex DeFi interaction patterns
+- [Portfolio Management](/docs/sei/examples#portfolio-management) - Automated portfolio strategies

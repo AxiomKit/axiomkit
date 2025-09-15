@@ -1,0 +1,20 @@
+{
+    "title": "Built-in Providers",
+    "description": "Provider documentation for Axiomkit's built-in and official custom provider.",
+    "root": true,
+    "pages": [
+        "index",
+        "---BUILT IN---",
+        "core",
+        "create-agent",
+        "cli",
+        "---SOCIAL PROVIDERS---",
+        "discord",
+        "telegram",
+        "---MEMORY PROVIDERS---",
+        "mongodb",
+        "supabase",
+        "---ADVANCE PROVIDERS---",
+        "mcp"
+    ]
+}
