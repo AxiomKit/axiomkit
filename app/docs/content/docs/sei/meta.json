@@ -1,9 +1,14 @@
 {
-    "title": "Sei Provider",
-    "description": "The docs for Sei Provider",
-    "icon": "building",
+    "title": "SEI Provider",
+    "description": "Complete guide to building Web3 AI agents on SEI blockchain",
+    "icon": "Coins",
     "root": true,
     "pages": [
-        "index"
+        "index",
+        "quick-start",
+        "wallet-management",
+        "token-operations",
+        "providers-integrations",
+        "examples"
     ]
 }

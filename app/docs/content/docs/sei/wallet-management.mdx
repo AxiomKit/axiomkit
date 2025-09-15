@@ -1,0 +1,569 @@
+---
+title: Wallet Management
+description: Secure wallet handling, private key management, and multi-wallet support
+icon: Wallet
+---
+
+# Wallet Management
+
+The SEI provider offers comprehensive wallet management capabilities, from secure private key handling to multi-wallet support. This guide covers everything you need to know about managing wallets in your SEI AI agents.
+
+## AxiomSeiWallet Class
+
+The `AxiomSeiWallet` class is the core component for SEI wallet operations. It provides a secure, type-safe interface for blockchain interactions.
+
+### Basic Initialization
+
+```typescript
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { sei } from "viem/chains";
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey: "0x...", // Your private key
+  chain: sei, // Optional: defaults to SEI mainnet
+});
+```
+
+### Configuration Options
+
+```typescript
+interface AxiomSeiWalletConfig {
+  rpcUrl: string;                    // SEI RPC endpoint
+  privateKey: `0x${string}`;         // Wallet private key
+  chain?: viemChains.Chain;          // Network (optional)
+}
+```
+
+## Private Key Management
+
+### 🔐 Security Best Practices
+
+**Never hardcode private keys in your source code!**
+
+```typescript
+// ❌ BAD - Never do this
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey: "0x1234567890abcdef...", // Exposed in code!
+});
+
+// ✅ GOOD - Use environment variables
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+```
+
+### Environment Variable Setup
+
+Create a `.env` file:
+
+```bash
+# .env
+SEI_RPC_URL=https://evm-rpc.sei-apis.com/
+SEI_PRIVATE_KEY=0x1234567890abcdef...
+SEI_PRIVATE_KEY_2=0xabcdef1234567890...  # For multi-wallet
+```
+
+Load with validation:
+
+```typescript
+import { validateEnv } from "@axiomkit/core";
+import { z } from "zod";
+
+const env = validateEnv(
+  z.object({
+    SEI_RPC_URL: z.string().min(1),
+    SEI_PRIVATE_KEY: z.string().min(1),
+    SEI_PRIVATE_KEY_2: z.string().min(1).optional(),
+  })
+);
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: env.SEI_RPC_URL,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+```
+
+### Key Generation
+
+For development, you can generate new private keys:
+
+```typescript
+import { generatePrivateKey } from "viem/accounts";
+
+// Generate a new private key
+const privateKey = generatePrivateKey();
+console.log("New private key:", privateKey);
+
+// Create wallet with generated key
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey,
+});
+```
+
+## Multi-Wallet Support
+
+### Managing Multiple Wallets
+
+```typescript
+import { AxiomSeiWallet } from "@axiomkit/sei";
+
+class MultiWalletManager {
+  private wallets: Map<string, AxiomSeiWallet> = new Map();
+
+  addWallet(name: string, config: AxiomSeiWalletConfig) {
+    const wallet = new AxiomSeiWallet(config);
+    this.wallets.set(name, wallet);
+    return wallet;
+  }
+
+  getWallet(name: string): AxiomSeiWallet | undefined {
+    return this.wallets.get(name);
+  }
+
+  getAllWallets(): AxiomSeiWallet[] {
+    return Array.from(this.wallets.values());
+  }
+
+  getWalletAddresses(): Record<string, string> {
+    const addresses: Record<string, string> = {};
+    for (const [name, wallet] of this.wallets) {
+      addresses[name] = wallet.walletAdress;
+    }
+    return addresses;
+  }
+}
+
+// Usage
+const manager = new MultiWalletManager();
+
+// Add wallets
+manager.addWallet("main", {
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+manager.addWallet("trading", {
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY_2 as `0x${string}`,
+});
+
+// Use specific wallet
+const mainWallet = manager.getWallet("main");
+const tradingWallet = manager.getWallet("trading");
+```
+
+### Multi-Wallet Agent Context
+
+```typescript
+import { context, action } from "@axiomkit/core";
+import { z } from "zod";
+
+const multiWalletContext = context({
+  type: "multi-wallet",
+  schema: z.object({
+    walletName: z.string(),
+  }),
+  
+  actions: [
+    action({
+      name: "switch-wallet",
+      description: "Switch to a different wallet",
+      schema: z.object({
+        walletName: z.string().describe("Name of the wallet to switch to"),
+      }),
+      handler: async (args, { memory }) => {
+        const wallet = manager.getWallet(args.walletName);
+        if (!wallet) {
+          return `Wallet '${args.walletName}' not found. Available wallets: ${Object.keys(manager.getWalletAddresses()).join(", ")}`;
+        }
+        
+        memory.currentWallet = args.walletName;
+        memory.walletAddress = wallet.walletAdress;
+        
+        return `Switched to wallet: ${args.walletName} (${wallet.walletAdress})`;
+      },
+    }),
+    
+    action({
+      name: "list-wallets",
+      description: "List all available wallets",
+      schema: z.object({}),
+      handler: async () => {
+        const addresses = manager.getWalletAddresses();
+        const walletList = Object.entries(addresses)
+          .map(([name, address]) => `- ${name}: ${address}`)
+          .join("\n");
+        
+        return `Available wallets:\n${walletList}`;
+      },
+    }),
+  ],
+});
+```
+
+## Wallet Information
+
+### Getting Wallet Address
+
+```typescript
+const wallet = new AxiomSeiWallet({
+  rpcUrl: "https://evm-rpc.sei-apis.com/",
+  privateKey: "0x...",
+});
+
+// Get the wallet address
+const address = wallet.walletAdress;
+console.log("Wallet address:", address);
+```
+
+### Network Information
+
+```typescript
+// Get current network
+const chain = wallet.walletClient.chain;
+console.log("Network:", chain.name);
+console.log("Chain ID:", chain.id);
+
+// Check if connected to correct network
+if (chain.id !== 1329) { // SEI mainnet
+  console.warn("Not connected to SEI mainnet!");
+}
+```
+
+## Balance Management
+
+### Native SEI Balance
+
+```typescript
+// Get native SEI balance
+const balance = await wallet.getERC20Balance();
+console.log(`SEI Balance: ${balance} SEI`);
+```
+
+### ERC-20 Token Balance
+
+```typescript
+// Get specific token balance
+const usdcAddress = "0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1"; // USDC on SEI
+const usdcBalance = await wallet.getERC20Balance(usdcAddress);
+console.log(`USDC Balance: ${usdcBalance} USDC`);
+```
+
+### Balance Monitoring Action
+
+```typescript
+action({
+  name: "monitor-balances",
+  description: "Monitor balances across multiple tokens",
+  schema: z.object({
+    tokens: z.array(z.string()).optional().describe("Token tickers to check (default: SEI)"),
+  }),
+  handler: async (args) => {
+    const tokens = args.tokens || ["SEI"];
+    const balances: Record<string, string> = {};
+    
+    for (const token of tokens) {
+      if (token === "SEI") {
+        balances[token] = await wallet.getERC20Balance();
+      } else {
+        const tokenAddress = await wallet.getTokenAddressFromTicker(token);
+        if (tokenAddress) {
+          balances[token] = await wallet.getERC20Balance(tokenAddress);
+        } else {
+          balances[token] = "Token not found";
+        }
+      }
+    }
+    
+    const balanceReport = Object.entries(balances)
+      .map(([token, balance]) => `${token}: ${balance}`)
+      .join("\n");
+    
+    return `Current balances:\n${balanceReport}`;
+  },
+}),
+```
+
+## Transaction Management
+
+### Transaction History
+
+```typescript
+import { createPublicClient, http } from "viem";
+
+const publicClient = createPublicClient({
+  chain: sei,
+  transport: http(process.env.SEI_RPC_URL!),
+});
+
+// Get recent transactions
+async function getRecentTransactions(address: string, limit = 10) {
+  // Note: This is a simplified example
+  // In practice, you'd use a block explorer API or indexer
+  const blockNumber = await publicClient.getBlockNumber();
+  
+  // Get transactions from recent blocks
+  const transactions = [];
+  for (let i = 0; i < limit; i++) {
+    const block = await publicClient.getBlock({
+      blockNumber: blockNumber - BigInt(i),
+    });
+    
+    const relevantTxs = block.transactions.filter(tx => 
+      tx.from === address || tx.to === address
+    );
+    
+    transactions.push(...relevantTxs);
+  }
+  
+  return transactions.slice(0, limit);
+}
+```
+
+### Transaction Status Monitoring
+
+```typescript
+action({
+  name: "check-transaction",
+  description: "Check the status of a transaction",
+  schema: z.object({
+    txHash: z.string().describe("Transaction hash to check"),
+  }),
+  handler: async (args) => {
+    try {
+      const receipt = await wallet.publicClient.getTransactionReceipt({
+        hash: args.txHash as `0x${string}`,
+      });
+      
+      if (receipt.status === "success") {
+        return `Transaction successful! Gas used: ${receipt.gasUsed}`;
+      } else {
+        return "Transaction failed or reverted";
+      }
+    } catch (error) {
+      return `Transaction not found or pending: ${error.message}`;
+    }
+  },
+}),
+```
+
+## Error Handling
+
+### Common Wallet Errors
+
+```typescript
+class WalletError extends Error {
+  constructor(message: string, public code: string) {
+    super(message);
+    this.name = "WalletError";
+  }
+}
+
+// Enhanced error handling
+async function safeWalletOperation<T>(
+  operation: () => Promise<T>,
+  errorContext: string
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (error instanceof Error) {
+      // Handle specific error types
+      if (error.message.includes("insufficient funds")) {
+        throw new WalletError("Insufficient balance for transaction", "INSUFFICIENT_FUNDS");
+      }
+      if (error.message.includes("gas")) {
+        throw new WalletError("Gas estimation failed", "GAS_ERROR");
+      }
+      if (error.message.includes("network")) {
+        throw new WalletError("Network connection failed", "NETWORK_ERROR");
+      }
+    }
+    
+    throw new WalletError(`${errorContext}: ${error.message}`, "UNKNOWN_ERROR");
+  }
+}
+
+// Usage
+const balance = await safeWalletOperation(
+  () => wallet.getERC20Balance(),
+  "Failed to get balance"
+);
+```
+
+## Advanced Features
+
+### Wallet Recovery
+
+```typescript
+// Recover wallet from mnemonic (if you have the mnemonic)
+import { mnemonicToAccount } from "viem/accounts";
+
+function recoverWalletFromMnemonic(mnemonic: string, index = 0) {
+  const account = mnemonicToAccount(mnemonic, { addressIndex: index });
+  
+  return new AxiomSeiWallet({
+    rpcUrl: process.env.SEI_RPC_URL!,
+    privateKey: account.key,
+  });
+}
+```
+
+### Wallet Backup
+
+```typescript
+// Create wallet backup (encrypted)
+import crypto from "crypto";
+
+function createWalletBackup(wallet: AxiomSeiWallet, password: string) {
+  const privateKey = wallet.walletClient.account?.key;
+  if (!privateKey) throw new Error("No private key found");
+  
+  const cipher = crypto.createCipher("aes-256-cbc", password);
+  let encrypted = cipher.update(privateKey, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  
+  return {
+    address: wallet.walletAdress,
+    encryptedKey: encrypted,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+// Restore wallet from backup
+function restoreWalletFromBackup(backup: any, password: string) {
+  const decipher = crypto.createDecipher("aes-256-cbc", password);
+  let decrypted = decipher.update(backup.encryptedKey, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  
+  return new AxiomSeiWallet({
+    rpcUrl: process.env.SEI_RPC_URL!,
+    privateKey: decrypted as `0x${string}`,
+  });
+}
+```
+
+## Best Practices
+
+### 1. **Security**
+- Never commit private keys to version control
+- Use environment variables or secure key management
+- Consider using hardware wallets for production
+- Implement proper access controls
+
+### 2. **Error Handling**
+- Always wrap wallet operations in try-catch blocks
+- Provide meaningful error messages
+- Implement retry logic for network operations
+- Log errors for debugging
+
+### 3. **Performance**
+- Cache wallet instances when possible
+- Use connection pooling for multiple wallets
+- Implement rate limiting for API calls
+- Monitor gas prices and network congestion
+
+### 4. **Testing**
+- Use testnet for development
+- Test with small amounts first
+- Implement comprehensive error scenarios
+- Use mock wallets for unit tests
+
+## Example: Complete Wallet Manager
+
+```typescript
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { context, action } from "@axiomkit/core";
+import { z } from "zod";
+
+class SeiWalletManager {
+  private wallets = new Map<string, AxiomSeiWallet>();
+  
+  constructor(private rpcUrl: string) {}
+  
+  addWallet(name: string, privateKey: string) {
+    const wallet = new AxiomSeiWallet({
+      rpcUrl: this.rpcUrl,
+      privateKey: privateKey as `0x${string}`,
+    });
+    this.wallets.set(name, wallet);
+    return wallet;
+  }
+  
+  getWallet(name: string) {
+    return this.wallets.get(name);
+  }
+  
+  async getAllBalances() {
+    const balances: Record<string, Record<string, string>> = {};
+    
+    for (const [name, wallet] of this.wallets) {
+      balances[name] = {
+        SEI: await wallet.getERC20Balance(),
+      };
+    }
+    
+    return balances;
+  }
+}
+
+// Create context with wallet management
+const walletManager = new SeiWalletManager(process.env.SEI_RPC_URL!);
+
+const walletContext = context({
+  type: "wallet-manager",
+  schema: z.object({
+    currentWallet: z.string().optional(),
+  }),
+  
+  actions: [
+    action({
+      name: "add-wallet",
+      description: "Add a new wallet to the manager",
+      schema: z.object({
+        name: z.string().describe("Name for the wallet"),
+        privateKey: z.string().describe("Private key for the wallet"),
+      }),
+      handler: async (args) => {
+        try {
+          const wallet = walletManager.addWallet(args.name, args.privateKey);
+          return `Wallet '${args.name}' added successfully. Address: ${wallet.walletAdress}`;
+        } catch (error) {
+          return `Failed to add wallet: ${error.message}`;
+        }
+      },
+    }),
+    
+    action({
+      name: "get-all-balances",
+      description: "Get balances for all managed wallets",
+      schema: z.object({}),
+      handler: async () => {
+        const balances = await walletManager.getAllBalances();
+        const report = Object.entries(balances)
+          .map(([walletName, walletBalances]) => {
+            const balanceStr = Object.entries(walletBalances)
+              .map(([token, balance]) => `${token}: ${balance}`)
+              .join(", ");
+            return `${walletName}: ${balanceStr}`;
+          })
+          .join("\n");
+        
+        return `Wallet Balances:\n${report}`;
+      },
+    }),
+  ],
+});
+```
+
+This comprehensive wallet management system provides everything you need to securely manage SEI wallets in your AI agents. Remember to always prioritize security and test thoroughly before deploying to production.
+
+## Next Steps
+
+- [Token Operations](/docs/sei/token-operations) - Learn about token transfers and interactions
+- [Smart Contracts](/docs/sei/smart-contracts) - Interact with smart contracts
+- [Examples](/docs/sei/examples) - See real-world implementations

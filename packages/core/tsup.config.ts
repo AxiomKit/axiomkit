@@ -4,9 +4,16 @@ import { tsupConfig } from "../../tsup.config";
 
 export default defineConfig({
   ...tsupConfig,
-  entry: ["./src/index.ts"], // Removed non-existent provider entry
+  entry: ["./src/index.ts"],
   dts: {
     resolve: true,
+    entry: ["./src/index.ts"],
+    // Ensure all types are properly resolved
+    compilerOptions: {
+      declaration: true,
+      declarationMap: true,
+      emitDeclarationOnly: true,
+    },
   },
   esbuildOptions: (options) => {
     // Add path aliases for esbuild

@@ -48,7 +48,8 @@ const seiAgentContext = context({
     wallet: z.string(),
   },
   key: ({ wallet }: { wallet: string }) => wallet,
-  create({ args }: { args: SeiMemory }): SeiMemory {
+  create(params: any, agent: any): SeiMemory {
+    const { args } = params;
     console.log("Initializing SEI wallet context for:", args.wallet);
     return {
       wallet: args.wallet,
@@ -73,7 +74,7 @@ Current Balance: ${memory.balance} SEI`;
       name: "getBalance",
       description: "Get the SEI balance of the current wallet.",
       schema: z.object({}),
-      async handler({}, { memory }) {
+      async handler({}, { memory }: { memory: SeiMemory }) {
         try {
           // Prevent multiple calls
           if (memory.balanceChecked) {
@@ -91,7 +92,7 @@ Current Balance: ${memory.balance} SEI`;
           memory.balance = balance;
           memory.balanceChecked = true;
 
-          return actionResponse(`Your SEI balance is ${balance} SEI`);
+          return balance;
         } catch (error) {
           console.error("Error getting balance:", error);
           return actionResponse(
@@ -115,15 +116,12 @@ const seiProvider = provider({
       schema: z.object({
         text: z.string(),
       }),
-      subscribe(send, agent) {
-        return () => {};
-      },
     }),
   },
 });
 
 const seiAxiom = createAgent({
-  model: groq("llama-3.1-8b-instant"),
+  model: groq("qwen/qwen3-32b"),
   logLevel: LogLevel.DISABLED,
   providers: [seiProvider],
 });
@@ -151,36 +149,37 @@ async function main() {
         balance: output({
           description: "Display the SEI balance information",
           schema: z.string().describe("The balance information message"),
-          handler: async (data, ctx) => {
+          handler: async (data: string, ctx: any) => {
             console.log("💰 Balance Output Handler:");
             console.log(`   ${data}`);
             return { data, processed: true };
           },
         }),
       },
-      handlers: {
-        onLogStream(log, done) {
-          if (log.ref === "action_result") {
-            console.log(`🟢 Action result: ${log.data?.content || "Success"}`);
-          } else if (log.ref === "output" && done) {
-            console.log(`📤 Final Output: ${log.content || log.data}`);
-          }
-        },
-        onThinking(thought) {
-          console.log(`Thinking: ${thought.content}`);
-        },
-      },
+      // handlers: {
+      //   onLogStream(log: any, done: boolean) {
+      //     if (log.ref === "action_result") {
+      //       console.log(`🟢 Action result: ${log.data?.content || "Success"}`);
+      //     } else if (log.ref === "output" && done) {
+      //       console.log(`📤 Final Output: ${log.content || log.data}`);
+      //     }
+      //   },
+      //   onThinking(thought: any) {
+      //     console.log(`Thinking: ${thought.content}`);
+      //   },
+      // },
     });
 
     console.log("Response completed!");
-    console.log("📊 Response logs:", response.length);
+    // console.log("📊 Response logs:", response);
 
     // Show the final response
     const finalOutput = response.find(
-      (log) => log.ref === "output" && log.content
+      (log: any) => log.ref === "output" && log.content
     );
+
     if (finalOutput) {
-      console.log("✅ Final Response:", finalOutput.content);
+      console.log("✅ Final Response:", finalOutput.data);
     }
   } catch (error) {
     console.error("Error:", error);

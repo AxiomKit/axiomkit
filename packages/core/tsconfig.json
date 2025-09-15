@@ -23,7 +23,10 @@
       "@/benchmark/*": ["src/benchmark/*"]
     },
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+
+    "declaration": true,
+    "declarationMap": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
