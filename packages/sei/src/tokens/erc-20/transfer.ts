@@ -6,7 +6,7 @@ import { getTokenDecimals } from "../../utils/get-balance";
 import type { AxiomSeiWallet } from "@/core/sei-wallet-client";
 
 /**
- * Transfer SEI tokens or ERC-20 tokens
+ * Transfer ERC-20 tokens or native SEI
  * @param agent AxiomWallet instance
  * @param amount Amount to transfer as a string (e.g., "1.5" for 1.5 tokens)
  * @param recipient Recipient address

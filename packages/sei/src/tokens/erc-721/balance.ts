@@ -14,11 +14,6 @@ export async function get_erc721_balance(
   agent: AxiomSeiWallet,
   token_address: Address
 ): Promise<string> {
-  if (!agent.publicClient || !agent.walletAdress) {
-    const errorMsg = "Agent is missing required client or wallet address";
-    throw new Error(errorMsg);
-  }
-
   console.log(
     `Querying NFT balance for ${agent.walletAdress} at ${token_address}...`
   );

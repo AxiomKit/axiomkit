@@ -24,14 +24,6 @@ export async function get_erc20_balance(
   );
   try {
     if (!contractAddress) {
-      if (!agent.publicClient) {
-        throw new Error("Public client not initialized");
-      }
-
-      if (!agent.walletAdress) {
-        throw new Error("Wallet address not specified");
-      }
-
       const balance = await agent.publicClient.getBalance({
         address: agent.walletAdress,
       });
