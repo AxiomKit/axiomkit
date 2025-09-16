@@ -1,0 +1,99 @@
+---
+title: MCP 
+description: Model Context Protocol integration for tool and resource access
+icon: Cable
+---
+
+# @axiomkit/mcp
+
+Model Context Protocol (MCP) integration for accessing external tools and resources.
+
+## Installation
+
+```bash
+pnpm add @axiomkit/mcp @modelcontextprotocol/sdk
+```
+
+## Quick Start
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { mcpExtension } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [mcpExtension],
+  config: {
+    mcp: {
+      servers: [
+        {
+          name: "filesystem",
+          command: "npx",
+          args: ["@modelcontextprotocol/server-filesystem"],
+        },
+      ],
+    },
+  },
+});
+
+await agent.start();
+```
+
+## Configuration
+
+```typescript
+interface MCPConfig {
+  servers: MCPServer[];     // MCP servers to connect to
+  timeout?: number;         // Connection timeout
+  retries?: number;         // Retry attempts
+}
+```
+
+## Examples
+
+### File System Access
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [mcpExtension],
+  config: {
+    mcp: {
+      servers: [
+        {
+          name: "filesystem",
+          command: "npx",
+          args: ["@modelcontextprotocol/server-filesystem"],
+        },
+      ],
+    },
+  },
+});
+```
+
+### Web Access
+
+```typescript
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  extensions: [mcpExtension],
+  config: {
+    mcp: {
+      servers: [
+        {
+          name: "web",
+          command: "npx",
+          args: ["@modelcontextprotocol/server-web"],
+        },
+      ],
+    },
+  },
+});
+```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [CLI Extension](/docs/packages/cli) - Build terminal-based agents
+- [Advanced Features](/docs/framework/architecture) - Explore advanced concepts

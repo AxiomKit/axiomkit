@@ -1,0 +1,87 @@
+---
+title: Supabase Extension
+description: Supabase integration for vector storage and real-time features
+icon: Database
+---
+
+# @axiomkit/supabase
+
+Supabase integration for vector storage and real-time features with pgvector support.
+
+## Installation
+
+```bash
+pnpm add @axiomkit/supabase @supabase/supabase-js
+```
+
+## Quick Start
+
+```typescript
+import { createAgent } from "@axiomkit/core";
+import { createSupabaseMemory } from "@axiomkit/supabase";
+import { groq } from "@ai-sdk/groq";
+
+const memory = createSupabaseMemory({
+  url: process.env.SUPABASE_URL,
+  key: process.env.SUPABASE_ANON_KEY,
+});
+
+const agent = createAgent({
+  model: groq("gemma2-9b-it"),
+  memory,
+});
+
+await agent.start();
+```
+
+## Configuration
+
+```typescript
+interface SupabaseConfig {
+  url: string;              // Supabase project URL
+  key: string;              // Supabase anon key
+  table?: string;           // Table name (default: "memories")
+  vectorColumn?: string;    // Vector column name
+  enableRealtime?: boolean; // Enable real-time subscriptions
+}
+```
+
+## Examples
+
+### Vector Search
+
+```typescript
+const memory = createSupabaseMemory({
+  url: process.env.SUPABASE_URL,
+  key: process.env.SUPABASE_ANON_KEY,
+  table: "agent_memories",
+  vectorColumn: "embedding",
+});
+
+// Search with embeddings
+const results = await agent.memory.search("user query", {
+  useEmbeddings: true,
+  limit: 10,
+});
+```
+
+### Real-time Features
+
+```typescript
+const memory = createSupabaseMemory({
+  url: process.env.SUPABASE_URL,
+  key: process.env.SUPABASE_ANON_KEY,
+  enableRealtime: true,
+});
+
+// Subscribe to memory changes
+memory.subscribe((change) => {
+  console.log("Memory updated:", change);
+});
+```
+
+## Next Steps
+
+- [Core Package](/docs/packages/core) - Learn about the core framework
+- [MongoDB Memory](/docs/packages/mongodb) - Alternative memory storage
+- [Advanced Features](/docs/framework/architecture) - Explore advanced concepts

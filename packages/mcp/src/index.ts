@@ -1,5 +1,5 @@
 export { createMcpClient } from "./client";
-export { createMcpExtension } from "./extension";
+export { createMcpProvider } from "./provider";
 
 // Types
 export type {

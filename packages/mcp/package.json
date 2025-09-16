@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@axiomkit/core": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.17.2",
+    "@modelcontextprotocol/sdk": "^1.17.5",
     "zod": "catalog:"
   }
 }

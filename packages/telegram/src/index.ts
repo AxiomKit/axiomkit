@@ -3,7 +3,7 @@ import { context } from "@axiomkit/core";
 import { service } from "@axiomkit/core";
 import { Telegraf } from "telegraf";
 import type { Chat } from "@telegraf/types";
-import { extension, input, output, splitTextIntoChunks } from "@axiomkit/core";
+import { provider, input, output, splitTextIntoChunks } from "@axiomkit/core";
 
 const telegramService = service({
   register(container) {
@@ -115,10 +115,10 @@ const telegramChat = context({
   },
 });
 
-export const telegram = extension({
+export const telegram = provider({
   name: "telegram",
-  services: [telegramService],
   contexts: {
     chat: telegramChat,
   },
+  services: [telegramService],
 });

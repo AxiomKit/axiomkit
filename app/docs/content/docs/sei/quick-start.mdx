@@ -1,0 +1,371 @@
+---
+title: Quick Start
+description: Get up and running with your first SEI AI agent in minutes
+icon: Rocket
+---
+
+# Quick Start Guide
+
+This guide will walk you through creating your first SEI AI agent that can check balances, transfer tokens, and interact with the SEI blockchain.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- Node.js 18+ installed
+- A SEI wallet with some testnet tokens
+- Basic knowledge of TypeScript/JavaScript
+
+## Step 1: Installation
+
+Create a new project and install the required dependencies:
+
+```bash
+# Create a new project
+mkdir my-sei-agent
+cd my-sei-agent
+
+# Initialize package.json
+npm init -y
+
+# Install Axiom and SEI dependencies
+npm install @axiomkit/core @axiomkit/sei
+npm install viem @ai-sdk/groq zod
+
+# Install TypeScript (optional but recommended)
+npm install -D typescript @types/node tsx
+```
+
+## Step 2: Environment Setup
+
+Create a `.env` file with your SEI configuration:
+
+```bash
+# .env
+SEI_RPC_URL=https://evm-rpc-testnet.sei-apis.com/
+SEI_PRIVATE_KEY=0x... # Your wallet private key
+GROQ_API_KEY=your_groq_api_key
+```
+
+**⚠️ Security Note**: Never commit your private key to version control. Use environment variables and consider using a dedicated wallet for development.
+
+## Step 3: Basic SEI Agent
+
+Create your first SEI agent in `index.ts`:
+
+```typescript
+import { createAgent, context, action, validateEnv } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { groq } from "@ai-sdk/groq";
+import { z } from "zod";
+
+// Validate environment variables
+const env = validateEnv(
+  z.object({
+    SEI_RPC_URL: z.string().min(1, "SEI_RPC_URL is required"),
+    SEI_PRIVATE_KEY: z.string().min(1, "SEI_PRIVATE_KEY is required"),
+    GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
+  })
+);
+
+// Initialize SEI wallet
+const seiWallet = new AxiomSeiWallet({
+  rpcUrl: env.SEI_RPC_URL,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+// Define memory structure
+type SeiMemory = {
+  walletAddress: string;
+  balance: string;
+  lastChecked: string;
+};
+
+// Create SEI context with actions
+const seiContext = context({
+  type: "sei-wallet",
+  schema: z.object({
+    walletAddress: z.string(),
+  }),
+  
+  // Initialize memory
+  create: (params) => ({
+    walletAddress: params.args.walletAddress,
+    balance: "0",
+    lastChecked: new Date().toISOString(),
+  }),
+  
+  // Render context for the LLM
+  render: ({ memory }) => `
+SEI Wallet: ${memory.walletAddress}
+Current Balance: ${memory.balance} SEI
+Last Checked: ${memory.lastChecked}
+  `,
+  
+  // Define actions
+  actions: [
+    action({
+      name: "check-balance",
+      description: "Check the SEI balance of the current wallet",
+      schema: z.object({}),
+      handler: async (args, { memory }) => {
+        try {
+          console.log("🔍 Checking SEI balance...");
+          
+          const balance = await seiWallet.getERC20Balance();
+          
+          // Update memory
+          memory.balance = balance;
+          memory.lastChecked = new Date().toISOString();
+          
+          return `Your SEI balance is: ${balance} SEI`;
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : "Unknown error";
+          return `Error checking balance: ${errorMsg}`;
+        }
+      },
+    }),
+    
+    action({
+      name: "transfer-sei",
+      description: "Transfer SEI tokens to another address",
+      schema: z.object({
+        amount: z.string().describe("Amount of SEI to transfer (e.g., '1.5')"),
+        recipient: z.string().describe("Recipient wallet address"),
+      }),
+      handler: async (args, { memory }) => {
+        try {
+          console.log(`💸 Transferring ${args.amount} SEI to ${args.recipient}...`);
+          
+          const result = await seiWallet.ERC20Transfer(
+            args.amount,
+            args.recipient as `0x${string}`
+          );
+          
+          // Update balance after transfer
+          const newBalance = await seiWallet.getERC20Balance();
+          memory.balance = newBalance;
+          memory.lastChecked = new Date().toISOString();
+          
+          return `Transfer successful! ${result}\nNew balance: ${newBalance} SEI`;
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : "Unknown error";
+          return `Transfer failed: ${errorMsg}`;
+        }
+      },
+    }),
+  ],
+});
+
+// Create the agent
+const agent = createAgent({
+  model: groq("gemma2-9b-it", {
+    apiKey: env.GROQ_API_KEY,
+  }),
+  contexts: [seiContext],
+});
+
+// Main function
+async function main() {
+  console.log("🚀 Starting SEI AI Agent...");
+  
+  await agent.start();
+  
+  const walletAddress = seiWallet.walletAdress;
+  console.log(`📱 Wallet Address: ${walletAddress}`);
+  
+  // Example interactions
+  const queries = [
+    "What's my SEI balance?",
+    "Transfer 0.1 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+    "Check my balance again",
+  ];
+  
+  for (const query of queries) {
+    console.log(`\n🤖 Query: ${query}`);
+    
+    try {
+      const response = await agent.send({
+        context: seiContext,
+        args: { walletAddress },
+        input: { type: "text", data: { text: query } },
+      });
+      
+      // Find the final response
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+// Run the agent
+main().catch(console.error);
+```
+
+## Step 4: Run Your Agent
+
+Execute your agent:
+
+```bash
+# Using tsx (if you installed it)
+npx tsx index.ts
+
+# Or compile and run with TypeScript
+npx tsc index.ts
+node index.js
+```
+
+You should see output like:
+
+```
+🚀 Starting SEI AI Agent...
+📱 Wallet Address: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
+
+🤖 Query: What's my SEI balance?
+🔍 Checking SEI balance...
+✅ Response: Your SEI balance is: 1.5 SEI
+
+🤖 Query: Transfer 0.1 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
+💸 Transferring 0.1 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6...
+✅ Response: Transfer successful! Transferred 0.1 to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6.
+Transaction hash for the transfer: 0x..., receipt: 0x...
+New balance: 1.4 SEI
+```
+
+## Step 5: Understanding the Code
+
+Let's break down what we just built:
+
+### 1. **SEI Wallet Initialization**
+```typescript
+const seiWallet = new AxiomSeiWallet({
+  rpcUrl: env.SEI_RPC_URL,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+```
+This creates a wallet client that can interact with the SEI blockchain.
+
+### 2. **Context Definition**
+```typescript
+const seiContext = context({
+  type: "sei-wallet",
+  schema: z.object({ walletAddress: z.string() }),
+  // ... actions and memory
+});
+```
+Contexts define the agent's capabilities and memory structure.
+
+### 3. **Actions**
+Actions are functions the agent can call:
+- `check-balance`: Queries the wallet's SEI balance
+- `transfer-sei`: Sends SEI tokens to another address
+
+### 4. **Memory Management**
+```typescript
+type SeiMemory = {
+  walletAddress: string;
+  balance: string;
+  lastChecked: string;
+};
+```
+The agent remembers information between interactions.
+
+## Step 6: Adding More Features
+
+Let's enhance our agent with token discovery:
+
+```typescript
+// Add this action to your context
+action({
+  name: "get-token-info",
+  description: "Get information about a token by its ticker symbol",
+  schema: z.object({
+    ticker: z.string().describe("Token ticker symbol (e.g., 'USDC', 'WETH')"),
+  }),
+  handler: async (args) => {
+    try {
+      console.log(`🔍 Looking up token: ${args.ticker}`);
+      
+      const tokenAddress = await seiWallet.getTokenAddressFromTicker(args.ticker);
+      
+      if (!tokenAddress) {
+        return `Token ${args.ticker} not found on SEI`;
+      }
+      
+      const balance = await seiWallet.getERC20Balance(tokenAddress);
+      
+      return `Token: ${args.ticker}
+Address: ${tokenAddress}
+Your Balance: ${balance} ${args.ticker}`;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      return `Error getting token info: ${errorMsg}`;
+    }
+  },
+}),
+```
+
+Now you can ask: "What's my USDC balance?" and the agent will look up the USDC token address and check your balance.
+
+## Next Steps
+
+Congratulations! You've built your first SEI AI agent. Here's what to explore next:
+
+### 🎯 **Immediate Next Steps**
+1. **Test with different queries** - Try asking about token transfers, balance checks
+2. **Add error handling** - Make your agent more robust
+3. **Experiment with different models** - Try other LLM providers
+
+### 📚 **Learn More**
+- [Wallet Management](/docs/sei/wallet-management) - Advanced wallet operations
+- [Token Operations](/docs/sei/token-operations) - ERC-20 token interactions
+- [Smart Contracts](/docs/sei/smart-contracts) - Contract interaction patterns
+- [Examples](/docs/sei/examples) - Real-world use cases
+
+### 🚀 **Advanced Features**
+- **Multi-wallet support** - Manage multiple wallets
+- **Transaction monitoring** - Track pending transactions
+- **DeFi integrations** - Connect to DEXs and lending protocols
+- **Portfolio management** - Automated rebalancing strategies
+
+## Troubleshooting
+
+### Common Issues
+
+**1. "Invalid private key" error**
+- Ensure your private key starts with `0x`
+- Check that the key is 64 characters long (excluding `0x`)
+
+**2. "Insufficient balance" error**
+- Get testnet tokens from the [SEI Faucet](https://faucet.sei-apis.com/)
+- Check you're using the correct network (testnet vs mainnet)
+
+**3. "RPC connection failed"**
+- Verify your RPC URL is correct
+- Check your internet connection
+- Try using a different RPC endpoint
+
+**4. "Token not found" error**
+- Ensure the token exists on SEI
+- Check the ticker symbol is correct
+- Some tokens might not be available via DexScreener
+
+### Getting Help
+
+- 💬 [Discord Community](https://discord.gg/axiomkit) - Get help from the community
+- 📖 [GitHub Issues](https://github.com/axiomkit/axiomkit/issues) - Report bugs
+- 📚 [Documentation](/docs) - Comprehensive guides
+
+---
+
+**🎉 You're ready to build amazing SEI AI agents!** Check out the [Examples](/docs/sei/examples) section for more inspiration.

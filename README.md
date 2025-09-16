@@ -57,27 +57,6 @@ axiomkit/
 └── 📋 scripts/                    # Build and deployment scripts
 ```
 
-## 🎯 Examples & Use Cases
-
-| Category | Example | Description | Link |
-|----------|---------|-------------|------|
-| **🤖 Bot Agents** | Calculator Bot | Simple arithmetic operations with memory | [`app/examples/bots/calculator-bot.ts`](./app/examples/bots/calculator-bot.ts) |
-| | Translator Bot | Multi-language translation with context | [`app/examples/bots/translator-bot.ts`](./app/examples/bots/translator-bot.ts) |
-| | Writing Assistant | AI-powered writing and editing help | [`app/examples/bots/writing-assistant.ts`](./app/examples/bots/writing-assistant.ts) |
-| | Debugging Assistant | Code debugging and problem-solving | [`app/examples/bots/debugging-assistant.ts`](./app/examples/bots/debugging-assistant.ts) |
-| | Multi-Functional Agent | Complex agent with multiple capabilities | [`app/examples/bots/multi-functional-agent.ts`](./app/examples/bots/multi-functional-agent.ts) |
-| | Custom Chatbot | Basic conversational agent | [`app/examples/bots/custom-chatbot.ts`](./app/examples/bots/custom-chatbot.ts) |
-| | Echo Bot | Simple message echoing with memory | [`app/examples/bots/echo.ts`](./app/examples/bots/echo.ts) |
-| **💬 Chat Interface** | Next.js Chat App | Full-stack chat application with UI | [`app/examples/chat/`](./app/examples/chat/) |
-| **⛓️ Blockchain** | Sei Integration | Sei blockchain trading and wallet management | [`app/examples/sei/`](./app/examples/sei/) |
-| **📱 Messaging** | Telegram Bot | Telegram bot with AxiomKit integration | [`app/examples/telegram/`](./app/examples/telegram/) |
-| **🎮 Gaming** | Discord Bot | Discord bot integration | [`app/examples/discord/`](./app/examples/discord/) |
-| **🗄️ Database** | MongoDB Memory | Persistent memory storage with MongoDB | [`app/examples/mongodb/`](./app/examples/mongodb/) |
-| **🗄️ Database** | Supabase Integration | Supabase database integration | [`app/examples/supabase/`](./app/examples/supabase/) |
-| **🔗 MCP** | Model Context Protocol | MCP integration examples | [`app/examples/mcp/`](./app/examples/mcp/) |
-| **🌐 Socials** | Social Media | Social media platform integrations | [`app/examples/socials/`](./app/examples/socials/) |
-| **🎮 Gaming** | Game Examples | Gaming-related agent implementations | [`app/examples/games/`](./app/examples/games/) |
-
 ## 📦 Core Packages
 
 | Package | Description | Link |
@@ -112,7 +91,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [/* your extensions */],
+  providers: [/* your providers */],
 });
 
 agent.start();
@@ -123,7 +102,7 @@ agent.start();
 ```bash
 npm install @axiomkit/core
 ```
-# Install with extensions
+# Install with providers
 ```bash
 npm install @axiomkit/mongodb @axiomkit/telegram @axiomkit/sei @axiomkit/discord @axiomkit/supabase @axiomkit/mcp
 ```
@@ -137,11 +116,11 @@ npx @axiomkit/create-agent my-agent
 - **Core Concepts**: [`packages/core/README.md`](./packages/core/README.md)
 - **CLI Tools**: [`packages/cli/`](./packages/cli/)
 - **Create Agent**: [`packages/create-agent/README.md`](./packages/create-agent/README.md)
-- **MongoDB Extension**: [`packages/mongodb/README.md`](./packages/mongodb/README.md)
-- **Sei Extension**: [`packages/sei/Readme.md`](./packages/sei/Readme.md)
-- **Telegram Extension**: [`packages/telegram/README.md`](./packages/telegram/README.md)
-- **Discord Extension**: [`packages/discord/README.md`](./packages/discord/README.md)
-- **MCP Extension**: [`packages/mcp/README.md`](./packages/mcp/README.md)
+- **MongoDB Built-in Provider**: [`packages/mongodb/README.md`](./packages/mongodb/README.md)
+- **Sei Built-in Provider**: [`packages/sei/Readme.md`](./packages/sei/Readme.md)
+- **Telegram Built-in Provider**: [`packages/telegram/README.md`](./packages/telegram/README.md)
+- **Discord Built-in Provider**: [`packages/discord/README.md`](./packages/discord/README.md)
+- **MCP Built-in Provider**: [`packages/mcp/README.md`](./packages/mcp/README.md)
 
 ## 🤝 Contributing
 

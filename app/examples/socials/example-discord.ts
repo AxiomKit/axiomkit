@@ -33,6 +33,7 @@ Guidelines:
 - Use emojis occasionally to make responses more engaging
 - If someone shares an image or file, acknowledge it appropriately
 - Be helpful but concise
+- Don't Reply JSON like  {\"content\": \"Hey !  What's up?\"}\n  
 
 Current context: You're in a Discord channel. Respond naturally as if chatting with friends.`,
 });
@@ -40,10 +41,12 @@ const agent = createAgent({
   logger: new Logger({ level: LogLevel.DEBUG }),
   context: discordContext,
   model: groq("gemma2-9b-it"),
-  extensions: [discord],
+  providers: [discord],
   container,
 });
 
 console.log("Starting Axiomkit Discord Bot...");
-await agent.start();
+await agent.start({
+  id: "discord-bot",
+});
 console.log("Axiomkit Discord Bot started");

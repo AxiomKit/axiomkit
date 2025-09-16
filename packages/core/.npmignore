@@ -1,13 +1,8 @@
 *
-
 !/pkg/
 !/dist/
 !/package.json
 !/readme.md
 !/changelog.md
-
-
 !/pkg/**
 !/dist/**
-
-#--------- Axiomkit

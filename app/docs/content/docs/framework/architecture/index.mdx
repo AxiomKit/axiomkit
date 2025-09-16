@@ -1,8 +1,9 @@
 ---
-title: Architecture Overview
+title: Overview
 description: 
   Understanding the fundamental building blocks that constitute the Axiomkit framework
-
+icon: House
+date: 2025-08-20
 ---
 
 # Architecture Overview
@@ -35,57 +36,11 @@ A multi-layered memory architecture that provides:
 - **Vector Memory**: Semantic search capabilities
 - **Graph Memory**: Relationship-based knowledge storage
 
-### 🔌 **Extensions**
+### 🔌 **Providers**
 Pluggable modules that bundle related functionality:
 - **Platform Integrations**: Discord, Telegram, CLI
 - **Database Connectors**: MongoDB, Supabase
-- **Custom Extensions**: Domain-specific functionality
-
-## Component Relationships
-
-```mermaid
-graph TB
-    subgraph "Agent Runtime"
-        A[Agent] --> B[Task Runner]
-        A --> C[Context Manager]
-        A --> D[Memory Manager]
-        A --> E[Extension Manager]
-    end
-    
-    subgraph "Contexts"
-        C --> F[Context 1]
-        C --> G[Context 2]
-        C --> H[Context N]
-        
-        F --> F1[Working Memory]
-        F --> F2[State]
-        F --> F3[Renderer]
-    end
-    
-    subgraph "Actions"
-        B --> I[Action 1]
-        B --> J[Action 2]
-        B --> K[Action N]
-        
-        I --> I1[Schema]
-        I --> I2[Handler]
-        I --> I3[Validation]
-    end
-    
-    subgraph "Memory System"
-        D --> L[Episodic Memory]
-        D --> M[Vector Memory]
-        D --> N[Graph Memory]
-        D --> O[Export Manager]
-    end
-    
-    subgraph "Extensions"
-        E --> P[Discord]
-        E --> Q[Telegram]
-        E --> R[CLI]
-        E --> S[Custom]
-    end
-```
+- **Custom Providers**: Domain-specific functionality
 
 ## Context System
 
@@ -202,16 +157,16 @@ const memory = new MemorySystem({
 });
 ```
 
-## Extension System
+## Provider System
 
-Extensions bundle related functionality into reusable modules:
+Providers bundle related functionality into reusable modules:
 
 ```typescript
-import { extension } from "@axiomkit/core";
+import { provider } from "@axiomkit/core";
 import { discordContext } from "./discord-context";
 import { discordActions } from "./discord-actions";
 
-export const discordExtension = extension({
+export const discordProvider = provider({
   name: "discord",
   contexts: {
     discord: discordContext,
@@ -223,7 +178,7 @@ export const discordExtension = extension({
 
 ## Execution Flow
 
-1. **Initialization**: Agent loads contexts, actions, and extensions
+1. **Initialization**: Agent loads contexts, actions, and providers
 2. **Input Processing**: External events trigger context activation
 3. **Memory Retrieval**: Relevant memories are loaded into working memory
 4. **Reasoning**: LLM analyzes context and decides on actions
@@ -235,7 +190,7 @@ export const discordExtension = extension({
 
 - **Context Isolation**: Each context operates independently
 - **Memory Optimization**: Automatic memory cleanup and summarization
-- **Extension Loading**: Lazy loading of extensions as needed
+- **Provider Loading**: Lazy loading of Providers as needed
 - **Error Recovery**: Graceful handling of failures and retries
 - **Performance Monitoring**: Built-in metrics and logging
 

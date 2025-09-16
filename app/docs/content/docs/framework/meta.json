@@ -10,13 +10,14 @@
         "getting-started/first-ai-agent",
         "---ARCHITECTURE---",
         "architecture/index",
-        "architecture/agent-lifecycle",
+        "architecture/workflow-agents",
         "architecture/context",
         "architecture/prompt",
         "architecture/input",
         "architecture/output",
         "architecture/action",
         "architecture/task",
-        "architecture/memory"
+        "architecture/memory",
+        "architecture/supported-provider"
     ]
 }

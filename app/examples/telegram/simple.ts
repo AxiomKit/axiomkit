@@ -2,9 +2,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createAgent, LogLevel, validateEnv } from "@axiomkit/core";
 import { telegram } from "@axiomkit/telegram";
 
-import * as z from "zod/v4";
-
-// Simple Chat
+import * as z from "zod";
 
 const env = validateEnv(
   z.object({
@@ -20,5 +18,7 @@ const groq = createGroq({
 createAgent({
   logLevel: LogLevel.DEBUG,
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [telegram],
-}).start();
+  providers: [telegram],
+}).start({
+  id: "telegram-simple-bot",
+});
