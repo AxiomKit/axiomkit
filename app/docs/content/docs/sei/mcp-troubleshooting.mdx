@@ -1,0 +1,872 @@
+---
+title: SEI MCP Troubleshooting & Best Practices
+description: Comprehensive guide to troubleshooting SEI MCP issues and implementing best practices
+icon: Bug
+---
+
+# SEI MCP Troubleshooting & Best Practices
+
+This comprehensive guide covers common issues, troubleshooting steps, and best practices for SEI MCP integration to help you build robust and reliable AI agents.
+
+## Common Issues & Solutions
+
+### 1. Connection Issues
+
+#### Problem: "MCP connection failed"
+
+**Symptoms:**
+- Agent fails to start
+- "Connection refused" errors
+- Timeout errors
+
+**Causes:**
+- Incorrect server configuration
+- Network connectivity issues
+- Port conflicts
+- Firewall blocking connections
+
+**Solutions:**
+
+```typescript
+// Check server configuration
+const server = new McpServer(
+  {
+    name: "sei-blockchain-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Verify transport configuration
+const transport = new StdioServerTransport();
+await server.connect(transport);
+
+// Add connection timeout
+const timeout = setTimeout(() => {
+  throw new Error("Connection timeout");
+}, 10000);
+
+await server.connect(transport);
+clearTimeout(timeout);
+```
+
+**Debug Steps:**
+1. Verify the server is running: `ps aux | grep mcp-sei-server`
+2. Check network connectivity: `ping evm-rpc.sei-apis.com`
+3. Test RPC endpoint: `curl -X POST https://evm-rpc.sei-apis.com/`
+4. Check firewall settings
+5. Verify port availability
+
+#### Problem: "SEI wallet not initialized"
+
+**Symptoms:**
+- "Wallet not initialized" errors
+- Private key validation failures
+- RPC connection errors
+
+**Causes:**
+- Missing or invalid private key
+- Incorrect RPC URL
+- Network connectivity issues
+
+**Solutions:**
+
+```typescript
+// Validate environment variables
+const env = validateEnv(
+  z.object({
+    SEI_RPC_URL: z.string().min(1, "SEI_RPC_URL is required"),
+    SEI_PRIVATE_KEY: z.string().min(1, "SEI_PRIVATE_KEY is required"),
+  })
+);
+
+// Validate private key format
+function validatePrivateKey(privateKey: string): boolean {
+  if (!privateKey.startsWith("0x")) {
+    throw new Error("Private key must start with 0x");
+  }
+  
+  if (privateKey.length !== 66) {
+    throw new Error("Private key must be 64 characters long (excluding 0x)");
+  }
+  
+  return true;
+}
+
+// Test RPC connection
+async function testRpcConnection(rpcUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_blockNumber",
+        params: [],
+        id: 1,
+      }),
+    });
+    
+    const data = await response.json();
+    return data.result !== undefined;
+  } catch (error) {
+    return false;
+  }
+}
+```
+
+### 2. Transaction Issues
+
+#### Problem: "Insufficient balance" errors
+
+**Symptoms:**
+- Transfer operations fail
+- "Insufficient funds" messages
+- Transaction reverts
+
+**Causes:**
+- Not enough tokens for transfer
+- Insufficient gas fees
+- Token approval issues
+
+**Solutions:**
+
+```typescript
+// Check balance before transfer
+async function checkBalanceBeforeTransfer(
+  wallet: AxiomSeiWallet,
+  amount: string,
+  token?: string
+): Promise<boolean> {
+  try {
+    let balance: string;
+    
+    if (token && token !== "SEI") {
+      const tokenAddress = await wallet.getTokenAddressFromTicker(token);
+      if (!tokenAddress) {
+        throw new Error(`Token ${token} not found`);
+      }
+      balance = await wallet.getERC20Balance(tokenAddress);
+    } else {
+      balance = await wallet.getERC20Balance();
+    }
+    
+    const currentBalance = parseFloat(balance);
+    const transferAmount = parseFloat(amount);
+    
+    // Reserve some tokens for gas fees
+    const gasReserve = token === "SEI" ? 0.01 : 0;
+    
+    return currentBalance >= (transferAmount + gasReserve);
+  } catch (error) {
+    console.error("Balance check failed:", error);
+    return false;
+  }
+}
+
+// Estimate gas costs
+async function estimateGasCost(
+  wallet: AxiomSeiWallet,
+  transaction: any
+): Promise<bigint> {
+  try {
+    const gasEstimate = await wallet.publicClient.estimateGas(transaction);
+    // Add 20% buffer for gas price fluctuations
+    return (gasEstimate * 120n) / 100n;
+  } catch (error) {
+    console.error("Gas estimation failed:", error);
+    throw error;
+  }
+}
+```
+
+#### Problem: "Transaction failed" errors
+
+**Symptoms:**
+- Transactions revert
+- "Out of gas" errors
+- "Nonce too low" errors
+
+**Causes:**
+- Insufficient gas limit
+- Network congestion
+- Invalid transaction parameters
+
+**Solutions:**
+
+```typescript
+// Implement retry logic with exponential backoff
+async function executeTransactionWithRetry(
+  wallet: AxiomSeiWallet,
+  transaction: any,
+  maxRetries = 3
+): Promise<string> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Estimate gas with buffer
+      const gasEstimate = await wallet.publicClient.estimateGas(transaction);
+      const gasLimit = (gasEstimate * 120n) / 100n; // 20% buffer
+      
+      // Execute transaction
+      const hash = await wallet.walletClient.sendTransaction({
+        ...transaction,
+        gas: gasLimit,
+      });
+      
+      // Wait for confirmation
+      const receipt = await wallet.publicClient.waitForTransactionReceipt({
+        hash,
+        timeout: 60000, // 1 minute timeout
+      });
+      
+      return hash;
+    } catch (error) {
+      console.error(`Transaction attempt ${attempt} failed:`, error);
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Exponential backoff
+      const delay = Math.pow(2, attempt) * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+```
+
+### 3. Token Issues
+
+#### Problem: "Token not found" errors
+
+**Symptoms:**
+- Token lookup failures
+- "Invalid token" messages
+- Balance queries fail
+
+**Causes:**
+- Token not deployed on SEI
+- Incorrect ticker symbol
+- Token not indexed by DexScreener
+
+**Solutions:**
+
+```typescript
+// Implement fallback token discovery
+async function findTokenWithFallback(
+  wallet: AxiomSeiWallet,
+  ticker: string
+): Promise<Address | null> {
+  try {
+    // Try DexScreener first
+    const address = await wallet.getTokenAddressFromTicker(ticker);
+    if (address) {
+      return address;
+    }
+    
+    // Fallback to known tokens
+    const knownTokens = {
+      "SEI": "0x0",
+      "USDC": "0x5f0e07dfee5832faa00c63f2d33a0d79150e8598",
+      "USDT": "0xe30fedd158a2e3b13e9badaeabafc5516e95e8c7",
+      "WETH": "0x5cf6826140c1c56ff49c808a1a75407cd1df9423",
+    };
+    
+    return knownTokens[ticker.toUpperCase()] || null;
+  } catch (error) {
+    console.error("Token discovery failed:", error);
+    return null;
+  }
+}
+
+// Validate token address
+async function validateTokenAddress(
+  wallet: AxiomSeiWallet,
+  address: Address
+): Promise<boolean> {
+  try {
+    const code = await wallet.publicClient.getCode({ address });
+    return code !== "0x";
+  } catch (error) {
+    return false;
+  }
+}
+```
+
+### 4. Rate Limiting Issues
+
+#### Problem: "Rate limit exceeded" errors
+
+**Symptoms:**
+- API calls fail with rate limit errors
+- Intermittent failures
+- Slow response times
+
+**Causes:**
+- Too many requests per minute
+- API quota exceeded
+- Network congestion
+
+**Solutions:**
+
+```typescript
+// Implement rate limiting
+class RateLimiter {
+  private requests = new Map<string, number[]>();
+  
+  async waitForSlot(
+    key: string,
+    maxRequests = 10,
+    windowMs = 60000
+  ): Promise<void> {
+    const now = Date.now();
+    const requests = this.requests.get(key) || [];
+    const validRequests = requests.filter(time => now - time < windowMs);
+    
+    if (validRequests.length >= maxRequests) {
+      const waitTime = windowMs - (now - Math.min(...validRequests));
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    validRequests.push(now);
+    this.requests.set(key, validRequests);
+  }
+}
+
+// Use rate limiter in tool calls
+const rateLimiter = new RateLimiter();
+
+server.setRequestHandler("tools/call", async (request) => {
+  const { name } = request.params;
+  
+  // Apply rate limiting
+  await rateLimiter.waitForSlot(name, 10, 60000);
+  
+  // Process tool call
+  return await handleToolCall(name, request.params.arguments);
+});
+```
+
+## Best Practices
+
+### 1. **Security Best Practices**
+
+#### Private Key Management
+
+```typescript
+// Never log private keys
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+// Log wallet address instead
+logger.info("Wallet initialized", {
+  address: wallet.walletAdress,
+  // Never include privateKey here
+});
+
+// Use environment variables
+const env = validateEnv(
+  z.object({
+    SEI_PRIVATE_KEY: z.string().min(1).refine(
+      (key) => key.startsWith("0x") && key.length === 66,
+      "Invalid private key format"
+    ),
+  })
+);
+```
+
+#### Input Validation
+
+```typescript
+// Validate all inputs
+function validateTransferInput(input: any): {
+  amount: string;
+  recipient: Address;
+  token?: string;
+} {
+  const schema = z.object({
+    amount: z.string().regex(/^\d+(\.\d+)?$/, "Invalid amount format"),
+    recipient: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address format"),
+    token: z.string().optional(),
+  });
+  
+  return schema.parse(input);
+}
+
+// Validate addresses
+function isValidAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+}
+
+// Validate amounts
+function isValidAmount(amount: string): boolean {
+  const num = parseFloat(amount);
+  return !isNaN(num) && num > 0 && num < Number.MAX_SAFE_INTEGER;
+}
+```
+
+### 2. **Error Handling Best Practices**
+
+#### Comprehensive Error Handling
+
+```typescript
+// Custom error classes
+export class SeiMcpError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode: number = 500
+  ) {
+    super(message);
+    this.name = "SeiMcpError";
+  }
+}
+
+export class ValidationError extends SeiMcpError {
+  constructor(message: string) {
+    super(message, "VALIDATION_ERROR", 400);
+  }
+}
+
+export class BlockchainError extends SeiMcpError {
+  constructor(message: string) {
+    super(message, "BLOCKCHAIN_ERROR", 502);
+  }
+}
+
+// Error handling wrapper
+async function handleToolCall(
+  name: string,
+  args: any
+): Promise<{ content: any[]; isError?: boolean }> {
+  try {
+    // Validate inputs
+    if (!args || typeof args !== 'object') {
+      throw new ValidationError("Invalid arguments provided");
+    }
+    
+    // Execute tool
+    const result = await executeTool(name, args);
+    return result;
+    
+  } catch (error) {
+    logger.error(`Tool call failed: ${name}`, error);
+    
+    if (error instanceof SeiMcpError) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error (${error.code}): ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: "An unexpected error occurred",
+        },
+      ],
+      isError: true,
+    };
+  }
+}
+```
+
+#### Retry Logic
+
+```typescript
+// Exponential backoff retry
+async function retryWithBackoff<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+// Usage
+const result = await retryWithBackoff(
+  () => wallet.getERC20Balance(),
+  3,
+  1000
+);
+```
+
+### 3. **Performance Best Practices**
+
+#### Caching
+
+```typescript
+// Simple in-memory cache
+class TokenCache {
+  private cache = new Map<string, { value: any; expiry: number }>();
+  
+  set(key: string, value: any, ttlMs = 300000): void {
+    this.cache.set(key, {
+      value,
+      expiry: Date.now() + ttlMs,
+    });
+  }
+  
+  get(key: string): any | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() > item.expiry) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value;
+  }
+}
+
+// Use cache for token addresses
+const tokenCache = new TokenCache();
+
+async function getCachedTokenAddress(ticker: string): Promise<Address | null> {
+  const cached = tokenCache.get(`token:${ticker}`);
+  if (cached) return cached;
+  
+  const address = await wallet.getTokenAddressFromTicker(ticker);
+  if (address) {
+    tokenCache.set(`token:${ticker}`, address, 300000); // 5 minutes
+  }
+  
+  return address;
+}
+```
+
+#### Connection Pooling
+
+```typescript
+// HTTP connection pooling
+import { http } from "viem";
+
+const transport = http(process.env.SEI_RPC_URL!, {
+  batch: true,
+  retryCount: 3,
+  retryDelay: 1000,
+});
+
+const publicClient = createPublicClient({
+  chain: sei,
+  transport,
+});
+```
+
+### 4. **Monitoring Best Practices**
+
+#### Logging
+
+```typescript
+// Structured logging
+import { Logger } from "@axiomkit/core";
+
+const logger = new Logger({
+  level: LogLevel.INFO,
+});
+
+// Log tool calls
+logger.info("Tool call started", {
+  tool: "transfer_tokens",
+  args: { amount: "1.5", recipient: "0x..." },
+  timestamp: new Date().toISOString(),
+});
+
+// Log results
+logger.info("Tool call completed", {
+  tool: "transfer_tokens",
+  success: true,
+  duration: Date.now() - startTime,
+  result: "Transfer successful",
+});
+```
+
+#### Metrics Collection
+
+```typescript
+// Simple metrics collection
+class MetricsCollector {
+  private metrics = {
+    requests: 0,
+    errors: 0,
+    totalDuration: 0,
+    lastRequest: null as Date | null,
+  };
+  
+  recordRequest(duration: number, success: boolean): void {
+    this.metrics.requests++;
+    this.metrics.totalDuration += duration;
+    this.metrics.lastRequest = new Date();
+    
+    if (!success) {
+      this.metrics.errors++;
+    }
+  }
+  
+  getMetrics() {
+    return {
+      ...this.metrics,
+      averageDuration: this.metrics.requests > 0 
+        ? this.metrics.totalDuration / this.metrics.requests 
+        : 0,
+      errorRate: this.metrics.requests > 0 
+        ? this.metrics.errors / this.metrics.requests 
+        : 0,
+    };
+  }
+}
+
+// Use metrics collector
+const metrics = new MetricsCollector();
+
+server.setRequestHandler("tools/call", async (request) => {
+  const startTime = Date.now();
+  
+  try {
+    const result = await handleToolCall(request.params.name, request.params.arguments);
+    metrics.recordRequest(Date.now() - startTime, true);
+    return result;
+  } catch (error) {
+    metrics.recordRequest(Date.now() - startTime, false);
+    throw error;
+  }
+});
+```
+
+### 5. **Testing Best Practices**
+
+#### Unit Testing
+
+```typescript
+// Test tool implementations
+import { describe, it, expect, beforeEach } from "vitest";
+
+describe("SEI MCP Tools", () => {
+  let wallet: AxiomSeiWallet;
+  
+  beforeEach(() => {
+    wallet = new AxiomSeiWallet({
+      rpcUrl: "https://evm-rpc-testnet.sei-apis.com/",
+      privateKey: "0x...", // Test private key
+    });
+  });
+  
+  it("should get SEI balance", async () => {
+    const balance = await wallet.getERC20Balance();
+    expect(balance).toBeDefined();
+    expect(typeof balance).toBe("string");
+    expect(parseFloat(balance)).toBeGreaterThanOrEqual(0);
+  });
+  
+  it("should handle invalid token", async () => {
+    const address = await wallet.getTokenAddressFromTicker("INVALID");
+    expect(address).toBeNull();
+  });
+});
+```
+
+#### Integration Testing
+
+```typescript
+// Test complete workflows
+describe("SEI MCP Integration", () => {
+  it("should handle complete transfer workflow", async () => {
+    const agent = createAgent({
+      model: groq("gemma2-9b-it"),
+      providers: [
+        createMcpProvider([
+          {
+            id: "test-sei-server",
+            name: "Test SEI Server",
+            transport: {
+              type: "stdio",
+              command: "tsx",
+              args: ["./test-mcp-server.ts"],
+            },
+          },
+        ]),
+      ],
+    });
+    
+    await agent.start();
+    
+    // Test balance check
+    const balanceResponse = await agent.send({
+      input: { type: "text", data: { text: "What's my SEI balance?" } },
+    });
+    
+    expect(balanceResponse).toBeDefined();
+    expect(balanceResponse.length).toBeGreaterThan(0);
+    
+    await agent.stop();
+  });
+});
+```
+
+## Debugging Tools
+
+### 1. **Debug Mode**
+
+```typescript
+// Enable debug logging
+const logger = new Logger({
+  level: LogLevel.DEBUG,
+});
+
+// Add debug information
+logger.debug("Tool call details", {
+  name,
+  args,
+  walletAddress: wallet.walletAdress,
+  rpcUrl: env.SEI_RPC_URL,
+  timestamp: new Date().toISOString(),
+});
+```
+
+### 2. **Health Checks**
+
+```typescript
+// Health check endpoint
+server.setRequestHandler("ping", async () => {
+  try {
+    // Test wallet connection
+    await wallet.getERC20Balance();
+    
+    // Test RPC connection
+    const blockNumber = await wallet.publicClient.getBlockNumber();
+    
+    return {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      wallet: wallet.walletAdress,
+      blockNumber: blockNumber.toString(),
+    };
+  } catch (error) {
+    return {
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+});
+```
+
+### 3. **Transaction Monitoring**
+
+```typescript
+// Monitor transaction status
+async function monitorTransaction(
+  wallet: AxiomSeiWallet,
+  hash: string,
+  timeout = 60000
+): Promise<any> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < timeout) {
+    try {
+      const receipt = await wallet.publicClient.getTransactionReceipt({ hash });
+      if (receipt) {
+        return receipt;
+      }
+    } catch (error) {
+      // Transaction not yet mined
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  
+  throw new Error("Transaction monitoring timeout");
+}
+```
+
+## Production Deployment
+
+### 1. **Environment Configuration**
+
+```bash
+# Production environment variables
+SEI_RPC_URL=https://evm-rpc.sei-apis.com/
+SEI_PRIVATE_KEY=0x...
+LOG_LEVEL=info
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW_MS=60000
+CACHE_TTL_MS=300000
+```
+
+### 2. **Docker Configuration**
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Change ownership
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
+# Start the server
+CMD ["npm", "start"]
+```
+
+### 3. **Monitoring Setup**
+
+```typescript
+// Health check endpoint
+app.get("/health", async (req, res) => {
+  try {
+    const health = await checkHealth();
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({
+      status: "unhealthy",
+      error: error.message,
+    });
+  }
+});
+
+// Metrics endpoint
+app.get("/metrics", (req, res) => {
+  const metrics = metricsCollector.getMetrics();
+  res.json(metrics);
+});
+```
+
+This comprehensive troubleshooting and best practices guide provides everything needed to build, deploy, and maintain robust SEI MCP integrations. Follow these practices to ensure your AI agents are reliable, secure, and performant in production environments.

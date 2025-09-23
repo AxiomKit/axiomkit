@@ -1,0 +1,982 @@
+---
+title: SEI MCP Examples
+description: Practical examples and use cases for SEI MCP integration with AI agents
+icon: Code
+---
+
+# SEI MCP Examples
+
+This section provides comprehensive, real-world examples of SEI MCP integration for various use cases, from simple balance checking to sophisticated DeFi trading bots.
+
+## Basic Examples
+
+### 1. Simple Balance Checker Agent
+
+A basic agent that checks SEI and token balances using MCP tools.
+
+```typescript
+// balance-checker-agent.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({
+    level: LogLevel.INFO,
+  }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-balance-checker",
+        name: "SEI Balance Checker",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Example interactions
+const interactions = [
+  "What's my SEI balance?",
+  "Check my USDC balance",
+  "Show me my wallet information",
+  "What tokens do I have in my portfolio?",
+];
+
+async function runBalanceChecker() {
+  console.log("🚀 Starting SEI Balance Checker Agent...");
+  
+  await agent.start();
+  
+  for (const query of interactions) {
+    console.log(`\n🤖 Query: ${query}`);
+    
+    try {
+      const response = await agent.send({
+        input: { type: "text", data: { text: query } },
+      });
+      
+      // Extract the final response
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+runBalanceChecker().catch(console.error);
+```
+
+### 2. Token Transfer Agent
+
+An agent that can transfer SEI and ERC-20 tokens with validation.
+
+```typescript
+// token-transfer-agent.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({
+    level: LogLevel.INFO,
+  }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-transfer-agent",
+        name: "SEI Transfer Agent",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Example transfer scenarios
+const transferScenarios = [
+  "Transfer 1.5 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  "Send 100 USDC to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  "What's my SEI balance before the transfer?",
+  "Transfer 0.1 WETH to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+  "Check my balance after the transfer",
+];
+
+async function runTransferAgent() {
+  console.log("🚀 Starting SEI Transfer Agent...");
+  
+  await agent.start();
+  
+  for (const scenario of transferScenarios) {
+    console.log(`\n🤖 Scenario: ${scenario}`);
+    
+    try {
+      const response = await agent.send({
+        input: { type: "text", data: { text: scenario } },
+      });
+      
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+runTransferAgent().catch(console.error);
+```
+
+## Advanced Examples
+
+### 3. Portfolio Management Agent
+
+An intelligent agent that manages a multi-token portfolio with automated analysis.
+
+```typescript
+// portfolio-manager-agent.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({
+    level: LogLevel.INFO,
+  }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-portfolio-manager",
+        name: "SEI Portfolio Manager",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Portfolio management scenarios
+const portfolioScenarios = [
+  "Show me my complete portfolio analysis",
+  "What's my total portfolio value in USD?",
+  "Which token has the highest value in my portfolio?",
+  "Show me my transaction history for the last 10 transactions",
+  "Analyze my portfolio diversification",
+  "What's my SEI balance and how does it compare to other holdings?",
+];
+
+async function runPortfolioManager() {
+  console.log("🚀 Starting SEI Portfolio Manager Agent...");
+  
+  await agent.start();
+  
+  for (const scenario of portfolioScenarios) {
+    console.log(`\n🤖 Scenario: ${scenario}`);
+    
+    try {
+      const response = await agent.send({
+        input: { type: "text", data: { text: scenario } },
+      });
+      
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+runPortfolioManager().catch(console.error);
+```
+
+### 4. Token Discovery Agent
+
+An agent that helps discover and explore tokens on the SEI network.
+
+```typescript
+// token-discovery-agent.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({
+    level: LogLevel.INFO,
+  }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-token-discovery",
+        name: "SEI Token Discovery",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Token discovery scenarios
+const discoveryScenarios = [
+  "Search for USD stablecoins on SEI",
+  "Find the contract address for USDC token",
+  "What tokens are available that start with 'W'?",
+  "Get detailed information about WETH token",
+  "Search for Ethereum-related tokens",
+  "What's the contract address for DAI token?",
+];
+
+async function runTokenDiscovery() {
+  console.log("🚀 Starting SEI Token Discovery Agent...");
+  
+  await agent.start();
+  
+  for (const scenario of discoveryScenarios) {
+    console.log(`\n🤖 Scenario: ${scenario}`);
+    
+    try {
+      const response = await agent.send({
+        input: { type: "text", data: { text: scenario } },
+      });
+      
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+runTokenDiscovery().catch(console.error);
+```
+
+## DeFi Examples
+
+### 5. DEX Trading Bot
+
+An intelligent trading bot that can execute swaps and analyze market conditions.
+
+```typescript
+// dex-trading-bot.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({
+    level: LogLevel.INFO,
+  }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-dex-trading",
+        name: "SEI DEX Trading Bot",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Trading scenarios
+const tradingScenarios = [
+  "What's my current SEI balance?",
+  "What's my USDC balance?",
+  "Get a quote for swapping 10 SEI to USDC",
+  "Execute a swap of 5 SEI to USDC",
+  "Check my balances after the swap",
+  "What's the current network status?",
+  "Estimate gas costs for a SEI transfer",
+];
+
+async function runDexTradingBot() {
+  console.log("🚀 Starting SEI DEX Trading Bot...");
+  
+  await agent.start();
+  
+  for (const scenario of tradingScenarios) {
+    console.log(`\n🤖 Scenario: ${scenario}`);
+    
+    try {
+      const response = await agent.send({
+        input: { type: "text", data: { text: scenario } },
+      });
+      
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+runDexTradingBot().catch(console.error);
+```
+
+### 6. Yield Farming Agent
+
+An agent that manages yield farming positions and monitors returns.
+
+```typescript
+// yield-farming-agent.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+const agent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({
+    level: LogLevel.INFO,
+  }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-yield-farming",
+        name: "SEI Yield Farming Agent",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Yield farming scenarios
+const farmingScenarios = [
+  "Show me my current portfolio",
+  "What's my total portfolio value?",
+  "Find high-yield farming opportunities",
+  "Stake 100 USDC in a yield farming pool",
+  "Calculate my current yield earnings",
+  "Monitor my farming positions",
+  "Rebalance my portfolio for optimal yield",
+];
+
+async function runYieldFarmingAgent() {
+  console.log("🚀 Starting SEI Yield Farming Agent...");
+  
+  await agent.start();
+  
+  for (const scenario of farmingScenarios) {
+    console.log(`\n🤖 Scenario: ${scenario}`);
+    
+    try {
+      const response = await agent.send({
+        input: { type: "text", data: { text: scenario } },
+      });
+      
+      const finalResponse = response.find(
+        (log: any) => log.ref === "action_result" && log.data?.content
+      );
+      
+      if (finalResponse) {
+        console.log(`✅ Response: ${finalResponse.data.content}`);
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  }
+  
+  await agent.stop();
+  console.log("👋 Agent stopped.");
+}
+
+runYieldFarmingAgent().catch(console.error);
+```
+
+## Multi-Agent Examples
+
+### 7. Collaborative DeFi Agents
+
+Multiple agents working together to manage complex DeFi strategies.
+
+```typescript
+// collaborative-defi-agents.ts
+import { createAgent, Logger, LogLevel } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+import { groq } from "@ai-sdk/groq";
+import path from "path";
+
+// Portfolio Analysis Agent
+const portfolioAgent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({ level: LogLevel.INFO }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-portfolio-analysis",
+        name: "SEI Portfolio Analysis",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Trading Execution Agent
+const tradingAgent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({ level: LogLevel.INFO }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-trading-execution",
+        name: "SEI Trading Execution",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+// Risk Management Agent
+const riskAgent = createAgent({
+  model: groq("deepseek-r1-distill-llama-70b"),
+  logger: new Logger({ level: LogLevel.INFO }),
+  providers: [
+    createMcpProvider([
+      {
+        id: "sei-risk-management",
+        name: "SEI Risk Management",
+        transport: {
+          type: "stdio",
+          command: "tsx",
+          args: [path.join(__dirname, "mcp-sei-server.ts")],
+        },
+      },
+    ]),
+  ],
+});
+
+async function runCollaborativeDeFi() {
+  console.log("🚀 Starting Collaborative DeFi Agents...");
+  
+  // Start all agents
+  await Promise.all([
+    portfolioAgent.start(),
+    tradingAgent.start(),
+    riskAgent.start(),
+  ]);
+  
+  // Portfolio analysis
+  console.log("\n📊 Portfolio Analysis Agent:");
+  const portfolioResponse = await portfolioAgent.send({
+    input: { type: "text", data: { text: "Analyze my portfolio and suggest rebalancing" } },
+  });
+  
+  // Risk assessment
+  console.log("\n⚠️ Risk Management Agent:");
+  const riskResponse = await riskAgent.send({
+    input: { type: "text", data: { text: "Assess the risk of my current portfolio" } },
+  });
+  
+  // Trading execution
+  console.log("\n💹 Trading Execution Agent:");
+  const tradingResponse = await tradingAgent.send({
+    input: { type: "text", data: { text: "Execute the recommended portfolio rebalancing" } },
+  });
+  
+  // Stop all agents
+  await Promise.all([
+    portfolioAgent.stop(),
+    tradingAgent.stop(),
+    riskAgent.stop(),
+  ]);
+  
+  console.log("👋 All agents stopped.");
+}
+
+runCollaborativeDeFi().catch(console.error);
+```
+
+## Claude Desktop Integration Examples
+
+### 8. Claude Desktop Configuration
+
+Complete setup for using SEI MCP with Claude Desktop.
+
+```json
+// ~/Library/Application Support/Claude/claude_desktop_config.json
+{
+  "mcpServers": {
+    "sei-blockchain-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "tsx",
+        "/path/to/your/sei-mcp-server/src/server.ts"
+      ],
+      "env": {
+        "SEI_RPC_URL": "https://evm-rpc.sei-apis.com/",
+        "SEI_PRIVATE_KEY": "YOUR_PRIVATE_KEY_HERE",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
+```
+
+### 9. Claude Desktop Usage Examples
+
+Once configured, you can interact with SEI through Claude Desktop:
+
+**Portfolio Management:**
+```
+Claude, can you show me my complete SEI portfolio analysis including USD values and diversification?
+```
+
+**Token Discovery:**
+```
+Find all USD stablecoins available on SEI and show me their contract addresses.
+```
+
+**Transfer Operations:**
+```
+Transfer 1.5 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6 and then check my new balance.
+```
+
+**DeFi Operations:**
+```
+What's my current yield farming performance? Show me my positions and calculate total returns.
+```
+
+**Risk Analysis:**
+```
+Analyze my portfolio risk and suggest rebalancing strategies for better diversification.
+```
+
+## Custom Tool Examples
+
+### 10. Extended MCP Server with Custom Tools
+
+```typescript
+// extended-mcp-server.ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { z } from "zod";
+
+const wallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+const server = new McpServer(
+  {
+    name: "extended-sei-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Add custom tools
+server.setRequestHandler("tools/list", async () => ({
+  tools: [
+    // Standard tools
+    {
+      name: "get_balance",
+      description: "Get SEI or ERC-20 token balance",
+      inputSchema: {
+        type: "object",
+        properties: {
+          token: {
+            type: "string",
+            description: "Token ticker symbol",
+            default: "SEI",
+          },
+        },
+      },
+    },
+    
+    // Custom tools
+    {
+      name: "portfolio_health_check",
+      description: "Perform a comprehensive portfolio health check",
+      inputSchema: {
+        type: "object",
+        properties: {
+          includeRecommendations: {
+            type: "boolean",
+            description: "Include improvement recommendations",
+            default: true,
+          },
+        },
+      },
+    },
+    
+    {
+      name: "smart_rebalance",
+      description: "Intelligently rebalance portfolio based on market conditions",
+      inputSchema: {
+        type: "object",
+        properties: {
+          targetAllocation: {
+            type: "object",
+            description: "Target allocation percentages",
+            properties: {
+              sei: { type: "number" },
+              usdc: { type: "number" },
+              weth: { type: "number" },
+            },
+          },
+          maxSlippage: {
+            type: "number",
+            description: "Maximum slippage tolerance",
+            default: 1.0,
+          },
+        },
+      },
+    },
+  ],
+}));
+
+// Handle custom tool calls
+server.setRequestHandler("tools/call", async (request) => {
+  const { name, arguments: args } = request.params;
+  
+  switch (name) {
+    case "portfolio_health_check": {
+      const { includeRecommendations = true } = args;
+      
+      // Get portfolio data
+      const seiBalance = await wallet.getERC20Balance();
+      const usdcAddress = await wallet.getTokenAddressFromTicker("USDC");
+      const usdcBalance = usdcAddress ? await wallet.getERC20Balance(usdcAddress) : "0";
+      
+      // Analyze portfolio health
+      const analysis = {
+        totalValue: parseFloat(seiBalance) + parseFloat(usdcBalance),
+        diversification: parseFloat(usdcBalance) > 0 ? "Good" : "Poor",
+        riskLevel: parseFloat(seiBalance) > parseFloat(usdcBalance) ? "High" : "Low",
+      };
+      
+      let response = `Portfolio Health Check:\n\n`;
+      response += `Total Value: ${analysis.totalValue} tokens\n`;
+      response += `Diversification: ${analysis.diversification}\n`;
+      response += `Risk Level: ${analysis.riskLevel}\n`;
+      
+      if (includeRecommendations) {
+        response += `\nRecommendations:\n`;
+        if (analysis.diversification === "Poor") {
+          response += `- Consider adding stablecoins for diversification\n`;
+        }
+        if (analysis.riskLevel === "High") {
+          response += `- Reduce exposure to volatile assets\n`;
+        }
+      }
+      
+      return {
+        content: [{ type: "text", text: response }],
+      };
+    }
+    
+    case "smart_rebalance": {
+      const { targetAllocation, maxSlippage = 1.0 } = args;
+      
+      // Get current balances
+      const seiBalance = await wallet.getERC20Balance();
+      const usdcAddress = await wallet.getTokenAddressFromTicker("USDC");
+      const usdcBalance = usdcAddress ? await wallet.getERC20Balance(usdcAddress) : "0";
+      
+      // Calculate rebalancing needs
+      const totalValue = parseFloat(seiBalance) + parseFloat(usdcBalance);
+      const seiTarget = totalValue * (targetAllocation.sei / 100);
+      const usdcTarget = totalValue * (targetAllocation.usdc / 100);
+      
+      const seiDifference = seiTarget - parseFloat(seiBalance);
+      const usdcDifference = usdcTarget - parseFloat(usdcBalance);
+      
+      let response = `Smart Rebalancing Plan:\n\n`;
+      response += `Current Portfolio:\n`;
+      response += `- SEI: ${seiBalance} (${((parseFloat(seiBalance) / totalValue) * 100).toFixed(1)}%)\n`;
+      response += `- USDC: ${usdcBalance} (${((parseFloat(usdcBalance) / totalValue) * 100).toFixed(1)}%)\n\n`;
+      
+      response += `Target Allocation:\n`;
+      response += `- SEI: ${seiTarget.toFixed(2)} (${targetAllocation.sei}%)\n`;
+      response += `- USDC: ${usdcTarget.toFixed(2)} (${targetAllocation.usdc}%)\n\n`;
+      
+      response += `Required Actions:\n`;
+      if (seiDifference > 0) {
+        response += `- Buy ${seiDifference.toFixed(2)} SEI\n`;
+      } else if (seiDifference < 0) {
+        response += `- Sell ${Math.abs(seiDifference).toFixed(2)} SEI\n`;
+      }
+      
+      if (usdcDifference > 0) {
+        response += `- Buy ${usdcDifference.toFixed(2)} USDC\n`;
+      } else if (usdcDifference < 0) {
+        response += `- Sell ${Math.abs(usdcDifference).toFixed(2)} USDC\n`;
+      }
+      
+      response += `\nMax Slippage: ${maxSlippage}%`;
+      
+      return {
+        content: [{ type: "text", text: response }],
+      };
+    }
+    
+    default:
+      // Handle standard tools
+      return await handleStandardTool(name, args);
+  }
+});
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Extended SEI MCP Server running on stdio");
+}
+
+main().catch(console.error);
+```
+
+## Testing Examples
+
+### 11. Unit Testing MCP Tools
+
+```typescript
+// mcp-tools.test.ts
+import { describe, it, expect, beforeEach } from "vitest";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+
+describe("SEI MCP Tools", () => {
+  let wallet: AxiomSeiWallet;
+  
+  beforeEach(() => {
+    wallet = new AxiomSeiWallet({
+      rpcUrl: "https://evm-rpc-testnet.sei-apis.com/",
+      privateKey: "0x...", // Test private key
+    });
+  });
+  
+  it("should get SEI balance", async () => {
+    const balance = await wallet.getERC20Balance();
+    expect(balance).toBeDefined();
+    expect(typeof balance).toBe("string");
+    expect(parseFloat(balance)).toBeGreaterThanOrEqual(0);
+  });
+  
+  it("should find token address", async () => {
+    const address = await wallet.getTokenAddressFromTicker("USDC");
+    expect(address).toBeDefined();
+    expect(address).toMatch(/^0x[a-fA-F0-9]{40}$/);
+  });
+  
+  it("should handle invalid token", async () => {
+    const address = await wallet.getTokenAddressFromTicker("INVALID");
+    expect(address).toBeNull();
+  });
+});
+```
+
+### 12. Integration Testing
+
+```typescript
+// integration.test.ts
+import { describe, it, expect } from "vitest";
+import { createAgent } from "@axiomkit/core";
+import { createMcpProvider } from "@axiomkit/mcp";
+
+describe("SEI MCP Integration", () => {
+  it("should handle complete workflow", async () => {
+    const agent = createAgent({
+      model: groq("gemma2-9b-it"),
+      providers: [
+        createMcpProvider([
+          {
+            id: "test-sei-server",
+            name: "Test SEI Server",
+            transport: {
+              type: "stdio",
+              command: "tsx",
+              args: ["./test-mcp-server.ts"],
+            },
+          },
+        ]),
+      ],
+    });
+    
+    await agent.start();
+    
+    const response = await agent.send({
+      input: { type: "text", data: { text: "What's my SEI balance?" } },
+    });
+    
+    expect(response).toBeDefined();
+    expect(response.length).toBeGreaterThan(0);
+    
+    await agent.stop();
+  });
+});
+```
+
+## Best Practices
+
+### 1. **Error Handling**
+Always implement comprehensive error handling:
+
+```typescript
+try {
+  const result = await callMcpTool("transfer_tokens", {
+    amount: "1.5",
+    recipient: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6"
+  });
+  
+  if (result.isError) {
+    console.error("Transfer failed:", result.content[0].text);
+    // Handle error appropriately
+  } else {
+    console.log("Transfer successful:", result.content[0].text);
+  }
+} catch (error) {
+  console.error("Tool call failed:", error);
+  // Implement fallback or retry logic
+}
+```
+
+### 2. **Input Validation**
+Validate all inputs before making tool calls:
+
+```typescript
+function validateTransferInput(amount: string, recipient: string): boolean {
+  // Validate amount
+  if (!/^\d+(\.\d+)?$/.test(amount) || parseFloat(amount) <= 0) {
+    return false;
+  }
+  
+  // Validate recipient address
+  if (!/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
+    return false;
+  }
+  
+  return true;
+}
+```
+
+### 3. **Rate Limiting**
+Implement rate limiting for API calls:
+
+```typescript
+class RateLimiter {
+  private requests = new Map<string, number[]>();
+  
+  async waitForSlot(key: string, maxRequests = 10, windowMs = 60000) {
+    const now = Date.now();
+    const requests = this.requests.get(key) || [];
+    const validRequests = requests.filter(time => now - time < windowMs);
+    
+    if (validRequests.length >= maxRequests) {
+      const waitTime = windowMs - (now - Math.min(...validRequests));
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    validRequests.push(now);
+    this.requests.set(key, validRequests);
+  }
+}
+```
+
+### 4. **Logging and Monitoring**
+Implement comprehensive logging:
+
+```typescript
+import { Logger } from "@axiomkit/core";
+
+const logger = new Logger({
+  level: LogLevel.INFO,
+});
+
+// Log tool calls
+logger.info("MCP tool called", {
+  tool: "transfer_tokens",
+  args: { amount: "1.5", recipient: "0x..." },
+  timestamp: new Date().toISOString(),
+});
+
+// Log results
+logger.info("MCP tool completed", {
+  tool: "transfer_tokens",
+  success: true,
+  duration: Date.now() - startTime,
+});
+```
+
+These examples demonstrate the full power and flexibility of SEI MCP integration, from simple balance checking to sophisticated DeFi strategies. Each example includes proper error handling, input validation, and best practices for production use.
