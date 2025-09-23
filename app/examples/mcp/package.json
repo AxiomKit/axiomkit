@@ -6,16 +6,21 @@
   "main": "index.ts",
   "scripts": {},
   "dependencies": {
+    "@axiomkit/cli": "workspace:*",
     "@axiomkit/core": "workspace:*",
     "@axiomkit/mcp": "workspace:*",
+    "@axiomkit/sei": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.17.2",
-    "zod": "^3.22.4",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2",
     "tsx": "^4.6.2",
-    "express": "^4.18.2"
+    "viem": "^2.33.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
     "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/node-fetch": "^2.6.11",
     "typescript": "^5.3.0"
   }
 }
