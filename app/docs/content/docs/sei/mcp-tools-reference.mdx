@@ -1,0 +1,918 @@
+---
+title: SEI MCP Tools Reference
+description: Complete reference guide for all SEI MCP tools, their parameters, and usage examples
+icon: Wrench
+---
+
+# SEI MCP Tools Reference
+
+This comprehensive reference guide covers all available SEI MCP tools, their parameters, return values, and practical usage examples.
+
+## Tool Categories
+
+The SEI MCP server provides tools organized into the following categories:
+
+- **🏦 Balance Management** - Query wallet balances and information
+- **💸 Token Operations** - Transfer tokens and manage transactions
+- **🔍 Token Discovery** - Find and explore tokens on SEI
+- **📊 Portfolio Management** - Analyze and manage token portfolios
+- **🔧 Utility Tools** - Helper functions and utilities
+
+## Balance Management Tools
+
+### `get_balance`
+
+Get the balance of SEI or ERC-20 tokens for the connected wallet.
+
+**Parameters:**
+```typescript
+{
+  token?: string  // Token ticker symbol (e.g., 'SEI', 'USDC'). Default: 'SEI'
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Formatted balance information
+  }>
+}
+```
+
+**Examples:**
+
+```typescript
+// Get SEI balance
+{
+  "name": "get_balance",
+  "arguments": {}
+}
+
+// Get USDC balance
+{
+  "name": "get_balance", 
+  "arguments": {
+    "token": "USDC"
+  }
+}
+
+// Get WETH balance
+{
+  "name": "get_balance",
+  "arguments": {
+    "token": "WETH"
+  }
+}
+```
+
+**Response Examples:**
+
+```json
+// SEI balance
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Your SEI balance is: 1.5 SEI"
+    }
+  ]
+}
+
+// Token balance
+{
+  "content": [
+    {
+      "type": "text", 
+      "text": "Your USDC balance is: 100.0 USDC"
+    }
+  ]
+}
+
+// Token not found
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Token 'INVALID' not found on SEI"
+    }
+  ]
+}
+```
+
+### `get_wallet_info`
+
+Get comprehensive wallet information including address and SEI balance.
+
+**Parameters:**
+```typescript
+{}  // No parameters required
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Wallet address and balance information
+  }>
+}
+```
+
+**Example:**
+
+```typescript
+{
+  "name": "get_wallet_info",
+  "arguments": {}
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Wallet Address: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6\nSEI Balance: 1.5 SEI"
+    }
+  ]
+}
+```
+
+### `get_portfolio_summary`
+
+Get a summary of all token holdings in the wallet.
+
+**Parameters:**
+```typescript
+{
+  includePrices?: boolean  // Include current USD prices. Default: false
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Portfolio summary with balances and optional prices
+  }>
+}
+```
+
+**Examples:**
+
+```typescript
+// Basic portfolio summary
+{
+  "name": "get_portfolio_summary",
+  "arguments": {}
+}
+
+// Portfolio with USD prices
+{
+  "name": "get_portfolio_summary",
+  "arguments": {
+    "includePrices": true
+  }
+}
+```
+
+**Response Examples:**
+
+```json
+// Basic summary
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Portfolio Summary:\n- SEI: 1.5\n- USDC: 100.0\n- WETH: 0.1"
+    }
+  ]
+}
+
+// With prices
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Portfolio Summary:\n- SEI: 1.5 ($2.25)\n- USDC: 100.0 ($100.00)\n- WETH: 0.1 ($250.00)\n\nTotal Value: $352.25"
+    }
+  ]
+}
+```
+
+## Token Operations Tools
+
+### `transfer_tokens`
+
+Transfer SEI or ERC-20 tokens to another address.
+
+**Parameters:**
+```typescript
+{
+  amount: string,      // Amount to transfer (e.g., '1.5')
+  recipient: string,   // Recipient wallet address (0x...)
+  token?: string       // Token ticker symbol. Default: 'SEI'
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Transfer result with transaction details
+  }>
+}
+```
+
+**Examples:**
+
+```typescript
+// Transfer SEI
+{
+  "name": "transfer_tokens",
+  "arguments": {
+    "amount": "1.5",
+    "recipient": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6"
+  }
+}
+
+// Transfer USDC
+{
+  "name": "transfer_tokens",
+  "arguments": {
+    "amount": "100.0",
+    "recipient": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+    "token": "USDC"
+  }
+}
+
+// Transfer WETH
+{
+  "name": "transfer_tokens",
+  "arguments": {
+    "amount": "0.1",
+    "recipient": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+    "token": "WETH"
+  }
+}
+```
+
+**Response Examples:**
+
+```json
+// Successful transfer
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Transfer successful! Transferred 1.5 SEI to 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6.\nTransaction hash: 0x1234567890abcdef...\nGas used: 21000"
+    }
+  ]
+}
+
+// Insufficient balance
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error (INSUFFICIENT_BALANCE): Insufficient SEI balance. Current: 0.5, Required: 1.5"
+    }
+  ],
+  "isError": true
+}
+
+// Invalid recipient
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error (VALIDATION_ERROR): Invalid recipient address format"
+    }
+  ],
+  "isError": true
+}
+```
+
+### `transfer_multiple`
+
+Transfer multiple tokens in a single transaction (batch transfer).
+
+**Parameters:**
+```typescript
+{
+  transfers: Array<{
+    amount: string,     // Amount to transfer
+    recipient: string,  // Recipient address
+    token: string       // Token ticker symbol
+  }>
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Batch transfer results
+  }>
+}
+```
+
+**Example:**
+
+```typescript
+{
+  "name": "transfer_multiple",
+  "arguments": {
+    "transfers": [
+      {
+        "amount": "1.0",
+        "recipient": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        "token": "SEI"
+      },
+      {
+        "amount": "50.0",
+        "recipient": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        "token": "USDC"
+      }
+    ]
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Batch Transfer Results:\n✅ SEI: 1.0 → 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6 (TX: 0x123...)\n✅ USDC: 50.0 → 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6 (TX: 0x456...)\n\nTotal gas used: 42000"
+    }
+  ]
+}
+```
+
+## Token Discovery Tools
+
+### `get_token_address`
+
+Get the contract address of a token by its ticker symbol.
+
+**Parameters:**
+```typescript
+{
+  ticker: string  // Token ticker symbol (e.g., 'USDC', 'WETH')
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Token information including address
+  }>
+}
+```
+
+**Examples:**
+
+```typescript
+// Get USDC address
+{
+  "name": "get_token_address",
+  "arguments": {
+    "ticker": "USDC"
+  }
+}
+
+// Get WETH address
+{
+  "name": "get_token_address",
+  "arguments": {
+    "ticker": "WETH"
+  }
+}
+```
+
+**Response Examples:**
+
+```json
+// Token found
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Token: USDC\nAddress: 0x5f0e07dfee5832faa00c63f2d33a0d79150e8598\nDecimals: 6\nSymbol: USDC"
+    }
+  ]
+}
+
+// Token not found
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Token 'INVALID' not found on SEI"
+    }
+  ]
+}
+```
+
+### `search_tokens`
+
+Search for tokens by name or symbol.
+
+**Parameters:**
+```typescript
+{
+  query: string,    // Search query (token name or symbol)
+  limit?: number    // Maximum number of results. Default: 10
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // List of matching tokens
+  }>
+}
+```
+
+**Examples:**
+
+```typescript
+// Search for USD tokens
+{
+  "name": "search_tokens",
+  "arguments": {
+    "query": "USD",
+    "limit": 5
+  }
+}
+
+// Search for Ethereum tokens
+{
+  "name": "search_tokens",
+  "arguments": {
+    "query": "ETH"
+  }
+}
+```
+
+**Response Examples:**
+
+```json
+// Search results
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Search Results for 'USD':\n\n1. USDC (USD Coin)\n   Address: 0x5f0e07dfee5832faa00c63f2d33a0d79150e8598\n   Decimals: 6\n\n2. USDT (Tether USD)\n   Address: 0xe30fedd158a2e3b13e9badaeabafc5516e95e8c7\n   Decimals: 6\n\n3. DAI (Dai Stablecoin)\n   Address: 0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1\n   Decimals: 18"
+    }
+  ]
+}
+
+// No results
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "No tokens found matching 'INVALID'"
+    }
+  ]
+}
+```
+
+### `get_token_info`
+
+Get detailed information about a specific token.
+
+**Parameters:**
+```typescript
+{
+  ticker: string  // Token ticker symbol
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Detailed token information
+  }>
+}
+```
+
+**Example:**
+
+```typescript
+{
+  "name": "get_token_info",
+  "arguments": {
+    "ticker": "USDC"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Token Information:\n\nName: USD Coin\nSymbol: USDC\nAddress: 0x5f0e07dfee5832faa00c63f2d33a0d79150e8598\nDecimals: 6\nTotal Supply: 1,000,000,000 USDC\nCurrent Price: $1.00 USD\nMarket Cap: $1,000,000,000\n24h Volume: $50,000,000\n\nDescription: USD Coin (USDC) is a fully-backed U.S. dollar stablecoin."
+    }
+  ]
+}
+```
+
+## Portfolio Management Tools
+
+### `analyze_portfolio`
+
+Analyze the current portfolio composition and performance.
+
+**Parameters:**
+```typescript
+{
+  includePrices?: boolean  // Include current USD prices. Default: true
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Portfolio analysis
+  }>
+}
+```
+
+**Example:**
+
+```typescript
+{
+  "name": "analyze_portfolio",
+  "arguments": {
+    "includePrices": true
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Portfolio Analysis:\n\nTotal Value: $1,352.25\n\nHoldings:\n- SEI: 1.5 tokens ($2.25) - 0.17%\n- USDC: 100.0 tokens ($100.00) - 7.40%\n- WETH: 0.1 tokens ($250.00) - 18.49%\n- BTC: 0.01 tokens ($1,000.00) - 73.94%\n\nDiversification:\n- Stablecoins: 7.40%\n- Native Tokens: 0.17%\n- DeFi Tokens: 18.49%\n- Store of Value: 73.94%\n\nRecommendation: Consider rebalancing to reduce BTC concentration."
+    }
+  ]
+}
+```
+
+### `get_transaction_history`
+
+Get recent transaction history for the wallet.
+
+**Parameters:**
+```typescript
+{
+  limit?: number,     // Maximum number of transactions. Default: 10
+  token?: string      // Filter by token ticker. Optional
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Transaction history
+  }>
+}
+```
+
+**Examples:**
+
+```typescript
+// Get recent transactions
+{
+  "name": "get_transaction_history",
+  "arguments": {
+    "limit": 5
+  }
+}
+
+// Get USDC transactions only
+{
+  "name": "get_transaction_history",
+  "arguments": {
+    "limit": 10,
+    "token": "USDC"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Recent Transactions:\n\n1. Transfer Out - SEI\n   Amount: 1.5 SEI\n   To: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6\n   Hash: 0x1234567890abcdef...\n   Time: 2024-01-15 10:30:00 UTC\n   Status: ✅ Confirmed\n\n2. Transfer In - USDC\n   Amount: 100.0 USDC\n   From: 0xabcdef1234567890...\n   Hash: 0xabcdef1234567890...\n   Time: 2024-01-15 09:15:00 UTC\n   Status: ✅ Confirmed\n\n3. Transfer Out - WETH\n   Amount: 0.1 WETH\n   To: 0x9876543210fedcba...\n   Hash: 0x9876543210fedcba...\n   Time: 2024-01-14 16:45:00 UTC\n   Status: ✅ Confirmed"
+    }
+  ]
+}
+```
+
+## Utility Tools
+
+### `estimate_gas`
+
+Estimate gas costs for a transaction.
+
+**Parameters:**
+```typescript
+{
+  type: "transfer",   // Transaction type
+  amount: string,     // Amount to transfer
+  recipient: string,  // Recipient address
+  token?: string      // Token ticker. Default: 'SEI'
+}
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Gas estimation
+  }>
+}
+```
+
+**Example:**
+
+```typescript
+{
+  "name": "estimate_gas",
+  "arguments": {
+    "type": "transfer",
+    "amount": "1.5",
+    "recipient": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+    "token": "SEI"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Gas Estimation:\n\nTransaction Type: SEI Transfer\nAmount: 1.5 SEI\nRecipient: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6\n\nEstimated Gas:\n- Gas Limit: 21,000\n- Gas Price: 0.00000002 SEI\n- Total Cost: 0.00042 SEI\n- USD Cost: $0.00063\n\nNote: Actual gas usage may vary based on network conditions."
+    }
+  ]
+}
+```
+
+### `get_network_status`
+
+Get current network status and information.
+
+**Parameters:**
+```typescript
+{}  // No parameters required
+```
+
+**Returns:**
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Network status information
+  }>
+}
+```
+
+**Example:**
+
+```typescript
+{
+  "name": "get_network_status",
+  "arguments": {}
+}
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "SEI Network Status:\n\nNetwork: SEI Mainnet\nChain ID: 1329\nBlock Height: 12,345,678\nGas Price: 0.00000002 SEI\nAverage Block Time: 0.6 seconds\nNetwork Status: ✅ Healthy\n\nRPC Endpoint: https://evm-rpc.sei-apis.com/\nExplorer: https://seitrace.com\n\nLast Updated: 2024-01-15 10:30:00 UTC"
+    }
+  ]
+}
+```
+
+## Error Handling
+
+All tools return standardized error responses when something goes wrong:
+
+### Error Response Format
+
+```typescript
+{
+  content: Array<{
+    type: "text",
+    text: string  // Error message with code
+  }>,
+  isError: true
+}
+```
+
+### Common Error Codes
+
+| Code | Description | Common Causes |
+|------|-------------|---------------|
+| `VALIDATION_ERROR` | Invalid input parameters | Wrong address format, invalid amount |
+| `INSUFFICIENT_BALANCE` | Not enough tokens for operation | Trying to transfer more than available |
+| `TOKEN_NOT_FOUND` | Token doesn't exist on SEI | Wrong ticker symbol, token not deployed |
+| `BLOCKCHAIN_ERROR` | Blockchain operation failed | Network issues, contract errors |
+| `RATE_LIMIT_EXCEEDED` | Too many requests | API rate limiting |
+| `UNKNOWN_ERROR` | Unexpected error | Internal server issues |
+
+### Error Examples
+
+```json
+// Validation error
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error (VALIDATION_ERROR): Invalid recipient address format. Must be 42 characters starting with 0x."
+    }
+  ],
+  "isError": true
+}
+
+// Insufficient balance
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error (INSUFFICIENT_BALANCE): Insufficient SEI balance. Current: 0.5, Required: 1.5"
+    }
+  ],
+  "isError": true
+}
+
+// Token not found
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error (TOKEN_NOT_FOUND): Token 'INVALID' not found on SEI network"
+    }
+  ],
+  "isError": true
+}
+```
+
+## Best Practices
+
+### 1. **Input Validation**
+Always validate inputs before making tool calls:
+
+```typescript
+// Validate address format
+const isValidAddress = (address: string): boolean => {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+};
+
+// Validate amount format
+const isValidAmount = (amount: string): boolean => {
+  return /^\d+(\.\d+)?$/.test(amount) && parseFloat(amount) > 0;
+};
+```
+
+### 2. **Error Handling**
+Always handle errors gracefully:
+
+```typescript
+try {
+  const result = await callTool("transfer_tokens", {
+    amount: "1.5",
+    recipient: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6"
+  });
+  
+  if (result.isError) {
+    console.error("Transfer failed:", result.content[0].text);
+  } else {
+    console.log("Transfer successful:", result.content[0].text);
+  }
+} catch (error) {
+  console.error("Tool call failed:", error);
+}
+```
+
+### 3. **Rate Limiting**
+Respect rate limits and implement backoff:
+
+```typescript
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function callToolWithRetry(toolName: string, args: any, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await callTool(toolName, args);
+    } catch (error) {
+      if (error.message.includes("RATE_LIMIT_EXCEEDED") && i < maxRetries - 1) {
+        await delay(1000 * Math.pow(2, i)); // Exponential backoff
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
+
+### 4. **Batch Operations**
+Use batch operations when possible:
+
+```typescript
+// Instead of multiple individual transfers
+const transfers = [
+  { amount: "1.0", recipient: "0x...", token: "SEI" },
+  { amount: "50.0", recipient: "0x...", token: "USDC" }
+];
+
+const result = await callTool("transfer_multiple", { transfers });
+```
+
+## Tool Chaining Examples
+
+### Portfolio Rebalancing
+
+```typescript
+// 1. Get current portfolio
+const portfolio = await callTool("analyze_portfolio", { includePrices: true });
+
+// 2. Calculate rebalancing needs
+// (Logic to determine required transfers)
+
+// 3. Execute rebalancing transfers
+const rebalanceTransfers = [
+  { amount: "10.0", recipient: "0x...", token: "USDC" },
+  { amount: "0.05", recipient: "0x...", token: "WETH" }
+];
+
+const result = await callTool("transfer_multiple", { transfers: rebalanceTransfers });
+
+// 4. Verify new portfolio
+const newPortfolio = await callTool("analyze_portfolio", { includePrices: true });
+```
+
+### Token Discovery and Transfer
+
+```typescript
+// 1. Search for a token
+const searchResults = await callTool("search_tokens", { query: "USD" });
+
+// 2. Get detailed info for a specific token
+const tokenInfo = await callTool("get_token_info", { ticker: "USDC" });
+
+// 3. Check current balance
+const balance = await callTool("get_balance", { token: "USDC" });
+
+// 4. Transfer if balance is sufficient
+if (parseFloat(balance.content[0].text.split(": ")[1].split(" ")[0]) >= 100) {
+  const transfer = await callTool("transfer_tokens", {
+    amount: "100.0",
+    recipient: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+    token: "USDC"
+  });
+}
+```
+
+This comprehensive reference provides everything needed to effectively use SEI MCP tools in your AI agents. Each tool is documented with parameters, return values, examples, and error handling information.

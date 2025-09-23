@@ -1,0 +1,984 @@
+---
+title: MCP Server Setup Guide
+description: Complete guide to setting up and configuring SEI MCP servers for AI agents
+icon: Server
+---
+
+# SEI MCP Server Setup Guide
+
+This guide provides comprehensive instructions for setting up, configuring, and deploying SEI MCP (Model Context Protocol) servers for AI agent integration.
+
+## Overview
+
+The SEI MCP server acts as a bridge between AI clients and the SEI blockchain, providing standardized tools for blockchain interactions. This setup guide covers:
+
+- Server architecture and components
+- Installation and configuration
+- Environment setup and security
+- Deployment options
+- Monitoring and maintenance
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph "AI Client Layer"
+        A[Claude Desktop]
+        B[Custom AI Client]
+        C[AxiomKit Agent]
+    end
+    
+    subgraph "MCP Protocol Layer"
+        D[MCP Transport]
+        E[Tool Discovery]
+        F[Request Routing]
+    end
+    
+    subgraph "SEI MCP Server"
+        G[Server Core]
+        H[Tool Handlers]
+        I[Error Handling]
+        J[Logging]
+    end
+    
+    subgraph "SEI Integration Layer"
+        K[AxiomSeiWallet]
+        L[Viem Clients]
+        M[Token Providers]
+    end
+    
+    subgraph "SEI Blockchain"
+        N[EVM RPC]
+        O[Token Contracts]
+        P[Transaction Pool]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    G --> I
+    G --> J
+    H --> K
+    K --> L
+    K --> M
+    L --> N
+    M --> O
+    L --> P
+```
+
+## Prerequisites
+
+Before setting up your SEI MCP server, ensure you have:
+
+- **Node.js 18+** installed
+- **TypeScript** knowledge (basic)
+- **SEI wallet** with testnet tokens
+- **API keys** for external services (optional)
+
+## Installation
+
+### 1. Create Project Structure
+
+```bash
+# Create project directory
+mkdir sei-mcp-server
+cd sei-mcp-server
+
+# Initialize package.json
+npm init -y
+
+# Install dependencies
+npm install @axiomkit/sei @modelcontextprotocol/sdk
+npm install viem @sei-js/evm zod
+npm install dotenv
+
+# Install dev dependencies
+npm install -D typescript @types/node tsx nodemon
+npm install -D @types/node-fetch
+```
+
+### 2. Project Structure
+
+```
+sei-mcp-server/
+├── src/
+│   ├── server.ts          # Main server file
+│   ├── tools/             # Tool implementations
+│   │   ├── balance.ts
+│   │   ├── transfer.ts
+│   │   ├── tokens.ts
+│   │   └── index.ts
+│   ├── config/            # Configuration
+│   │   ├── env.ts
+│   │   └── chains.ts
+│   ├── utils/             # Utilities
+│   │   ├── logger.ts
+│   │   ├── validation.ts
+│   │   └── errors.ts
+│   └── types/             # Type definitions
+│       └── index.ts
+├── .env.example           # Environment template
+├── .env                   # Environment variables
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+### 3. TypeScript Configuration
+
+Create `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+## Configuration
+
+### 1. Environment Variables
+
+Create `.env.example`:
+
+```bash
+# SEI Configuration
+SEI_RPC_URL=https://evm-rpc.sei-apis.com/
+SEI_PRIVATE_KEY=0x... # Your private key (with 0x prefix)
+
+# Server Configuration
+SERVER_NAME=sei-blockchain-server
+SERVER_VERSION=1.0.0
+LOG_LEVEL=info
+
+# Optional: External Services
+DEXSCREENER_API_KEY=your_api_key_here
+COINGECKO_API_KEY=your_api_key_here
+
+# Optional: Rate Limiting
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW_MS=60000
+
+# Optional: Caching
+CACHE_TTL_MS=300000
+```
+
+Create your `.env` file:
+
+```bash
+cp .env.example .env
+# Edit .env with your actual values
+```
+
+### 2. Environment Validation
+
+Create `src/config/env.ts`:
+
+```typescript
+import { z } from "zod";
+import { config } from "dotenv";
+
+// Load environment variables
+config();
+
+// Define environment schema
+const envSchema = z.object({
+  // Required
+  SEI_RPC_URL: z.string().min(1, "SEI_RPC_URL is required"),
+  SEI_PRIVATE_KEY: z.string().min(1, "SEI_PRIVATE_KEY is required"),
+  
+  // Optional with defaults
+  SERVER_NAME: z.string().default("sei-blockchain-server"),
+  SERVER_VERSION: z.string().default("1.0.0"),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  
+  // Optional external services
+  DEXSCREENER_API_KEY: z.string().optional(),
+  COINGECKO_API_KEY: z.string().optional(),
+  
+  // Optional rate limiting
+  RATE_LIMIT_REQUESTS: z.string().transform(Number).default("100"),
+  RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default("60000"),
+  
+  // Optional caching
+  CACHE_TTL_MS: z.string().transform(Number).default("300000"),
+});
+
+// Validate and export environment
+export const env = envSchema.parse(process.env);
+
+// Type for environment
+export type Env = z.infer<typeof envSchema>;
+```
+
+### 3. Chain Configuration
+
+Create `src/config/chains.ts`:
+
+```typescript
+import { defineChain } from "viem";
+
+export const seiMainnet = defineChain({
+  id: 1329,
+  name: "SEI Mainnet",
+  network: "sei",
+  nativeCurrency: {
+    decimals: 18,
+    name: "SEI",
+    symbol: "SEI",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://evm-rpc.sei-apis.com/"],
+    },
+    public: {
+      http: ["https://evm-rpc.sei-apis.com/"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "SeiTrace",
+      url: "https://seitrace.com",
+    },
+  },
+});
+
+export const seiTestnet = defineChain({
+  id: 1328,
+  name: "SEI Testnet",
+  network: "sei-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "SEI",
+    symbol: "SEI",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://evm-rpc-testnet.sei-apis.com/"],
+    },
+    public: {
+      http: ["https://evm-rpc-testnet.sei-apis.com/"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "SeiTrace Testnet",
+      url: "https://testnet.seitrace.com",
+    },
+  },
+});
+
+export function getChainConfig(chainId?: number) {
+  switch (chainId) {
+    case 1329:
+      return seiMainnet;
+    case 1328:
+      return seiTestnet;
+    default:
+      return seiMainnet;
+  }
+}
+```
+
+## Core Server Implementation
+
+### 1. Main Server File
+
+Create `src/server.ts`:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { env } from "./config/env.js";
+import { getChainConfig } from "./config/chains.js";
+import { createLogger } from "./utils/logger.js";
+import { setupTools } from "./tools/index.js";
+import { handleError } from "./utils/errors.js";
+
+// Create logger
+const logger = createLogger(env.LOG_LEVEL);
+
+// Initialize SEI wallet
+const wallet = new AxiomSeiWallet({
+  rpcUrl: env.SEI_RPC_URL,
+  privateKey: env.SEI_PRIVATE_KEY as `0x${string}`,
+  chain: getChainConfig(),
+});
+
+// Create MCP server
+const server = new McpServer(
+  {
+    name: env.SERVER_NAME,
+    version: env.SERVER_VERSION,
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Setup tools
+setupTools(server, wallet, logger);
+
+// Error handling
+server.onerror = (error) => {
+  logger.error("Server error:", error);
+};
+
+// Start server
+async function main() {
+  try {
+    logger.info("Starting SEI MCP Server...");
+    logger.info(`Wallet Address: ${wallet.walletAdress}`);
+    logger.info(`RPC URL: ${env.SEI_RPC_URL}`);
+    
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    
+    logger.info("SEI MCP Server running on stdio");
+  } catch (error) {
+    logger.error("Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+// Handle graceful shutdown
+process.on("SIGINT", async () => {
+  logger.info("Shutting down server...");
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  logger.info("Shutting down server...");
+  process.exit(0);
+});
+
+// Start the server
+main().catch((error) => {
+  logger.error("Unhandled error:", error);
+  process.exit(1);
+});
+```
+
+### 2. Logger Utility
+
+Create `src/utils/logger.ts`:
+
+```typescript
+export type LogLevel = "debug" | "info" | "warn" | "error";
+
+export interface Logger {
+  debug(message: string, meta?: any): void;
+  info(message: string, meta?: any): void;
+  warn(message: string, meta?: any): void;
+  error(message: string, meta?: any): void;
+}
+
+export function createLogger(level: LogLevel): Logger {
+  const levels = { debug: 0, info: 1, warn: 2, error: 3 };
+  const currentLevel = levels[level];
+
+  const log = (level: LogLevel, message: string, meta?: any) => {
+    if (levels[level] >= currentLevel) {
+      const timestamp = new Date().toISOString();
+      const logEntry = {
+        timestamp,
+        level: level.toUpperCase(),
+        message,
+        ...(meta && { meta }),
+      };
+      
+      // Use stderr for all logging to avoid interfering with MCP protocol
+      console.error(JSON.stringify(logEntry));
+    }
+  };
+
+  return {
+    debug: (message: string, meta?: any) => log("debug", message, meta),
+    info: (message: string, meta?: any) => log("info", message, meta),
+    warn: (message: string, meta?: any) => log("warn", message, meta),
+    error: (message: string, meta?: any) => log("error", message, meta),
+  };
+}
+```
+
+### 3. Error Handling
+
+Create `src/utils/errors.ts`:
+
+```typescript
+export class SeiMcpError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode: number = 500
+  ) {
+    super(message);
+    this.name = "SeiMcpError";
+  }
+}
+
+export class ValidationError extends SeiMcpError {
+  constructor(message: string) {
+    super(message, "VALIDATION_ERROR", 400);
+  }
+}
+
+export class BlockchainError extends SeiMcpError {
+  constructor(message: string) {
+    super(message, "BLOCKCHAIN_ERROR", 502);
+  }
+}
+
+export class InsufficientBalanceError extends SeiMcpError {
+  constructor(message: string) {
+    super(message, "INSUFFICIENT_BALANCE", 400);
+  }
+}
+
+export function handleError(error: unknown): {
+  content: Array<{ type: string; text: string }>;
+  isError: boolean;
+} {
+  if (error instanceof SeiMcpError) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Error (${error.code}): ${error.message}`,
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Error: ${error.message}`,
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: "An unknown error occurred",
+      },
+    ],
+    isError: true,
+  };
+}
+```
+
+## Tool Implementation
+
+### 1. Tool Index
+
+Create `src/tools/index.ts`:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { Logger } from "../utils/logger.js";
+import { setupBalanceTools } from "./balance.js";
+import { setupTransferTools } from "./transfer.js";
+import { setupTokenTools } from "./tokens.js";
+
+export function setupTools(
+  server: McpServer,
+  wallet: AxiomSeiWallet,
+  logger: Logger
+) {
+  // Setup tool list
+  server.setRequestHandler("tools/list", async () => ({
+    tools: [
+      // Balance tools
+      {
+        name: "get_balance",
+        description: "Get SEI or ERC-20 token balance",
+        inputSchema: {
+          type: "object",
+          properties: {
+            token: {
+              type: "string",
+              description: "Token ticker symbol (e.g., 'SEI', 'USDC'). Leave empty for native SEI",
+              default: "SEI",
+            },
+          },
+        },
+      },
+      {
+        name: "get_wallet_info",
+        description: "Get wallet address and SEI balance",
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      
+      // Transfer tools
+      {
+        name: "transfer_tokens",
+        description: "Transfer SEI or ERC-20 tokens",
+        inputSchema: {
+          type: "object",
+          properties: {
+            amount: {
+              type: "string",
+              description: "Amount to transfer (e.g., '1.5')",
+            },
+            recipient: {
+              type: "string",
+              description: "Recipient wallet address",
+            },
+            token: {
+              type: "string",
+              description: "Token ticker symbol (default: SEI)",
+              default: "SEI",
+            },
+          },
+          required: ["amount", "recipient"],
+        },
+      },
+      
+      // Token tools
+      {
+        name: "get_token_address",
+        description: "Get token contract address from ticker symbol",
+        inputSchema: {
+          type: "object",
+          properties: {
+            ticker: {
+              type: "string",
+              description: "Token ticker symbol (e.g., 'USDC', 'WETH')",
+            },
+          },
+          required: ["ticker"],
+        },
+      },
+      {
+        name: "search_tokens",
+        description: "Search for tokens by name or symbol",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "Search query (token name or symbol)",
+            },
+            limit: {
+              type: "number",
+              description: "Maximum number of results (default: 10)",
+              default: 10,
+            },
+          },
+          required: ["query"],
+        },
+      },
+    ],
+  }));
+
+  // Setup tool handlers
+  server.setRequestHandler("tools/call", async (request) => {
+    const { name, arguments: args } = request.params;
+    
+    logger.info(`Tool call: ${name}`, { args });
+    
+    try {
+      // Route to appropriate handler
+      switch (name) {
+        case "get_balance":
+        case "get_wallet_info":
+          return await setupBalanceTools(server, wallet, logger);
+          
+        case "transfer_tokens":
+          return await setupTransferTools(server, wallet, logger);
+          
+        case "get_token_address":
+        case "search_tokens":
+          return await setupTokenTools(server, wallet, logger);
+          
+        default:
+          throw new Error(`Unknown tool: ${name}`);
+      }
+    } catch (error) {
+      logger.error(`Tool call failed: ${name}`, error);
+      return handleError(error);
+    }
+  });
+}
+```
+
+### 2. Balance Tools
+
+Create `src/tools/balance.ts`:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { Logger } from "../utils/logger.js";
+import { handleError } from "../utils/errors.js";
+
+export async function setupBalanceTools(
+  server: McpServer,
+  wallet: AxiomSeiWallet,
+  logger: Logger
+) {
+  // This would be called from the main tool handler
+  // Implementation details for balance-related tools
+}
+
+// Individual tool implementations
+export async function getBalance(
+  wallet: AxiomSeiWallet,
+  token?: string
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  try {
+    if (!token || token === "SEI") {
+      const balance = await wallet.getERC20Balance();
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Your SEI balance is: ${balance} SEI`,
+          },
+        ],
+      };
+    }
+
+    const tokenAddress = await wallet.getTokenAddressFromTicker(token);
+    if (!tokenAddress) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Token '${token}' not found on SEI`,
+          },
+        ],
+      };
+    }
+
+    const balance = await wallet.getERC20Balance(tokenAddress);
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Your ${token} balance is: ${balance} ${token}`,
+        },
+      ],
+    };
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function getWalletInfo(
+  wallet: AxiomSeiWallet
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  try {
+    const balance = await wallet.getERC20Balance();
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Wallet Address: ${wallet.walletAdress}\nSEI Balance: ${balance} SEI`,
+        },
+      ],
+    };
+  } catch (error) {
+    return handleError(error);
+  }
+}
+```
+
+## Package Scripts
+
+Update `package.json` with useful scripts:
+
+```json
+{
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "dev:watch": "nodemon --exec tsx src/server.ts",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "test": "vitest"
+  }
+}
+```
+
+## Deployment Options
+
+### 1. Local Development
+
+```bash
+# Development with hot reload
+npm run dev:watch
+
+# Production build
+npm run build
+npm start
+```
+
+### 2. Docker Deployment
+
+Create `Dockerfile`:
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Expose port (if using HTTP transport)
+EXPOSE 3000
+
+# Start the server
+CMD ["npm", "start"]
+```
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  sei-mcp-server:
+    build: .
+    environment:
+      - SEI_RPC_URL=${SEI_RPC_URL}
+      - SEI_PRIVATE_KEY=${SEI_PRIVATE_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+```
+
+### 3. Systemd Service
+
+Create `/etc/systemd/system/sei-mcp-server.service`:
+
+```ini
+[Unit]
+Description=SEI MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=sei-mcp
+WorkingDirectory=/opt/sei-mcp-server
+ExecStart=/usr/bin/node dist/server.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=SEI_RPC_URL=https://evm-rpc.sei-apis.com/
+Environment=SEI_PRIVATE_KEY=your_private_key_here
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## Monitoring and Maintenance
+
+### 1. Health Checks
+
+Add health check endpoint:
+
+```typescript
+// Add to server setup
+server.setRequestHandler("ping", async () => {
+  try {
+    // Test wallet connection
+    await wallet.getERC20Balance();
+    
+    return {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      wallet: wallet.walletAdress,
+    };
+  } catch (error) {
+    return {
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+});
+```
+
+### 2. Logging and Metrics
+
+```typescript
+// Add metrics collection
+const metrics = {
+  requests: 0,
+  errors: 0,
+  lastRequest: null as Date | null,
+};
+
+// Update metrics in tool handlers
+server.setRequestHandler("tools/call", async (request) => {
+  metrics.requests++;
+  metrics.lastRequest = new Date();
+  
+  try {
+    // ... tool handling
+  } catch (error) {
+    metrics.errors++;
+    throw error;
+  }
+});
+```
+
+### 3. Backup and Recovery
+
+```bash
+#!/bin/bash
+# backup.sh - Backup server configuration and logs
+
+BACKUP_DIR="/backup/sei-mcp-server"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p "$BACKUP_DIR/$DATE"
+
+# Backup configuration
+cp .env "$BACKUP_DIR/$DATE/"
+cp package.json "$BACKUP_DIR/$DATE/"
+
+# Backup logs
+cp -r logs/ "$BACKUP_DIR/$DATE/" 2>/dev/null || true
+
+# Cleanup old backups (keep last 7 days)
+find "$BACKUP_DIR" -type d -mtime +7 -exec rm -rf {} \;
+```
+
+## Security Best Practices
+
+### 1. Private Key Management
+
+```typescript
+// Use environment variables
+const privateKey = process.env.SEI_PRIVATE_KEY;
+
+// Validate private key format
+if (!privateKey?.startsWith("0x") || privateKey.length !== 66) {
+  throw new Error("Invalid private key format");
+}
+
+// Never log private keys
+logger.info("Wallet initialized", {
+  address: wallet.walletAdress,
+  // Never include privateKey here
+});
+```
+
+### 2. Input Validation
+
+```typescript
+import { z } from "zod";
+
+const addressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
+const amountSchema = z.string().regex(/^\d+(\.\d+)?$/);
+
+export function validateTransferInput(input: any) {
+  const schema = z.object({
+    amount: amountSchema,
+    recipient: addressSchema,
+    token: z.string().optional(),
+  });
+  
+  return schema.parse(input);
+}
+```
+
+### 3. Rate Limiting
+
+```typescript
+import { RateLimiter } from "./utils/rate-limiter.js";
+
+const rateLimiter = new RateLimiter({
+  requests: env.RATE_LIMIT_REQUESTS,
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+});
+
+// Apply rate limiting to tool calls
+server.setRequestHandler("tools/call", async (request) => {
+  const clientId = request.params.name; // Use tool name as client ID
+  
+  if (!rateLimiter.allow(clientId)) {
+    throw new Error("Rate limit exceeded");
+  }
+  
+  // ... handle tool call
+});
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Server won't start**
+- Check environment variables
+- Verify private key format
+- Ensure RPC URL is accessible
+
+**2. Tool calls failing**
+- Check wallet balance
+- Verify token addresses
+- Review error logs
+
+**3. Performance issues**
+- Monitor RPC endpoint latency
+- Implement caching
+- Use connection pooling
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+LOG_LEVEL=debug npm run dev
+
+# Check server health
+curl -X POST http://localhost:3000/ping
+```
+
+This comprehensive setup guide provides everything needed to deploy and maintain a production-ready SEI MCP server. The modular architecture makes it easy to extend with additional tools and features as needed.
