@@ -8,6 +8,7 @@
         "@ai-sdk/groq": "catalog:",
         "@ai-sdk/openai": "catalog:",
         "@axiomkit/core": "workspace:*",
+        "@axiomkit/supabase": "workspace:*",
         "@axiomkit/cli": "workspace:*",
         "@axiomkit/sei": "workspace:*",
         "viem": "^2.33.0",
