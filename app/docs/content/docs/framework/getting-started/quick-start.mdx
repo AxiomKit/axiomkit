@@ -10,12 +10,13 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 Before you begin, ensure you have:
 - **Node.js** (v18 or higher)
 - **Package manager** (pnpm,yarn or npm)
-- Get an **API Key**:
-  - **Groq API key** [here](https://console.groq.com)
+- Get an **AI API Key**:
+  - [**Groq API key**](https://console.groq.com)
   - [**Gemini API key**](https://aistudio.google.com/app/apikey)
   - [**OpenAI API key**](https://platform.openai.com/api-keys)
   - See other supported [AI SDK Providers](https://ai-sdk.dev/providers/ai-sdk-providers)
 
+While this example demonstrates the process using Groq, you can substitute it with a different LLM API of your choice.
 # Install Guide
 ## Quick Start
 The fastest way to scaffold a new agent project is by using the @axiomkit/create-agent 
@@ -63,13 +64,13 @@ Create an `index.ts` file:
 
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { cliExtension } from "@axiomkit/cli";
+import { cliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
 // Create a simple calculator agent
 const calculatorAgent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliProvider],
 });
 
 async function main() {
