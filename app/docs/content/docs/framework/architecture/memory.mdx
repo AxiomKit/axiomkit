@@ -11,37 +11,6 @@ icon: DatabaseBackup
 
 Axiomkit's memory system is a sophisticated multi-layered architecture that enables agents to maintain context, learn from experiences, and provide personalized interactions. Unlike simple key-value storage, it provides structured, semantic, and relationship-based memory capabilities.
 
-## Memory Architecture
-
-```mermaid
-graph TB
-    subgraph "Memory System"
-        A[Memory System] --> B[Working Memory]
-        A --> C[Episodic Memory]
-        A --> D[Vector Memory]
-        A --> E[Graph Memory]
-        A --> F[Export Manager]
-    end
-    
-    B --> B1[Current Context]
-    B --> B2[Active State]
-    
-    C --> C1[Conversation History]
-    C --> C2[Event Sequences]
-    C --> C3[Temporal Data]
-    
-    D --> D1[Semantic Search]
-    D --> D2[Similarity Matching]
-    D --> D3[Content Embeddings]
-    
-    E --> E1[Knowledge Graphs]
-    E --> E2[Relationships]
-    E --> E3[Entity Connections]
-    
-    F --> F1[JSON Export]
-    F --> F2[Markdown Export]
-    F --> F3[Custom Formats]
-```
 
 ## Memory Types
 

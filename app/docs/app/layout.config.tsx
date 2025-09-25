@@ -22,7 +22,7 @@ export const baseOptions: BaseLayoutProps = {
                 bg-green-500/20 text-green-400 border-green-500/30 text-xs            
               `}
         >
-          v.2.0.8
+          v.2.0.11
         </Badge>
       </>
     ),

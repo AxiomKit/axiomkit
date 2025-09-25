@@ -29,13 +29,22 @@ export function resolveActionCall({
       callId: call.id,
     };
 
-    logger.error(
-      "agent:action",
-      `Action '${
-        call.name
-      }' not found. Available actions: ${availableActions.join(", ")}`,
-      errorDetails
-    );
+    // If no actions are available, log a warning instead of error
+    if (availableActions.length === 0) {
+      logger.warn(
+        "agent:action",
+        `Action '${call.name}' called but no actions are available. This may indicate the LLM is not following instructions properly.`,
+        errorDetails
+      );
+    } else {
+      logger.error(
+        "agent:action",
+        `Action '${
+          call.name
+        }' not found. Available actions: ${availableActions.join(", ")}`,
+        errorDetails
+      );
+    }
 
     throw new NotFoundError(call);
   }

@@ -156,24 +156,10 @@ async function main() {
           },
         }),
       },
-      // handlers: {
-      //   onLogStream(log: any, done: boolean) {
-      //     if (log.ref === "action_result") {
-      //       console.log(`🟢 Action result: ${log.data?.content || "Success"}`);
-      //     } else if (log.ref === "output" && done) {
-      //       console.log(`📤 Final Output: ${log.content || log.data}`);
-      //     }
-      //   },
-      //   onThinking(thought: any) {
-      //     console.log(`Thinking: ${thought.content}`);
-      //   },
-      // },
     });
 
     console.log("Response completed!");
-    // console.log("📊 Response logs:", response);
 
-    // Show the final response
     const finalOutput = response.find(
       (log: any) => log.ref === "output" && log.content
     );

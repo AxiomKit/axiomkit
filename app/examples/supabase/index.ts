@@ -1,6 +1,6 @@
 import { createGroq } from "@ai-sdk/groq";
 import { createAgent, validateEnv } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import dotenv from "dotenv";
 import { createSupabaseMemory } from "@axiomkit/supabase";
 import { z } from "zod";
@@ -39,7 +39,7 @@ const memorySystem = createSupabaseMemory({
   },
 });
 
-const chatCliExtension = createCliExtension({
+const chatCliProvider = createCliProvider({
   name: "chat",
   instructions: [
     "You are a helpful and friendly AI assistant.",
@@ -57,7 +57,7 @@ const chatCliExtension = createCliExtension({
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
   memory: memorySystem,
-  extensions: [chatCliExtension],
+  providers: [chatCliProvider],
 });
 
 async function startChat() {
