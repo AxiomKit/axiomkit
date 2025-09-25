@@ -1,22 +1,24 @@
-import {
-  createAgent,
-  context,
-  action,
-  MemorySystem,
-  InMemoryKeyValueProvider,
-  InMemoryVectorProvider,
-  InMemoryGraphProvider,
-} from "@axiomkit/core";
-import { assistantCliTool, createCliProvider } from "@axiomkit/cli";
+import { createAgent, context, action } from "@axiomkit/core";
+import { z } from "zod";
+import { createSupabaseMemory } from "@axiomkit/supabase";
+import { createMongoMemory } from "@axiomkit/mongodb";
+import { assistantCliTool } from "@axiomkit/cli";
 import { openai } from "@ai-sdk/openai";
-import * as z from "zod/v4";
-import {
-  createSupabaseKVProvider,
-  createSupabaseVectorProvider,
-  createSupabaseGraphProvider,
-} from "@axiomkit/supabase";
+import { groq } from "@ai-sdk/groq";
+// Validate env for persistent memory if available
+const env = (() => {
+  const schema = z.object({
+    SUPABASE_URL: z.string().optional(),
+    SUPABASE_KEY: z.string().optional(),
+    MONGODB_URI: z.string().optional(),
+  });
+  return schema.parse({
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_KEY: process.env.SUPABASE_KEY,
+    MONGODB_URI: process.env.MONGODB_URI,
+  });
+})();
 
-// Create a context - this is where the magic happens!
 const assistantContext = context({
   type: "personal-assistant",
 
@@ -95,9 +97,17 @@ assistantContext.setActions([
   }),
 ]);
 
+// Choose persistent memory when configured
+const memory =
+  env.SUPABASE_URL && env.SUPABASE_KEY
+    ? createSupabaseMemory({ url: env.SUPABASE_URL, key: env.SUPABASE_KEY })
+    : env.MONGODB_URI
+    ? createMongoMemory({ uri: env.MONGODB_URI })
+    : undefined;
+
 // Create the agent
 const agent = createAgent({
-  model: openai("gpt-4o-mini"),
+  model: groq("deepseek-r1-distill-llama-70b"),
   providers: [assistantCliTool],
   contexts: [assistantContext],
 });

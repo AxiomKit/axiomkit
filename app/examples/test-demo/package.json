@@ -1,0 +1,23 @@
+{
+    "name": "axiom-testdemo",
+    "module": "echo.ts",
+    "type": "module",
+    "private": true,
+    "dependencies": {
+        "@ai-sdk/anthropic": "catalog:",
+        "@ai-sdk/groq": "catalog:",
+        "@ai-sdk/openai": "catalog:",
+        "@axiomkit/core": "workspace:*",
+        "@axiomkit/supabase": "workspace:*",
+        "@axiomkit/cli": "workspace:*",
+        "@axiomkit/sei": "workspace:*",
+        "viem": "^2.33.0",
+        "zod": "catalog:",
+        "chalk": "catalog:",
+        "@axiomkit/telegram": "workspace:*",
+        "@axiomkit/mongodb": "workspace:*"
+    },
+    "peerDependencies": {
+        "typescript": "catalog:"
+    }
+}
