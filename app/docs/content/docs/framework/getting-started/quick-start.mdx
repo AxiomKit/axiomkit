@@ -76,17 +76,18 @@ const calculatorAgent = createAgent({
 
 async function main() {
   try {
+    console.log("🧮 Calculator Agent started!");
+    console.log("Try asking: 'What is 2 + 2?' or 'Calculate 15% of 200'");
     await calculatorAgent.start({
       id: "calulator-agent",
     });
-    console.log("🧮 Calculator Agent started!");
-    console.log("Try asking: 'What is 2 + 2?' or 'Calculate 15% of 200'");
   } catch (error) {
     console.error("Failed to start agent:", error);
   }
 }
 
 main();
+
 
 ```
 
