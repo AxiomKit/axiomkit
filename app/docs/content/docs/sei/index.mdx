@@ -1,6 +1,6 @@
 ---
 title: SEI Provider
-description: Build intelligent Web3 agents that interact with the SEI blockchain
+description: Build  Axiom agents that interact with the SEI blockchain
 icon: Coins
 ---
 
@@ -50,40 +50,14 @@ Combine the power of AI with SEI's trading-optimized infrastructure:
 - DEX integration capabilities
 - Cross-chain bridge support
 
-## Architecture Overview
-
-```mermaid
-graph TB
-    A[AI Agent] --> B[Axiom Core]
-    B --> C[SEI Provider]
-    C --> D[AxiomSeiWallet]
-    D --> E[Viem Clients]
-    E --> F[SEI Blockchain]
-    
-    C --> G[Token Operations]
-    C --> H[Smart Contracts]
-    C --> I[Providers]
-    
-    G --> J[ERC-20]
-    G --> K[Native SEI]
-    
-    H --> L[Contract Calls]
-    H --> M[Event Monitoring]
-    
-    I --> N[DexScreener]
-    I --> O[Price Feeds]
-```
-
 ## Supported Networks
 
 | Network | Chain ID | RPC URL | Status |
 |---------|----------|---------|--------|
-| **SEI Mainnet** | `1329` | `https://evm-rpc.sei-apis.com/` | ✅ Production |
-| **SEI Testnet** | `1328` | `https://evm-rpc-testnet.sei-apis.com/` | ✅ Testing |
-| **SEI Devnet** | `1327` | `https://evm-rpc-devnet.sei-apis.com/` | 🧪 Development |
+| **SEI Mainnet** | `1329` | `https://evm-rpc.sei-apis.com` | ✅ Production |
+| **SEI Testnet** | `1328` | `https://evm-rpc-testnet.sei-apis.com` | ✅ Testing |
 
 ## Installation
-
 ```bash
 # Install the SEI provider
 pnpm add @axiomkit/sei

@@ -4,7 +4,13 @@
   "type": "module",
   "description": "Example demonstrating MCP (Model Context Protocol) integration with AxiomKit",
   "main": "index.ts",
-  "scripts": {},
+  "scripts": {
+    "server": "tsx mcp-sei-server.ts",
+    "agent": "tsx mcp-sei.ts",
+    "balance": "tsx balance-checker-agent.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx test-simple.ts"
+  },
   "dependencies": {
     "@axiomkit/cli": "workspace:*",
     "@axiomkit/core": "workspace:*",

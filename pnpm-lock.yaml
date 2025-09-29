@@ -259,6 +259,9 @@ importers:
       '@axiomkit/sei':
         specifier: workspace:*
         version: link:../../../packages/sei
+      '@axiomkit/supabase':
+        specifier: workspace:*
+        version: link:../../../packages/supabase
       chalk:
         specifier: 'catalog:'
         version: 5.3.0
@@ -499,6 +502,48 @@ importers:
       '@types/bun':
         specifier: 'catalog:'
         version: 1.2.22(@types/react@19.1.9)
+
+  app/examples/test-demo:
+    dependencies:
+      '@ai-sdk/anthropic':
+        specifier: 'catalog:'
+        version: 2.0.17(zod@4.0.16)
+      '@ai-sdk/groq':
+        specifier: 'catalog:'
+        version: 2.0.20(zod@4.0.16)
+      '@ai-sdk/openai':
+        specifier: 'catalog:'
+        version: 2.0.32(zod@4.0.16)
+      '@axiomkit/cli':
+        specifier: workspace:*
+        version: link:../../../packages/cli
+      '@axiomkit/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@axiomkit/mongodb':
+        specifier: workspace:*
+        version: link:../../../packages/mongodb
+      '@axiomkit/sei':
+        specifier: workspace:*
+        version: link:../../../packages/sei
+      '@axiomkit/supabase':
+        specifier: workspace:*
+        version: link:../../../packages/supabase
+      '@axiomkit/telegram':
+        specifier: workspace:*
+        version: link:../../../packages/telegram
+      chalk:
+        specifier: 'catalog:'
+        version: 5.3.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.8.3
+      viem:
+        specifier: ^2.33.0
+        version: 2.33.0(typescript@5.8.3)(zod@4.0.16)
+      zod:
+        specifier: 'catalog:'
+        version: 4.0.16
 
   packages/cli:
     dependencies:
