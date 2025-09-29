@@ -30,8 +30,8 @@ npx @axiomkit/create-agent@latest my-agent
 # Create a new agent project
 npx @axiomkit/create-agent my-ai-agent
 
-# Choose extensions interactively
-? Select extensions to include › 
+# Choose providers interactively
+? Select providers to include › 
   ◯ CLI - Command-line interface
   ◯ Discord - Discord bot integration
   ◯ Telegram - Telegram bot integration
@@ -55,7 +55,7 @@ npx @axiomkit/create-agent my-discord-bot --template discord
 # Telegram bot template
 npx @axiomkit/create-agent my-telegram-bot --template telegram
 
-# Full-stack template (all extensions)
+# Full-stack template (all providers)
 npx @axiomkit/create-agent my-full-agent --template full
 ```
 
@@ -96,7 +96,7 @@ Options:
 The CLI will prompt you for:
 
 1. **Project Name** - Name of your agent project
-2. **Extensions** - Which AxiomKit extensions to include
+2. **providers** - Which AxiomKit providers to include
 3. **Package Manager** - Preferred package manager
 4. **TypeScript** - Whether to use TypeScript
 5. **Git** - Whether to initialize git repository
@@ -118,7 +118,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   instructions: [
     "You are a mathematical calculator.",
     "When users provide mathematical expressions, calculate the result.",
@@ -148,7 +148,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discordExtension],
+  providers: [discordExtension],
   config: {
     discord: {
       token: process.env.DISCORD_TOKEN,
@@ -248,7 +248,7 @@ Includes:
 
 Includes:
 - All AxiomKit packages
-- All extensions (CLI, Discord, Telegram)
+- All providers (CLI, Discord, Telegram)
 - MongoDB and Supabase memory
 - Complete project structure
 

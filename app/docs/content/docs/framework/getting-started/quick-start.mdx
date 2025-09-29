@@ -27,16 +27,16 @@ npx @axiomkit/create-agent my-agent
 This command will:
 - Create a new project directory with your agent’s name
 - Initialize a package.json with all required dependencies
-- Scaffold an index.ts file preconfigured with selected extensions
+- Scaffold an index.ts file preconfigured with selected providers
 - Generate a .env.example with required environment variables 
 - Automatically install all dependencies using your package manage
 
-### Step 2: Choose extensions when prompted:
+### Step 2: Choose providers when prompted:
 ```plaintext
 $ npx @axiomkit/create-agent my-agent
 🚀 Initializing new AxiomKit agent...
-🔧 Choose extensions for your agent:
-? Select extensions to include › Use space to select, enter to confirm 
+🔧 Choose providers for your agent:
+? Select providers to include › Use space to select, enter to confirm 
 Instructions:
     ↑/↓: Highlight option
     ←/→/[space]: Toggle selection
@@ -133,7 +133,7 @@ Let's break down what we just created:
 ```typescript
 const calculatorAgent = createAgent({
   model: groq("gemma2-9b-it"),  // Language model
-  extensions: [cliExtension],   // CLI interface
+  providers: [cliProvider],   // CLI interface
 });
 ```
 
@@ -142,9 +142,9 @@ const calculatorAgent = createAgent({
 - Alternative: `openai("gpt-4")` for OpenAI
 - Alternative: `anthropic("claude-3-sonnet")` for Anthropic
 
-### 3. **Extensions**
+### 3. **Provider**
 - `cliExtension` - Provides command-line interface
-- Other options: `discord`, `telegram`, custom extensions
+- Other options: `discord`, `telegram`, custom providers
 
 ## Next Steps
 
@@ -178,7 +178,7 @@ const weatherAction = action({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   actions: [weatherAction],
 });
 ```
@@ -198,7 +198,7 @@ const memory = new MemorySystem({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   memory,
 });
 ```
@@ -230,7 +230,7 @@ const userContext = context({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   contexts: [userContext],
 });
 ```
@@ -286,7 +286,7 @@ const agent = createAgent({
     frequencyPenalty: 0.1,  // Reduce repetition
     presencePenalty: 0.1,   // Encourage new topics
   },
-  extensions: [cliExtension],
+  providers: [cliExtension],
 });
 ```
 
@@ -295,7 +295,7 @@ const agent = createAgent({
 ```typescript
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   errorHandling: {
     retryAttempts: 3,
     retryDelay: 1000,
@@ -318,7 +318,7 @@ const logger = new Logger({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   logger,
 });
 ```
@@ -330,7 +330,7 @@ Now that you have a basic agent running, explore:
 1. **[Packages Documentation](/docs/packages)** - Learn about all available packages
 2. **[Architecture Guide](/docs/framework/architecture)** - Understand core concepts
 3. **[Memory System](/docs/framework/architecture/memory)** - Add persistent memory
-4. **[Platform Extensions](/docs/packages)** - Integrate with Discord, Telegram, and more
+4. **[Platform providers](/docs/packages)** - Integrate with Discord, Telegram, and more
 5. **[Examples](/docs/examples)** - See more complex examples
 
 ## Getting Help

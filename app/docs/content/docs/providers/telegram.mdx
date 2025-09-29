@@ -39,7 +39,7 @@ const groq = createGroq({
 createAgent({
   logLevel: LogLevel.DEBUG,
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [telegram],
+  providers: [telegram],
 }).start();
 
 ```

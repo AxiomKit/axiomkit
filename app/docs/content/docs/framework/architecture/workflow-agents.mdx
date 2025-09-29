@@ -26,8 +26,8 @@ Walk through the lifecycle of a typical request:
 
 ### 1. Input Reception
 
-* **Source**: An external system - such as Discord, Telegram, CLI, or a custom API - delivers incoming data to the agent. These systems are integrated via **extensions**.
-* **Listener**: An **input** handler, defined either within the agent or an extension, continuously listens for specific external events (e.g., a new user message).
+* **Source**: An external system - such as Discord, Telegram, CLI, or a custom API - delivers incoming data to the agent. These systems are integrated via **providers**.
+* **Listener**: An **input** handler, defined either within the agent or an provider, continuously listens for specific external events (e.g., a new user message).
 * **Trigger**: When such an event occurs, the listener is activated.
 * **Invocation**: The listener invokes `agent.send()`with:
   * A **target context definition** specifying which part of the agent should handle the input.

@@ -13,7 +13,7 @@ docs/
 │       ├── framework/           # Core framework documentation
 │       │   ├── architecture/    # Architecture guides
 │       │   └── getting-started/ # Getting started guides
-│       ├── built-in-extensions/ # Extension documentation
+│       ├── built-in-providers/ # Extension documentation
 │       ├── api/                 # API reference
 │       ├── examples/            # Code examples
 │       └── sei/                 # SEI blockchain integration
@@ -30,8 +30,8 @@ Core concepts and architecture of Axiomkit:
 - **Architecture**: Detailed architecture guides
 - **Getting Started**: Quick start and first agent guides
 
-### 🔌 **Built-in Extensions**
-Platform integrations and extensions:
+### 🔌 **Built-in providers**
+Platform integrations and providers:
 - **CLI**: Command-line interface
 - **Discord**: Discord bot integration
 - **Telegram**: Telegram bot integration
@@ -119,7 +119,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
 });
 
 await agent.start();

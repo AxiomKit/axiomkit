@@ -34,7 +34,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
 });
 
 await agent.start();
@@ -44,10 +44,10 @@ await agent.start();
 
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-const customCliExtension = createCliExtension({
+const customCliExtension = createCliProvider({
   name: "calculator",
   instructions: [
     "You are a mathematical calculator.",
@@ -59,7 +59,7 @@ const customCliExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [customCliExtension],
+  providers: [customCliExtension],
 });
 
 await agent.start();
@@ -78,10 +78,10 @@ interface CliContextConfig {
 }
 ```
 
-### Creating Custom CLI Extensions
+### Creating Custom CLI providers
 
 ```typescript
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { z } from "zod";
 
 // Custom schema for structured input
@@ -91,7 +91,7 @@ const customSchema = z.object({
   options: z.record(z.string()).optional(),
 });
 
-const customCliExtension = createCliExtension({
+const customCliExtension = createCliProvider({
   name: "custom-assistant",
   instructions: [
     "You are a specialized assistant.",
@@ -103,7 +103,7 @@ const customCliExtension = createCliExtension({
 });
 ```
 
-## Built-in Extensions
+## Built-in providers
 
 ### Assistant CLI Extension
 
@@ -112,7 +112,7 @@ import { assistantCliExtension } from "@axiomkit/cli";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [assistantCliExtension],
+  providers: [assistantCliExtension],
 });
 ```
 
@@ -128,7 +128,7 @@ import { cliExtension } from "@axiomkit/cli";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
 });
 ```
 
@@ -139,7 +139,7 @@ The default extension provides basic CLI functionality with minimal configuratio
 ### Custom Input/Output Handling
 
 ```typescript
-import { createCliExtension, readlineService } from "@axiomkit/cli";
+import { createCliProvider, readlineService } from "@axiomkit/cli";
 import { context, input, output } from "@axiomkit/core";
 
 const customCliContext = context({
@@ -173,7 +173,7 @@ const customCliContext = context({
   },
 });
 
-const customExtension = createCliExtension({
+const customExtension = createCliProvider({
   name: "custom",
   contexts: { custom: customCliContext },
   services: [readlineService],
@@ -183,7 +183,7 @@ const customExtension = createCliExtension({
 ### Multi-Context CLI
 
 ```typescript
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { context } from "@axiomkit/core";
 
 const calculatorContext = context({
@@ -198,7 +198,7 @@ const translatorContext = context({
   instructions: "You are a language translator.",
 });
 
-const multiExtension = createCliExtension({
+const multiExtension = createCliProvider({
   name: "multi-tool",
   contexts: {
     calculator: calculatorContext,
@@ -208,7 +208,7 @@ const multiExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [multiExtension],
+  providers: [multiExtension],
 });
 ```
 
@@ -218,10 +218,10 @@ const agent = createAgent({
 
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-const calculatorExtension = createCliExtension({
+const calculatorExtension = createCliProvider({
   name: "calculator",
   instructions: [
     "You are a mathematical calculator.",
@@ -234,7 +234,7 @@ const calculatorExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [calculatorExtension],
+  providers: [calculatorExtension],
 });
 
 async function main() {
@@ -250,10 +250,10 @@ main();
 
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-const debugExtension = createCliExtension({
+const debugExtension = createCliProvider({
   name: "debug-assistant",
   instructions: [
     "You are a debugging assistant.",
@@ -266,7 +266,7 @@ const debugExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [debugExtension],
+  providers: [debugExtension],
 });
 
 await agent.start();
@@ -276,10 +276,10 @@ await agent.start();
 
 ```typescript
 import { createAgent } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 
-const writingExtension = createCliExtension({
+const writingExtension = createCliProvider({
   name: "writing-assistant",
   instructions: [
     "You are a writing assistant.",
@@ -292,7 +292,7 @@ const writingExtension = createCliExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [writingExtension],
+  providers: [writingExtension],
 });
 
 await agent.start();
@@ -303,7 +303,7 @@ await agent.start();
 ### 1. Clear Instructions
 
 ```typescript
-const extension = createCliExtension({
+const extension = createCliProvider({
   name: "specialized-assistant",
   instructions: [
     "You are a [specific role].",
@@ -317,12 +317,12 @@ const extension = createCliExtension({
 ### 2. Appropriate Step Limits
 
 ```typescript
-const extension = createCliExtension({
+const extension = createCliProvider({
   name: "conversational",
   maxSteps: 10, // Allow longer conversations
 });
 
-const quickExtension = createCliExtension({
+const quickExtension = createCliProvider({
   name: "quick-tool",
   maxSteps: 3, // Limit for quick tasks
 });
@@ -331,7 +331,7 @@ const quickExtension = createCliExtension({
 ### 3. Error Handling
 
 ```typescript
-const extension = createCliExtension({
+const extension = createCliProvider({
   name: "robust-assistant",
   instructions: [
     "You are a helpful assistant.",
@@ -365,7 +365,7 @@ const extension = createCliExtension({
 ```typescript
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   debug: true, // Enable debug logging
 });
 ```
@@ -385,7 +385,7 @@ const memory = createMongoMemory({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   memory,
 });
 ```
@@ -408,7 +408,7 @@ const searchAction = action({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [cliExtension],
+  providers: [cliExtension],
   actions: [searchAction],
 });
 ```
@@ -417,5 +417,5 @@ const agent = createAgent({
 
 - [Core Package](/docs/packages/core) - Learn about the core framework
 - [Memory Providers](/docs/packages/mongodb) - Add persistent memory
-- [Platform Extensions](/docs/packages/discord) - Deploy to other platforms
+- [Platform providers](/docs/packages/discord) - Deploy to other platforms
 - [Advanced Features](/docs/framework/architecture) - Explore advanced concepts
