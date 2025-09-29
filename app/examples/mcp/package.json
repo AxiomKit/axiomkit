@@ -8,7 +8,8 @@
     "server": "tsx mcp-sei-server.ts",
     "agent": "tsx mcp-sei.ts",
     "balance": "tsx balance-checker-agent.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx test-simple.ts"
   },
   "dependencies": {
     "@axiomkit/cli": "workspace:*",

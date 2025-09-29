@@ -1,23 +1,14 @@
-import { createAgent, context, action } from "@axiomkit/core";
+import { createAgent, context, action, validateEnv } from "@axiomkit/core";
 import { z } from "zod";
-import { createSupabaseMemory } from "@axiomkit/supabase";
-import { createMongoMemory } from "@axiomkit/mongodb";
+
 import { assistantCliTool } from "@axiomkit/cli";
-import { openai } from "@ai-sdk/openai";
+
 import { groq } from "@ai-sdk/groq";
-// Validate env for persistent memory if available
-const env = (() => {
-  const schema = z.object({
-    SUPABASE_URL: z.string().optional(),
-    SUPABASE_KEY: z.string().optional(),
-    MONGODB_URI: z.string().optional(),
-  });
-  return schema.parse({
-    SUPABASE_URL: process.env.SUPABASE_URL,
-    SUPABASE_KEY: process.env.SUPABASE_KEY,
-    MONGODB_URI: process.env.MONGODB_URI,
-  });
-})();
+// const env = validateEnv(
+//   z.object({
+//     GROQ_API_KEY: process.env.GROQ_API_KEY,
+//   })
+// );
 
 const assistantContext = context({
   type: "personal-assistant",
@@ -96,14 +87,6 @@ assistantContext.setActions([
     },
   }),
 ]);
-
-// Choose persistent memory when configured
-const memory =
-  env.SUPABASE_URL && env.SUPABASE_KEY
-    ? createSupabaseMemory({ url: env.SUPABASE_URL, key: env.SUPABASE_KEY })
-    : env.MONGODB_URI
-    ? createMongoMemory({ uri: env.MONGODB_URI })
-    : undefined;
 
 // Create the agent
 const agent = createAgent({

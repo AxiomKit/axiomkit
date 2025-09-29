@@ -1,6 +1,5 @@
 import fetch, { Request, Response } from "node-fetch";
 
-// Set up global polyfills for Node.js v16 compatibility
 if (typeof globalThis.fetch === "undefined") {
   globalThis.fetch = fetch as any;
 }
@@ -13,10 +12,10 @@ if (typeof globalThis.Response === "undefined") {
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import * as z from "zod";
 import { AxiomSeiWallet } from "@axiomkit/sei";
 import { type Address } from "viem";
 import { validateEnv } from "@axiomkit/core";
+import * as z from "zod";
 
 // IMPORTANT: Ensure stdout is reserved for MCP JSON only.
 // Redirect all non-error console output to stderr to avoid breaking MCP protocol.
