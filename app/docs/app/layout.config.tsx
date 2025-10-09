@@ -2,8 +2,9 @@ import { Badge } from "@/components/badge";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 import { type LinkItemType } from "fumadocs-ui/layouts/docs";
-import { AlbumIcon, Github, LayoutTemplate } from "lucide-react";
+import { Github } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
@@ -12,14 +13,14 @@ export const baseOptions: BaseLayoutProps = {
         <Image
           src={`/logo.png`}
           alt="Logo Axiom"
-          height={32}
-          width={32}
+          height={64}
+          width={64}
           className="w-auto"
         />
         <span className="text-red-600 text-lg">AxiomKit</span>
         <Badge
           className={`
-                bg-green-500/20 text-green-400 border-green-500/30 text-xs            
+                bg-green-500/20 text-green-400 border-green-500/30 text-xs       
               `}
         >
           v.2.0.11
