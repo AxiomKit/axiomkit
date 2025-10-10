@@ -21,7 +21,7 @@ At its core, each Axiomkit agent follows a continuous execution loop called the 
 ### Why use it?
 - **🤖 Autonomous Decision Making** - Agents can handle complex, multi-step tasks without human intervention
 - **🧠 Contextual Intelligence** - Remember conversations, user preferences, and past interactions
-- **🔧 Extensible Architecture** - Easy to add new capabilities through extensions and actions
+- **🔧 Extensible Architecture** - Easy to add new capabilities through provider and actions
 - **🌐 Multi-Platform Support** - Deploy agents on CLI, Discord, Telegram, or custom interfaces
 - **📊 Built-in Memory Systems** - Persistent storage for conversations, user data, and learning
 
@@ -37,7 +37,7 @@ At its core, each Axiomkit agent follows a continuous execution loop called the 
 - **Context System** - Defines agent personality, memory, and behavior patterns
 - **Action Framework** - Extensible system for defining what agents can do
 - **Memory Management** - Persistent storage for conversations and user data
-- **Extension System** - Plugins for different interfaces (CLI, Discord, etc.)
+- **Providers System** - Plugins for different interfaces (CLI, Discord, etc.)
 
 ---
 
@@ -100,7 +100,7 @@ Every Axiomkit agent follows a continuous loop of four phases:
 // The agent lifecycle in code
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [cliExtension],
+  provider: [cliProvider],
   contexts: [myContext],
 });
 ```
@@ -164,7 +164,7 @@ myContext.setActions([
 
 ```typescript
 import { createAgent, context, action, output } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider} from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 import * as z from "zod";
 
@@ -244,7 +244,7 @@ calculatorContext.setActions([
 // Create the agent
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [createCliExtension()],
+  providers: [createCliProvider()],
   contexts: [calculatorContext],
 });
 
@@ -265,7 +265,7 @@ main().catch(console.error);
 
 ```typescript
 import { createAgent, context, action } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 import * as z from "zod";
 
@@ -352,7 +352,7 @@ translatorContext.setActions([
 // Create the agent
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [createCliExtension()],
+  providers: [createCliProvider()],
   contexts: [translatorContext],
 });
 
@@ -373,7 +373,7 @@ main().catch(console.error);
 
 ```typescript
 import { createAgent, context, action } from "@axiomkit/core";
-import { createCliExtension } from "@axiomkit/cli";
+import { createCliProvider } from "@axiomkit/cli";
 import { groq } from "@ai-sdk/groq";
 import * as z from "zod";
 
@@ -473,7 +473,7 @@ supportContext.setActions([
 
 const agent = createAgent({
   model: groq("deepseek-r1-distill-llama-70b"),
-  extensions: [createCliExtension()],
+  providers: [createCliProvider()],
   contexts: [supportContext],
 });
 
@@ -538,5 +538,5 @@ Persistent memory allows your agent to remember conversations, user preferences,
 - **[Context System](../../architecture/context)** - Learn how to design effective contexts
 - **[Action Framework](../../architecture/action)** - Master the art of creating powerful actions
 - **[Memory Systems](../../architecture/memory)** - Build agents that remember and learn
-- **[Extensions](../../extensions)** - Connect your agent to different platforms and services
+- **[providers](../../providers)** - Connect your agent to different platforms and services
 

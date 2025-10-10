@@ -23,7 +23,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [mcpExtension],
+  providers: [mcpExtension],
   config: {
     mcp: {
       servers: [
@@ -57,7 +57,7 @@ interface MCPConfig {
 ```typescript
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [mcpExtension],
+  providers: [mcpExtension],
   config: {
     mcp: {
       servers: [
@@ -77,7 +77,7 @@ const agent = createAgent({
 ```typescript
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [mcpExtension],
+  providers: [mcpExtension],
   config: {
     mcp: {
       servers: [

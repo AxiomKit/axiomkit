@@ -141,7 +141,7 @@ const memory = new MemorySystem({
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
   memory,
-  extensions: [cliExtension],
+  providers: [cliProvider],
 });
 ```
 
