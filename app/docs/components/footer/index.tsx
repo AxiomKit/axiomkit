@@ -15,13 +15,13 @@ const Footer = () => {
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <Image
                   src={Logo.src}
-                  alt="Axiomkit-logo-footer"
-                  className="h-5 w-5"
-                  height={20}
-                  width={20}
+                  alt="axiomkit-logo-footer"
+                  className="h-8 w-8"
+                  height={64}
+                  width={64}
                 />
               </div>
-              <span className="text-xl font-bold text-red-500">AxiomKit</span>
+              <span className="text-xl font-bold text-red-800">AxiomKit</span>
             </div>
             <p className="text-slate-400 text-sm">
               Production-ready framework for building intelligent, autonomous
