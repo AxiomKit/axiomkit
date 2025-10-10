@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://files.catbox.moe/aslpwo.png" alt="Axiomkit " width="100" />
+<img src="https://wx13u4wkj2t1qwsw.public.blob.vercel-storage.com/axiom/logo-axiom.png" alt="Axiomkit " width="100" />
 <h1>Axiomkit</h1>
 </div>
 
