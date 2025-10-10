@@ -1,3 +1,6 @@
+// Import polyfills first to ensure they're set up before viem
+import "../polyfills.js";
+
 import * as viemChains from "viem/chains";
 import {
   createPublicClient,

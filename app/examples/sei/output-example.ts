@@ -77,7 +77,9 @@ Current Balance: ${memory.balance} SEI`;
         try {
           // Prevent multiple calls
           if (memory.balanceChecked) {
-            return actionResponse(`Balance already checked: ${memory.balance} SEI`);
+            return actionResponse(
+              `Balance already checked: ${memory.balance} SEI`
+            );
           }
 
           console.log("Checking balance for wallet:", memory.wallet);
@@ -122,7 +124,7 @@ const seiProvider = provider({
 });
 
 const seiAxiom = createAgent({
-  model: groq("llama-3.1-8b-instant"),
+  model: groq("qwen/qwen3-32b"),
   logLevel: LogLevel.DISABLED,
   providers: [seiProvider],
 });
@@ -139,7 +141,7 @@ async function main() {
   try {
     // Example 1: Simple string output
     console.log("\n🔵 Example 1: Simple String Output");
-    console.log("=" .repeat(50));
+    console.log("=".repeat(50));
 
     const response1 = await seiAxiom.send({
       context: seiAgentContext,
@@ -171,7 +173,7 @@ async function main() {
 
     // Example 2: Structured object output
     console.log("\n🔵 Example 2: Structured Object Output");
-    console.log("=" .repeat(50));
+    console.log("=".repeat(50));
 
     const response2 = await seiAxiom.send({
       context: seiAgentContext,
@@ -190,9 +192,11 @@ async function main() {
             console.log("📊 Wallet Info Output Handler:");
             console.log(`   Wallet: ${data.wallet}`);
             console.log(`   Balance: ${data.balance} SEI`);
-            console.log(`   Timestamp: ${new Date(data.timestamp).toISOString()}`);
+            console.log(
+              `   Timestamp: ${new Date(data.timestamp).toISOString()}`
+            );
             console.log(`   Status: ${data.status}`);
-            
+
             return {
               data: {
                 ...data,
@@ -218,7 +222,7 @@ async function main() {
 
     // Example 3: Multiple outputs
     console.log("\n🔵 Example 3: Multiple Outputs");
-    console.log("=" .repeat(50));
+    console.log("=".repeat(50));
 
     const response3 = await seiAxiom.send({
       context: seiAgentContext,
@@ -268,7 +272,6 @@ async function main() {
     console.log(`   Example 1: ${response1.length} logs`);
     console.log(`   Example 2: ${response2.length} logs`);
     console.log(`   Example 3: ${response3.length} logs`);
-
   } catch (error) {
     console.error("Error:", error);
   } finally {

@@ -4,10 +4,21 @@
     "icon": "Coins",
     "root": true,
     "pages": [
+        "---OVERVIEW---",
         "index",
+        "---GETTING STARTED---",
         "quick-start",
+        "---MCP INTEGRATION---",
+        "mcp-context",
+        "mcp-server-setup",
+        "mcp-tools-reference",
+        "mcp-examples",
+        "mcp-troubleshooting",
+        "---WALLET & TOKENS---",
         "wallet-management",
         "token-operations",
+        "smart-contracts",
+        "---INTEGRATIONS---",
         "providers-integrations"
     ]
 }

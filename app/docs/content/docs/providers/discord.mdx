@@ -35,7 +35,7 @@ import { groq } from "@ai-sdk/groq";
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discordExtension],
+  providers: [discordExtension],
   config: {
     discord: {
       token: process.env.DISCORD_TOKEN,
@@ -83,7 +83,7 @@ const customDiscordExtension = createDiscordExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [customDiscordExtension],
+  providers: [customDiscordExtension],
   config: {
     discord: {
       token: process.env.DISCORD_TOKEN,
@@ -133,7 +133,7 @@ DISCORD_CLIENT_ID=your_discord_client_id
 ```typescript
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discordExtension],
+  providers: [discordExtension],
   config: {
     discord: {
       token: process.env.DISCORD_TOKEN,
@@ -317,7 +317,7 @@ const supportExtension = createDiscordExtension({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [supportExtension],
+  providers: [supportExtension],
   config: {
     discord: {
       token: process.env.DISCORD_TOKEN,
@@ -506,7 +506,7 @@ const secureExtension = createDiscordExtension({
 ```typescript
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discordExtension],
+  providers: [discordExtension],
   config: {
     discord: {
       token: process.env.DISCORD_TOKEN,
@@ -532,7 +532,7 @@ const memory = createMongoMemory({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discordExtension],
+  providers: [discordExtension],
   memory,
   config: {
     discord: {
@@ -565,7 +565,7 @@ const moderationAction = action({
 
 const agent = createAgent({
   model: groq("gemma2-9b-it"),
-  extensions: [discordExtension],
+  providers: [discordExtension],
   actions: [moderationAction],
   config: {
     discord: {

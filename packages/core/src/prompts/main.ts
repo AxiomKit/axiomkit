@@ -28,28 +28,15 @@ Your main goal is to respond to any <unprocessed-inputs> from users. If there ar
 1.  **Prioritize**: Address unprocessed user inputs first, then handle pending operations or action results
 2.  **Analyze**: Understand the current context, recent actions, and what the user expects next
 3.  **Reason**: Plan your steps inside a <reasoning> tag, referencing available tools and deciding the best course of action
-4.  **Execute**: Use <action_call> and <output> tags to execute your plan. You MUST provide the corresponding calls for any actions you mention in your reasoning
+4.  **Execute**: {{actionInstructions}}
 
-## CRITICAL JSON FORMATTING RULES
-⚠️  **MANDATORY: ALL action_call content MUST be valid JSON only**
-- ❌ NEVER use template syntax like {{...}} inside action_call tags
-- ❌ NEVER mix XML and JSON content
-- ❌ NEVER include reasoning or explanations inside action_call tags
-- ✅ ALWAYS use pure JSON: <action_call name="actionName">{"param": "value"}</action_call>
-- ✅ For empty parameters, use: <action_call name="actionName">{}</action_call>
+{{actionCallRules}}
 
 ## CRITICAL OUTPUT RULES
 ⚠️  **MANDATORY: Generate ONLY ONE output per response**
 - ❌ NEVER generate multiple outputs unless explicitly required
 - ❌ NEVER use template syntax in output content
 - ✅ ALWAYS use simple format: <output name="outputName">{"content": "response text"}</output>
-
-## COMMON MISTAKES TO AVOID
-❌ WRONG: <action_call name="getBalance">{{calls[0].result}}</action_call>
-✅ CORRECT: <action_call name="getBalance">{}</action_call>
-
-❌ WRONG: <action_call name="getBalance">{"data":{}}<action_call>
-✅ CORRECT: <action_call name="getBalance">{}</action_call>
 
 ❌ WRONG: Multiple <output> tags in one response
 ✅ CORRECT: Single <output> tag per response
@@ -58,7 +45,7 @@ Your main goal is to respond to any <unprocessed-inputs> from users. If there ar
 Your entire response MUST be a single, valid XML block enclosed in <response> tags.
 
 - **<reasoning> (Required):** Your step-by-step thought process.
-- **<action_call> (Optional):** Must have a 'name' attribute. The content MUST be valid JSON.
+{{actionCallFormat}}
 - **<output> (Optional):** Must have a 'name' attribute. The content MUST be valid JSON.
 - **Adherence**: You must strictly follow the provided examples for formatting.
 
@@ -206,6 +193,34 @@ export function formatPromptSections({
   maxWorkingMemorySize?: number;
   chainOfThoughtSize?: number;
 }) {
+  const hasActions = actions.length > 0;
+  
+  // Generate conditional content based on whether actions are available
+  const actionInstructions = hasActions 
+    ? "Use <action_call> and <output> tags to execute your plan. You MUST provide the corresponding calls for any actions you mention in your reasoning"
+    : "Use <output> tags to provide responses. Do NOT use <action_call> tags as no actions are available";
+    
+  const actionCallRules = hasActions 
+    ? `## CRITICAL JSON FORMATTING RULES
+⚠️  **MANDATORY: ALL action_call content MUST be valid JSON only**
+- ❌ NEVER use template syntax like {{...}} inside action_call tags
+- ❌ NEVER mix XML and JSON content
+- ❌ NEVER include reasoning or explanations inside action_call tags
+- ✅ ALWAYS use pure JSON: <action_call name="actionName">{"param": "value"}</action_call>
+- ✅ For empty parameters, use: <action_call name="actionName">{}</action_call>
+
+## COMMON MISTAKES TO AVOID
+❌ WRONG: <action_call name="getBalance">{{calls[0].result}}</action_call>
+✅ CORRECT: <action_call name="getBalance">{}</action_call>
+
+❌ WRONG: <action_call name="getBalance">{"data":{}}<action_call>
+✅ CORRECT: <action_call name="getBalance">{}</action_call>`
+    : "";
+    
+  const actionCallFormat = hasActions 
+    ? "- **<action_call> (Optional):** Must have a 'name' attribute. The content MUST be valid JSON."
+    : "";
+
   // Get unprocessed user inputs that need responses
   const unprocessedInputs =
     workingMemory.inputs?.filter((log) => !log.processed) ?? [];
@@ -304,6 +319,12 @@ export function formatPromptSections({
     decisionContext: xmlSection("decision-context", keyThoughts, [
       "No recent reasoning available.",
     ]),
+    
+    // TEMPLATE VARIABLES
+    hasActions,
+    actionInstructions,
+    actionCallRules,
+    actionCallFormat,
   };
 }
 

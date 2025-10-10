@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/sei",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Native Setting Interaction With Sei",
   "type": "module",
   "main": "./dist/index.js",
@@ -31,6 +31,7 @@
     "@sei-js/evm": "^2.0.5",
     "bs58": "^6.0.0",
     "ethers": "6.15.0",
+    "node-fetch": "^3.3.2",
     "viem": "^2.33.0",
     "zod": "catalog:",
     "chalk": "catalog:"

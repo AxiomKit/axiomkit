@@ -4,6 +4,9 @@
     "icon": "code",
     "root": true,
     "pages": [
-        "index"
+        "index",
+        "---SOCIAL EXAMPLE---",
+        "telegram",
+        "discord"
     ]
 }

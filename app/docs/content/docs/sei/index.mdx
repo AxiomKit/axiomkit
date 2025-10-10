@@ -1,6 +1,6 @@
 ---
 title: SEI Provider
-description: Build intelligent Web3 agents that interact with the SEI blockchain
+description: Build  Axiom agents that interact with the SEI blockchain
 icon: Coins
 ---
 
@@ -23,14 +23,12 @@ Combine the power of AI with SEI's trading-optimized infrastructure:
 
 - 🤖 **Intelligent Trading Bots** - AI agents that can analyze markets and execute trades
 - 💼 **Automated Portfolio Management** - Smart agents that rebalance and optimize holdings
-- 🔍 **DeFi Analytics** - AI-powered insights into SEI ecosystem protocols
 - 🛡️ **Risk Management** - Intelligent agents that monitor positions and execute safety measures
 
 ## Key Features
 
 ### 🏦 **Wallet Management**
 - Secure private key handling
-- Multi-wallet support
 - Balance monitoring and alerts
 - Transaction history tracking
 
@@ -52,40 +50,14 @@ Combine the power of AI with SEI's trading-optimized infrastructure:
 - DEX integration capabilities
 - Cross-chain bridge support
 
-## Architecture Overview
-
-```mermaid
-graph TB
-    A[AI Agent] --> B[Axiom Core]
-    B --> C[SEI Provider]
-    C --> D[AxiomSeiWallet]
-    D --> E[Viem Clients]
-    E --> F[SEI Blockchain]
-    
-    C --> G[Token Operations]
-    C --> H[Smart Contracts]
-    C --> I[Providers]
-    
-    G --> J[ERC-20]
-    G --> K[Native SEI]
-    
-    H --> L[Contract Calls]
-    H --> M[Event Monitoring]
-    
-    I --> N[DexScreener]
-    I --> O[Price Feeds]
-```
-
 ## Supported Networks
 
 | Network | Chain ID | RPC URL | Status |
 |---------|----------|---------|--------|
-| **SEI Mainnet** | `1329` | `https://evm-rpc.sei-apis.com/` | ✅ Production |
-| **SEI Testnet** | `1328` | `https://evm-rpc-testnet.sei-apis.com/` | ✅ Testing |
-| **SEI Devnet** | `1327` | `https://evm-rpc-devnet.sei-apis.com/` | 🧪 Development |
+| **SEI Mainnet** | `1329` | `https://evm-rpc.sei-apis.com` | ✅ Production |
+| **SEI Testnet** | `1328` | `https://evm-rpc-testnet.sei-apis.com` | ✅ Testing |
 
 ## Installation
-
 ```bash
 # Install the SEI provider
 pnpm add @axiomkit/sei
@@ -159,6 +131,9 @@ Master SEI and ERC-20 token transfers, balance queries, and token discovery.
 
 ### 📜 [Smart Contracts](/docs/sei/smart-contracts)
 Interact with smart contracts, read state, and execute methods.
+
+### 🔌 [MCP Context Integration](/docs/sei/mcp-context)
+Build SEI AI agents using Model Context Protocol for standardized blockchain interactions.
 
 ### 🔌 [Providers & Integrations](/docs/sei/providers-integrations)
 Integrate with DexScreener, price feeds, and other SEI ecosystem services.

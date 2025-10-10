@@ -78,13 +78,7 @@ When the LLM issues multiple `<action_call>`s, AxiomKit:
 
 Use `TaskRunner` to control concurrency at the agent level:
 
-```typescript
-const agent = createAgent({
-  model: openai("gpt-4o"),
-  extensions: [stockDataExtension],
-  taskRunner: new TaskRunner(5), // Custom concurrency limit
-});
-```
+
 
 ## Summary
 
