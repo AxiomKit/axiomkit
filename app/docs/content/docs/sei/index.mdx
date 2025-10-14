@@ -20,10 +20,12 @@ SEI is a high-performance Layer 1 blockchain optimized for trading and DeFi appl
 ## Why Use Axiom with SEI?
 
 Combine the power of AI with SEI's trading-optimized infrastructure:
-
-- 🤖 **Intelligent Trading Bots** - AI agents that can analyze markets and execute trades
-- 💼 **Automated Portfolio Management** - Smart agents that rebalance and optimize holdings
-- 🛡️ **Risk Management** - Intelligent agents that monitor positions and execute safety measures
+- **Speed for DeFi**: Sub-second finality helps agents act on opportunities quickly.
+- **Autonomous agents**: Observe markets, decide, and execute on-chain—end to end.
+- **Simplicity**: High-level primitives reduce boilerplate for common tasks.
+- **Safety by design**: Guardrails and validations minimize on-chain mistakes.
+- **Interoperability**: EVM support and ecosystem integrations streamline workflows.
+- **Scalability**: Seamless movement from testnets to mainnet with consistent tooling.
 
 ## Key Features
 
@@ -49,6 +51,34 @@ Combine the power of AI with SEI's trading-optimized infrastructure:
 - Price feeds and market data
 - DEX integration capabilities
 - Cross-chain bridge support
+
+## SEI Function Showcase
+
+### Wallet Client
+- **`AxiomSeiWallet`**: High-level wallet client
+  - **`getERC20Balance(contractAddress?)`**: Returns formatted balance for native SEI or a given ERC‑20.
+  - **`getTokenAddressFromTicker(ticker)`**: Looks up token address via DexScreener.
+  - **`ERC20Transfer(amount, recipient, ticker?)`**: Sends native SEI or ERC‑20 tokens.
+
+### ERC‑20 Tokens
+- **`get_erc20_balance(agent, contractAddress?)`**: Reads balance (native or ERC‑20) and formats it.
+- **`erc20_transfer(agent, amount, recipient, ticker?)`**: Transfers native SEI or an ERC‑20 by ticker.
+
+### ERC‑721 (NFTs)
+- **`get_erc721_balance(agent, tokenAddress)`**: Reads NFT balance for the wallet.
+- **`erc721Mint(agent, recipient, tokenAddress, tokenId)`**: Mints an NFT to a recipient.
+
+### Providers
+- **`getTokenAddressFromTicker(ticker)`**: Queries DexScreener and returns the base token address on SEI if found.
+
+### Utils
+- **`formatSei(amount, decimals)`**: Converts human amount to on-chain units.
+- **`formatWei(amount, decimals)`**: Formats wei-like amounts to human-readable.
+- **`getBalance(agent, tokenAddress)`**: Low-level ERC‑20 `balanceOf` read.
+- **`getTokenDecimals(agent, tokenAddress)`**: Reads ERC‑20 `decimals`.
+- **`isContract(agent, address)`**: Checks if an address has contract code.
+- **`getChainConfig(chainId?)`**: Returns RPC/REST/explorer config for SEI chains.
+- **`TOKENS`, `SEI_RPC_URL`**: Common token metadata and default RPC.
 
 ## Supported Networks
 

@@ -16,7 +16,7 @@ const groq = createGroq({
 
 createAgent({
   logLevel: LogLevel.DEBUG,
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   providers: [telegram],
 }).start({
   id: "telegram-simple-bot",
