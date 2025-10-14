@@ -16,7 +16,7 @@ const groq = createGroq({
 
 createAgent({
   logLevel: LogLevel.DEBUG,
-  model: groq("qwen/qwen3-32b"),
+  model: groq("llama-3.1-8b-instant"),
   providers: [telegram],
 }).start({
   id: "telegram-simple-bot",

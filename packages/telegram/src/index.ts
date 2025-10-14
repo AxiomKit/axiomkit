@@ -88,20 +88,73 @@ const telegramChat = context({
           .describe("the userId to send the message to, you must include this"),
       },
       schema: z
-        .string()
-        .describe("the content of the message to send using markdown format"),
+        .object({
+          content: z
+            .string()
+            .describe(
+              "the content of the message to send using markdown format"
+            ),
+        })
+        .or(z.string())
+        .describe('Preferred: {"content": "..."}. Back-compat: plain string.'),
       description: "use this to send a telegram message to user",
       examples: [
-        `<output type="telegram:message" userId="123456789">Hello! How can I assist you today?</output>`,
+        `<output name="telegram:message" userId="123456789">{"content":"Hello! How can I assist you today?"}</output>`,
       ],
-      handler: async (data, ctx, { container }) => {
+      handler: async (data: any, ctx, { container }) => {
         const tg = container.resolve<Telegraf>("telegraf").telegram;
-        const chunks = splitTextIntoChunks(data, {
+
+        // const extractTextContent = (raw: unknown): string => {
+        //   if (raw && typeof raw === "object" && "content" in (raw as any)) {
+        //     const c = (raw as any).content;
+        //     if (typeof c === "string") return c;
+        //   }
+        //   if (typeof raw === "string") {
+        //     const trimmed = raw.trim();
+        //     if (
+        //       (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        //       (trimmed.startsWith("[") && trimmed.endsWith("]"))
+        //     ) {
+        //       try {
+        //         const parsed = JSON.parse(trimmed);
+        //         if (
+        //           parsed &&
+        //           typeof parsed === "object" &&
+        //           "content" in parsed &&
+        //           typeof (parsed as any).content === "string"
+        //         ) {
+        //           return (parsed as any).content as string;
+        //         }
+        //       } catch {
+        //         // ignore
+        //       }
+        //     }
+        //     return raw;
+        //   }
+        //   return String(raw ?? "");
+        // };
+
+        // const text = extractTextContent(data.content);
+        const text = data.content;
+        const userIdParam = ctx.outputRef.params?.userId;
+        const fallbackChatId = (ctx.options as any)?.chat?.id;
+        const chatId =
+          userIdParam ??
+          (fallbackChatId != null ? String(fallbackChatId) : undefined);
+
+        if (!chatId || String(chatId).trim() === "") {
+          console.error(
+            "telegram:message missing userId and no fallback chat id available"
+          );
+          return { data, timestamp: Date.now(), processed: true } as any;
+        }
+
+        const chunks = splitTextIntoChunks(text, {
           maxChunkSize: 4096,
         });
 
         for (const chunk of chunks) {
-          await tg.sendMessage(ctx.outputRef.params!.userId, chunk, {
+          await tg.sendMessage(chatId, chunk, {
             parse_mode: "Markdown",
           });
         }
