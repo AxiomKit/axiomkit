@@ -99,7 +99,7 @@ Every Axiomkit agent follows a continuous loop of four phases:
 ```typescript
 // The agent lifecycle in code
 const agent = createAgent({
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   provider: [cliProvider],
   contexts: [myContext],
 });
@@ -243,7 +243,7 @@ calculatorContext.setActions([
 
 // Create the agent
 const agent = createAgent({
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   providers: [createCliProvider()],
   contexts: [calculatorContext],
 });
@@ -351,7 +351,7 @@ translatorContext.setActions([
 
 // Create the agent
 const agent = createAgent({
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   providers: [createCliProvider()],
   contexts: [translatorContext],
 });
@@ -472,7 +472,7 @@ supportContext.setActions([
 ]);
 
 const agent = createAgent({
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   providers: [createCliProvider()],
   contexts: [supportContext],
 });

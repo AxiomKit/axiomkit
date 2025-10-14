@@ -90,7 +90,7 @@ assistantContext.setActions([
 
 // Create the agent
 const agent = createAgent({
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   providers: [assistantCliTool],
   contexts: [assistantContext],
 });

@@ -29,7 +29,7 @@ const memorySystem = createSupabaseMemory({
   url: env.SUPABASE_URL,
   key: env.SUPABASE_ANON_KEY,
   // Use a custom namespace to avoid conflicts
-  namespace: "karas",
+  namespace: "axiomkit-example",
   // Enable automatic database setup
   autoSetup: true,
   setupOptions: {
@@ -55,7 +55,7 @@ const chatCliProvider = createCliProvider({
  * Create the AI agent
  */
 const agent = createAgent({
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   memory: memorySystem,
   providers: [chatCliProvider],
 });
