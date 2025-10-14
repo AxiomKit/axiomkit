@@ -136,7 +136,7 @@ Remember: You're helping a real person place an order, so be patient and helpful
 
 createAgent({
   logLevel: LogLevel.DEBUG,
-  model: groq("deepseek-r1-distill-llama-70b"),
+  model: groq("qwen/qwen3-32b"),
   context: orderContext,
   actions: [confirmOrder],
   providers: [telegram],

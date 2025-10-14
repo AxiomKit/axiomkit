@@ -95,7 +95,7 @@ const supportContext = context({
 // Example usage
 async function runSupportExample() {
   const agent = createAgent({
-    model: groq("deepseek-r1-distill-llama-70b"),
+    model: groq("qwen/qwen3-32b"),
   });
 
   await agent.start({});

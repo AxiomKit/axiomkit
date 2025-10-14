@@ -4,7 +4,6 @@ import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import { type LinkItemType } from "fumadocs-ui/layouts/docs";
 import { Github } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
@@ -17,7 +16,7 @@ export const baseOptions: BaseLayoutProps = {
           width={64}
           className="w-auto"
         />
-        <span className="text-red-600 text-lg">AxiomKit</span>
+        <span className="text-red-800 text-lg">AxiomKit</span>
         <Badge
           className={`
                 bg-green-500/20 text-green-400 border-green-500/30 text-xs       
