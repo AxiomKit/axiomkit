@@ -2,3 +2,78 @@
 title: Telegram  
 description: Complete Axiom with Telegram
 ---
+
+### Overview
+This example shows how to connect an Axiom agent to Telegram using `@axiomkit/telegram`. You will create a simple bot that replies to user messages using a Groq model.
+
+### Prerequisites
+- **Telegram Bot Token**: Create a bot with BotFather and copy the token (`TELEGRAM_TOKEN`).
+- **Groq API Key**: Create a Groq account and generate an API key (`GROQ_API_KEY`).
+
+### Install
+Using pnpm:
+
+```bash
+pnpm add @axiomkit/core @axiomkit/telegram @axiomkit/cli @ai-sdk/groq zod
+```
+
+### Environment
+Set the following environment variables in file .env before running your bot:
+
+```bash
+TELEGRAM_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+GROQ_API_KEY=YOUR_GROQ_API_KEY
+```
+
+### Minimal bot
+Create a file like `simple.ts` with the following content:
+
+```ts
+import { createGroq } from "@ai-sdk/groq";
+import { createAgent, LogLevel, validateEnv } from "@axiomkit/core";
+import { telegram } from "@axiomkit/telegram";
+import * as z from "zod";
+
+const env = validateEnv(
+  z.object({
+    TELEGRAM_TOKEN: z.string().min(1, "TELEGRAM_TOKEN is required"),
+    GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
+  })
+);
+
+const groq = createGroq({
+  apiKey: env.GROQ_API_KEY!,
+});
+
+createAgent({
+  logLevel: LogLevel.DEBUG,
+  model: groq("llama-3.1-8b-instant"),
+  providers: [telegram],
+}).start({
+  id: "telegram-simple-bot",
+});
+```
+
+Run the script with your preferred TypeScript runner (e.g., `tsx`, `ts-node`, or `bun`):
+
+```bash
+npx tsx simple.ts
+```
+
+### How messages flow
+- **Input**: Incoming Telegram messages are mapped to the input type `telegram:message` with `userId` and `username` attributes.
+- **Output**: Your agent can send messages by emitting the output `telegram:message`. Provide a `userId` (Telegram chat id) and a `content` string (Markdown supported).
+
+Example output XML your agent can produce:
+
+```xml
+<output name="telegram:message" userId="123456789">{"content":"Hello! How can I assist you today?"}</output>
+```
+
+If `userId` is omitted, the provider falls back to the current chat id when available.
+
+### Notes
+- Messages are automatically chunked to respect Telegram limits (4,096 characters per message).
+- `parse_mode` is set to Markdown.
+
+

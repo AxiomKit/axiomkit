@@ -187,24 +187,17 @@ export function createPromptBuilder(
 
 export function validateEnv<T extends z.ZodTypeAny>(
   schema: T,
-  env: Record<string, unknown> = process.env
+  env = process.env
 ): z.infer<T> {
-  // Convert empty inputs to undefined for cleaner required errors
-  const normalized: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(env)) {
-    normalized[k] = typeof v === "string" && v.trim() === "" ? undefined : v;
+  try {
+    return schema.parse(env);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors = error.issues.map((err) => `- ${err.message}`);
+      throw new Error(`Environment validation failed:\n${errors.join("\n")}`);
+    }
+    throw error;
   }
-
-  const res = schema.safeParse(normalized);
-  if (res.success) return res.data as z.infer<T>;
-
-  // Build a concise, single-pass error report
-  let msg = "Environment validation failed:\n";
-  for (const issue of res.error.issues) {
-    const path = issue.path.join(".") || "unknown";
-    msg += `- ${path}: ${issue.message}\n`;
-  }
-  throw new Error(msg.trimEnd());
 }
 
 type TrimWorkingMemoryOptions = {
