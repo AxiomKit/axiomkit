@@ -53,6 +53,7 @@ Examples:
 Available providers:
   cli       Command-line interface for terminal interactions
   telegram  Telegram bot for messaging and notifications
+  discord   Discord bot for community engagement
 
 Supported Models:
   groq      Groq's fast inference (free tier available)
