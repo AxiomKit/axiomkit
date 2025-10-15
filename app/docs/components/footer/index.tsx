@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import Logo from "@/public/logo.png";
 import Image from "next/image";
+import TwitterIcon from "../icons/TwitterIcon";
 
 const Footer = () => {
   return (
@@ -125,15 +126,23 @@ const Footer = () => {
 
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center">
           <div className="text-slate-500 text-sm">
-            &copy; 2025 AxiomKit. Built for the future of AI development.
+            &copy;2025 AxiomKit. Built for the future of AI development.
           </div>
           <div className="flex items-center space-x-6 mt-4 md:mt-0">
-            <a
+            <Link
+              href={SOCIAL_LINK.twitter}
+              target="_blank"
+              className="text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              <TwitterIcon className="h-5 w-5" />
+            </Link>
+            <Link
               href={SOCIAL_LINK.github}
+              target="_blank"
               className="text-slate-400 hover:text-slate-200 transition-colors"
             >
               <Github className="h-5 w-5" />
-            </a>
+            </Link>
             <a
               href="#"
               className="text-slate-400 hover:text-slate-200 transition-colors"
