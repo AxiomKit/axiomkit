@@ -1,5 +1,5 @@
 export const BASEDEPS_AXIOMKIT = {
-  "@axiomkit/core": "^2.0.11",
+  "@axiomkit/core": "^2.0.12",
   ai: "^5.0.47",
   chalk: "^5.3.0",
   typescript: "^5.8.3",
