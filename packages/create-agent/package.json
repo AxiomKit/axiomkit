@@ -1,6 +1,6 @@
 {
   "name": "@axiomkit/create-agent",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "CLI to bootstrap Axiomkit agents",
   "license": "MIT",
   "type": "module",
