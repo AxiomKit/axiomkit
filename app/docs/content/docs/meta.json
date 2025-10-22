@@ -3,6 +3,7 @@
         "framework",
         "providers",
         "sei",
+        "monad",
         "examples"
     ]
 }

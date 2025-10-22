@@ -57,7 +57,7 @@ export function CodeWindow({
             className="h-8 w-8 text-slate-300 hover:text-white"
           >
             {copied ? (
-              <Check className="h-4 w-4" />
+              <Check className="h-4 w-4 text-green-400" />
             ) : (
               <Copy className="h-4 w-4" />
             )}
