@@ -6,19 +6,14 @@ import { Github } from "lucide-react";
 import Image from "next/image";
 import { SOCIAL_LINK } from "@/lib/constants";
 import TwitterIcon from "@/components/icons/TwitterIcon";
+import LogoIcon from "@/components/icons/LogoIcon";
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
       <>
-        <Image
-          src={`/logo.png`}
-          alt="Logo Axiom"
-          height={64}
-          width={64}
-          className="w-auto"
-        />
-        <span className="text-red-800 text-lg">AxiomKit</span>
+        <LogoIcon className="h-12 w-12 text-primary" />
+        <span className="text-primary text-lg font-bold">AxiomKit</span>
         <Badge
           className={`
                 bg-green-500/20 text-green-400 border-green-500/30 text-xs       
