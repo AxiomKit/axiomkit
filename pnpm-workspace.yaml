@@ -4,15 +4,15 @@ packages:
   - app/*
 
 catalog:
-  '@ai-sdk/anthropic': 2.0.17
-  '@ai-sdk/groq': 2.0.20
-  '@ai-sdk/openai': 2.0.32
+  '@ai-sdk/anthropic': 2.0.38
+  '@ai-sdk/groq': 2.0.13
+  '@ai-sdk/openai': 2.0.56
   '@ai-sdk/google': 2.0.14
   '@ai-sdk/provider': 2.0.0
   '@ai-sdk/ui-utils': 1.2.11
-  ai: 5.0.47
+  ai: 5.0.81
   uuid: 11.1.0
-  zod: 4.0.16
+  zod: 4.1.12
   zod-to-json-schema: 3.24.3
   dotenv: 16.4.7
   '@types/bun': latest  
