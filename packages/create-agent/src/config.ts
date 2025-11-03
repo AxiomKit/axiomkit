@@ -1,19 +1,19 @@
 export const BASEDEPS_AXIOMKIT = {
-  "@axiomkit/core": "^2.0.12",
-  ai: "^5.0.47",
+  "@axiomkit/core": "^2.0.13",
+  ai: "^5.0.86",
   chalk: "^5.3.0",
   typescript: "^5.8.3",
-  zod: "^4.0.16",
-  "@openrouter/ai-sdk-provider": "^1.1.2",
+  zod: "^4.1.12",
+  "@openrouter/ai-sdk-provider": "^1.2.0",
 };
 
 export const MODEL_DEPS_AXIOMKIT: Record<
   string,
   { pkg: string; version: string }
 > = {
-  groq: { pkg: "@ai-sdk/groq", version: "^2.0.20" },
-  openai: { pkg: "@ai-sdk/openai", version: "^2.0.32" },
-  anthropic: { pkg: "@ai-sdk/anthropic", version: "^2.0.17" },
+  groq: { pkg: "@ai-sdk/groq", version: "^2.0.27" },
+  openai: { pkg: "@ai-sdk/openai", version: "^2.0.60" },
+  anthropic: { pkg: "@ai-sdk/anthropic", version: "^2.0.40" },
   google: { pkg: "@ai-sdk/google", version: "^2.0.14" },
 };
 
