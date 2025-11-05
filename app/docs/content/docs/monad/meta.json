@@ -1,9 +1,0 @@
-{
-    "title": "Monad Provider",
-    "description": "Comprehensive collection of Axiomkit examples and templates for building AI agents",
-    "icon": "code",
-    "root": true,
-    "pages": [
-        "index"
-    ]
-}

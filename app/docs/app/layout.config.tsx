@@ -3,7 +3,7 @@ import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 import { type LinkItemType } from "fumadocs-ui/layouts/docs";
 import { Github } from "lucide-react";
-import Image from "next/image";
+
 import { SOCIAL_LINK } from "@/lib/constants";
 import TwitterIcon from "@/components/icons/TwitterIcon";
 import LogoIcon from "@/components/icons/LogoIcon";
@@ -19,7 +19,7 @@ export const baseOptions: BaseLayoutProps = {
                 bg-green-500/20 text-green-400 border-green-500/30 text-xs       
               `}
         >
-          v.2.0.11
+          v.2.0.13
         </Badge>
       </>
     ),
