@@ -39,7 +39,6 @@ export const echoCliProvider = createCliProvider({
 
 const agent = createAgent({
   model: {{MODEL_VARIABLE}}("{{MODEL_VERSION}}"),
-  logLevel: LogLevel.DISABLED,
   providers: [echoCliProvider],
 });
 

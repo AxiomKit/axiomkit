@@ -37,7 +37,7 @@ export async function getConfiguredDependencies(
   const providerDependencies: Record<string, string> = {};
 
   if (selectedProviders.includes("cli")) {
-    providerDependencies["@axiomkit/cli"] = "^0.0.16";
+    providerDependencies["@axiomkit/cli"] = "^0.0.17";
   }
   if (selectedProviders.includes("discord")) {
     providerDependencies["@axiomkit/discord"] = "^0.0.10";

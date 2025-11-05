@@ -1,6 +1,6 @@
 import * as readline from "readline/promises";
 import { service, context, input, provider, output } from "@axiomkit/core";
-import * as z from "zod";
+import z from "zod";
 
 export const readlineService = service({
   register(container) {
