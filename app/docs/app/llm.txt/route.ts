@@ -32,11 +32,9 @@ ${processed}`;
 async function processContent(content: string): Promise<string> {
   const file = await remark()
     .use(remarkMdx)
-    // https://fumadocs.vercel.app/docs/mdx/include
     .use(remarkInclude)
     // gfm styles
     .use(remarkGfm)
-    // .use(your remark plugins)
     .use(remarkStringify) // to string
     .process(content);
 

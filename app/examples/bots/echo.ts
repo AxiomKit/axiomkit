@@ -15,7 +15,7 @@ export const echoCliProvider = createCliProvider({
 });
 
 const agent = createAgent({
-  model: groq("gemma2-9b-it"),
+  model: groq("openai/gpt-oss-20b"),
   logLevel: LogLevel.DISABLED,
   providers: [echoCliProvider],
 });
