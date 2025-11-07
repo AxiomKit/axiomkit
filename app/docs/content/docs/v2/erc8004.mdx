@@ -1,0 +1,331 @@
+---
+title: ERC-8004 Standard
+description: Decentralized AI agent infrastructure with identity, reputation, and validation registries
+icon: Building
+---
+
+
+
+> ** AxiomKit v2 Integration Coming**
+> 
+> **ERC-8004 support will be built directly into the core of AxiomKit v2**, providing native integration with identity registries, reputation systems, and validation mechanisms. This means you'll be able to register your agents, build reputation through X402 payments, and participate in the decentralized AI agent ecosystem without additional setup. Stay tuned for updates as we develop this integration!
+
+# ERC-8004: Decentralized AI Agent Infrastructure
+
+ERC-8004 is an Ethereum Improvement Proposal (EIP) designed to establish a decentralized, trustless infrastructure for AI agents. Developed collaboratively by the Ethereum Foundation's dAI team and ConsenSys, with contributions from MetaMask, Google, and Coinbase, ERC-8004 provides a standardized framework for AI agents to discover, verify, and interact with each other across different organizations without requiring trust.
+
+## What is ERC-8004?
+
+ERC-8004 introduces a comprehensive system for managing AI agent identity, reputation, and validation on-chain. It enables AI agents to operate as autonomous entities with verifiable credentials, economic incentives, and cross-platform discoverability.
+
+### Key Goals
+
+- **Decentralized Trust**: Enable AI agents to discover and assess each other without centralized authorities
+- **Reputation Systems**: Build on-chain reputation through feedback and payment proofs
+- **Flexible Validation**: Support multiple trust models including crypto-economic validation, zero-knowledge proofs, and TEE attestations
+- **Cross-Platform Interoperability**: Allow agents from different organizations to find and interact with each other
+- **Security Proportional to Value**: Provide security mechanisms that scale with the value at risk
+
+## Three Core Registries
+
+ERC-8004 defines three on-chain singleton registries that work together to create a complete AI agent ecosystem:
+
+### 1. Identity Registry
+
+The **Identity Registry** assigns a unique Agent ID to each AI agent using ERC-721 NFTs. Ownership of the NFT represents ownership of the agent's identity.
+
+**Key Features:**
+- **ERC-721 Token**: Each agent receives a unique NFT representing its identity
+- **JSON Registration File**: Links to a JSON file containing agent metadata including:
+  - A2A (Agent-to-Agent) endpoints
+  - MCP (Model Context Protocol) endpoints
+  - Decentralized Identifiers (DIDs)
+  - Wallet addresses
+  - Capabilities and services offered
+- **On-Chain Ownership**: NFT ownership determines who can update agent identity
+
+**Example Identity Structure:**
+
+```json
+{
+  "agentId": "0x1234...",
+  "name": "Weather Assistant Agent",
+  "version": "1.0.0",
+  "endpoints": {
+    "a2a": "https://agent.example.com/a2a",
+    "mcp": "https://agent.example.com/mcp"
+  },
+  "capabilities": [
+    "weather-forecasting",
+    "x402-payments",
+    "data-analysis"
+  ],
+  "wallet": "0xabcd...",
+  "did": "did:web:agent.example.com"
+}
+```
+
+### 2. Reputation Registry
+
+The **Reputation Registry** allows clients and other agents to submit feedback on AI agent performance, including scores, tags, and references to off-chain files.
+
+**Key Features:**
+- **Scores**: Numerical ratings from 0 to 100
+- **Tags**: Categorical labels for different aspects of performance
+- **Off-Chain References**: Links to external files containing detailed feedback, payment proofs, or other evidence
+- **Payment Proof Integration**: Can reference x402 transaction hashes to correlate economic activities with feedback
+- **Multiple Feedback Sources**: Supports multiple independent reputation providers
+
+**Example Reputation Entry:**
+
+```json
+{
+  "agentId": "0x1234...",
+  "score": 85,
+  "tags": ["reliable", "fast", "accurate"],
+  "feedbackUri": "https://feedback.example.com/12345",
+  "paymentProofs": [
+    {
+      "type": "x402",
+      "txHash": "0xabcd...",
+      "network": "sei-testnet",
+      "amount": "1000",
+      "timestamp": "2025-01-20T10:00:00Z"
+    }
+  ],
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### 3. Validation Registry
+
+The **Validation Registry** serves as a log for independent validators to post attestations regarding an agent's performance and capabilities.
+
+**Validation Types:**
+- **Stake-Based Re-execution**: Validators stake tokens and re-execute agent tasks to verify correctness
+- **Zero-Knowledge Machine Learning**: ZK proofs that verify agent computations without revealing details
+- **Trusted Execution Environments (TEEs)**: Attestations from hardware-secured execution environments
+- **Multi-Party Validation**: Multiple validators can attest to the same agent performance
+
+**Example Validation Attestation:**
+
+```json
+{
+  "agentId": "0x1234...",
+  "validatorId": "0xvalidator...",
+  "validationType": "stake-based",
+  "stakeAmount": "1000000000000000000",
+  "result": "verified",
+  "proof": "0xproof...",
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+## Integration with X402 Payments
+
+While ERC-8004 is payment-agnostic, it provides a powerful mechanism for integrating payment proofs into agent reputation systems. This creates a direct link between economic activity and agent performance.
+
+### How X402 Fits into ERC-8004
+
+1. **Payment as Reputation Signal**: Successful x402 payments can be used as positive reputation signals
+2. **Economic Verification**: Payment proofs demonstrate that agents successfully completed paid transactions
+3. **Correlation Analysis**: Off-chain feedback files can reference x402 transaction hashes to correlate economic activities with agent performance
+4. **Trust Building**: Regular successful payments build trust in an agent's reliability
+
+### Example: X402 Payment Proof in Reputation
+
+```typescript
+// When an agent successfully completes an X402 payment
+const paymentProof = {
+  type: "x402",
+  txHash: "0xabcd...",
+  network: "sei-testnet",
+  amount: "1000",
+  asset: "USDC",
+  recipient: "0x...",
+  timestamp: new Date().toISOString(),
+};
+
+// Submit feedback with payment proof reference
+const reputationEntry = {
+  agentId: agentIdentity.id,
+  score: 90,
+  tags: ["payment-successful", "reliable"],
+  feedbackUri: "https://feedback.example.com/12345",
+  paymentProofs: [paymentProof],
+};
+```
+
+## Integration with A2A and MCP
+
+ERC-8004 complements existing protocols by adding discovery and trust layers:
+
+### Agent-to-Agent (A2A) Protocol
+
+- **Enhanced Discovery**: Identity Registry provides standardized discovery mechanism
+- **Trust Assessment**: Reputation Registry helps agents assess potential partners
+- **Endpoint Management**: Identity Registry links to A2A endpoints for direct communication
+
+### Model Context Protocol (MCP)
+
+- **Capability Enumeration**: Identity Registry can link to MCP endpoints
+- **Service Discovery**: Agent wallets and marketplaces can enumerate capabilities consistently
+- **Standardized Interfaces**: MCP endpoints in Identity Registry ensure consistent agent interfaces
+
+## Implementation with AxiomKit
+
+AxiomKit agents can leverage ERC-8004 infrastructure to build trust and discoverability. Here's how to integrate:
+
+### Registering an Agent Identity
+
+```typescript
+import { createAgent, context } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { groq } from "@ai-sdk/groq";
+
+// Initialize wallet for agent
+const agentWallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.AGENT_PRIVATE_KEY as `0x${string}`,
+});
+
+// Create agent identity
+const agentIdentity = {
+  agentId: agentWallet.walletAdress,
+  name: "Weather Assistant Agent",
+  version: "1.0.0",
+  endpoints: {
+    a2a: "https://your-agent.com/a2a",
+    mcp: "https://your-agent.com/mcp",
+  },
+  capabilities: ["weather-forecasting", "x402-payments"],
+  wallet: agentWallet.walletAdress,
+};
+
+// Register on ERC-8004 Identity Registry
+// (Implementation depends on registry contract deployment)
+```
+
+### Building Reputation with X402 Payments
+
+```typescript
+// After successful X402 payment
+async function recordPaymentForReputation(
+  txHash: string,
+  amount: string,
+  network: string
+) {
+  const paymentProof = {
+    type: "x402",
+    txHash,
+    network,
+    amount,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Submit to Reputation Registry
+  // This demonstrates economic activity and reliability
+  await submitReputationFeedback({
+    agentId: agentIdentity.agentId,
+    score: 85,
+    tags: ["payment-verified"],
+    paymentProofs: [paymentProof],
+  });
+}
+```
+
+### Discovering Agents
+
+```typescript
+// Query Identity Registry for agents with specific capabilities
+async function discoverAgents(capability: string) {
+  // Query registry for agents with matching capabilities
+  const agents = await queryIdentityRegistry({
+    capability,
+    minReputation: 70,
+    network: "sei-testnet",
+  });
+
+  return agents.map((agent) => ({
+    id: agent.agentId,
+    name: agent.name,
+    reputation: await getAgentReputation(agent.agentId),
+    endpoints: agent.endpoints,
+  }));
+}
+```
+
+## Benefits for AxiomKit Agents
+
+### For Agent Developers
+
+- **Discoverability**: Agents can be found by potential users and other agents
+- **Trust Building**: Reputation system builds credibility over time
+- **Payment Integration**: X402 payments can enhance reputation
+- **Validation Options**: Multiple validation methods for different use cases
+
+### For Agent Users
+
+- **Trust Assessment**: Check agent reputation before interactions
+- **Payment Verification**: Verify agents have successfully completed payments
+- **Capability Discovery**: Find agents with specific capabilities
+- **Performance History**: Review past performance through reputation scores
+
+### For the Ecosystem
+
+- **Interoperability**: Agents from different platforms can interact
+- **Standardization**: Common registry structure across implementations
+- **Decentralization**: No single point of control or failure
+- **Economic Alignment**: Payment proofs create economic incentives for good behavior
+
+
+## Use Cases
+
+### 1. AI Agent Marketplace
+
+ERC-8004 enables decentralized marketplaces where:
+- Agents register their capabilities
+- Users discover agents by reputation and capabilities
+- Payment history proves reliability
+- Validators verify agent performance
+
+### 2. Multi-Agent Systems
+
+Build systems where multiple agents collaborate:
+- Agents discover each other through Identity Registry
+- Assess trustworthiness via Reputation Registry
+- Validate critical operations through Validation Registry
+- Track economic activity via X402 payment proofs
+
+### 3. Agent-as-a-Service
+
+Enable agents to offer services with:
+- Verifiable identity and capabilities
+- Reputation-based pricing
+- Payment integration for monetization
+- Validation for critical operations
+
+### 4. Trusted Agent Networks
+
+Create networks where:
+- Agents build reputation through successful interactions
+- Payment proofs demonstrate economic reliability
+- Validators provide additional security layers
+- Cross-platform discovery enables interoperability
+
+
+
+## Relationship with X402
+
+While ERC-8004 is not specifically a payment protocol, it provides infrastructure that works seamlessly with X402:
+
+- **X402** handles the payment flow (challenges, proofs, verification)
+- **ERC-8004** provides identity, reputation, and validation infrastructure
+- **Together** they enable trusted, economically-verified AI agent interactions
+
+For X402 payment implementation details, see the [X402 Payment Protocol documentation](/docs/v2).
+
+---
+
+**Ready to build ERC-8004 compliant agents?** Start by registering your agent identity, building reputation through successful X402 payments, and integrating validation for critical operations!
+

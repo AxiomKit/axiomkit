@@ -1,0 +1,595 @@
+---
+title: X402 Payment Protocol
+description: Build AI agents that handle HTTP 402 Payment Required flows with blockchain micropayments
+icon: Coins
+---
+
+# X402 Payment Protocol
+
+X402 is an open standard protocol for internet-native payments that enables users to send and receive payments globally in a simple, secure, and interoperable manner. The protocol leverages the HTTP 402 status code ("Payment Required") to facilitate blockchain-based micropayments directly through HTTP requests.
+
+## What is X402?
+
+X402 extends the HTTP 402 Payment Required status code (defined in RFC 9110) to enable blockchain-based micropayments. It allows web services to require payment before granting access to resources, with automatic payment verification and proof generation.
+
+### Key Features
+
+- **HTTP-Native**: Uses standard HTTP status codes and headers
+- **Blockchain Integration**: Supports multiple blockchain networks (SEI, Ethereum, etc.)
+- **Real-time Settlement**: Enables instant payment verification on-chain
+- **Interoperable**: Works across different payment schemes and networks
+- **Micropayment Support**: Designed for small, frequent transactions
+- **ERC-8004 Integration**: Payment proofs can be integrated into ERC-8004 agent reputation systems
+
+## X402 + ERC-8004
+
+ERC-8004 is an Ethereum standard for decentralized AI agent infrastructure that provides identity, reputation, and validation registries. While ERC-8004 is payment-agnostic, it enables X402 payment proofs to be integrated into agent reputation systems:
+
+- **Reputation Integration**: X402 payment proofs can be referenced in ERC-8004 reputation entries to demonstrate economic reliability
+- **Trust Building**: Successful X402 payments contribute to agent reputation scores
+- **Economic Verification**: Payment transaction hashes serve as verifiable proof of completed transactions
+- **Cross-Platform**: Both standards work across EVM-compatible chains like SEI
+
+For detailed information about ERC-8004, see the [ERC-8004 Standard documentation](/docs/v2/erc8004).
+
+## How X402 Works
+
+The X402 payment flow follows this sequence:
+
+1. **Client Request**: Client makes a request to a protected endpoint
+2. **Payment Challenge**: Server responds with `402 Payment Required` and a JSON challenge
+3. **Payment Execution**: Client performs on-chain payment (e.g., USDC transfer on SEI)
+4. **Payment Proof**: Client constructs proof header with transaction details
+5. **Verification**: Server verifies payment on-chain and grants access
+6. **Resource Access**: Server returns the requested resource
+
+### Payment Challenge Structure
+
+When a server requires payment, it returns a 402 response with this structure:
+
+```json
+{
+  "x402Version": 1,
+  "accepts": [
+    {
+      "network": "sei-testnet",
+      "scheme": "exact",
+      "asset": "USDC",
+      "assetAddress": "0x4fCF1784B31630811181f670Aea7A7bEF803eaED",
+      "payTo": "0x9dC2aA0038830c052253161B1EE49B9dD449bD66",
+      "maxAmountRequired": "1000",
+      "extra": {
+        "name": "USDC",
+        "decimals": 6,
+        "reference": "unique-request-id"
+      }
+    }
+  ],
+  "resource": "/api/weather"
+}
+```
+
+### Payment Proof Structure
+
+The client includes payment proof in the `X-Payment` header (base64-encoded JSON):
+
+```json
+{
+  "x402Version": 1,
+  "scheme": "exact",
+  "network": "sei-testnet",
+  "payload": {
+    "txHash": "0x...",
+    "amount": "1000",
+    "from": "0xYourWallet"
+  }
+}
+```
+
+## Implementation with AxiomKit
+
+AxiomKit provides seamless integration for X402 payments through the SEI provider. Here's how to implement X402 in your AI agents.
+
+### Prerequisites
+
+- Node.js 18+ and PNPM
+- SEI testnet/mainnet wallet with private key
+- USDC or other ERC-20 tokens on SEI (for payments)
+- AxiomKit SEI provider installed
+
+### Installation
+
+```bash
+pnpm add @axiomkit/core @axiomkit/sei viem @ai-sdk/groq zod
+```
+
+### Configuration
+
+Create a configuration file for X402 settings:
+
+```typescript
+// lib/axiom-config.ts
+import { Address } from "viem";
+
+export const X402_CONFIG = {
+  network: "sei-testnet",
+  chainId: 1328,
+  asset: "USDC",
+  assetAddress: "0x4fCF1784B31630811181f670Aea7A7bEF803eaED" as Address,
+  assetDecimals: 6,
+  recipient: "0x9dC2aA0038830c052253161B1EE49B9dD449bD66" as Address,
+  rpcUrl: "https://evm-rpc-testnet.sei-apis.com",
+};
+
+// For mainnet
+export const X402_CONFIG_MAINNET = {
+  network: "sei-mainnet",
+  chainId: 1329,
+  asset: "USDC",
+  assetAddress: "0x..." as Address, // Mainnet USDC address
+  assetDecimals: 6,
+  recipient: "0x..." as Address,
+  rpcUrl: "https://evm-rpc.sei-apis.com",
+};
+```
+
+### Environment Variables
+
+Create a `.env.local` file:
+
+```bash
+# SEI Wallet Configuration
+SEI_PRIVATE_KEY=0xYOUR_TESTNET_PRIVATE_KEY
+SEI_RPC_URL=https://evm-rpc-testnet.sei-apis.com
+
+# LLM Provider (required by AxiomKit)
+GROQ_API_KEY=your_groq_api_key
+```
+
+### Server-Side Implementation
+
+Here's an example API route that requires X402 payment:
+
+```typescript
+// app/api/weather/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { createPublicClient, http, parseAbi } from "viem";
+import { sei } from "viem/chains";
+import { X402_CONFIG } from "@/lib/axiom-config";
+
+const ERC20_ABI = parseAbi([
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+]);
+
+const publicClient = createPublicClient({
+  chain: sei,
+  transport: http(X402_CONFIG.rpcUrl),
+});
+
+// In-memory storage (use database in production)
+const paymentVerifications = new Map<string, boolean>();
+
+export async function GET(request: NextRequest) {
+  const paymentHeader = request.headers.get("X-Payment");
+
+  // If no payment proof, return 402 challenge
+  if (!paymentHeader) {
+    const reference = crypto.randomUUID();
+    
+    return NextResponse.json(
+      {
+        x402Version: 1,
+        accepts: [
+          {
+            network: X402_CONFIG.network,
+            scheme: "exact",
+            asset: X402_CONFIG.asset,
+            assetAddress: X402_CONFIG.assetAddress,
+            payTo: X402_CONFIG.recipient,
+            maxAmountRequired: "1000", // $0.001 USDC (6 decimals)
+            extra: {
+              name: X402_CONFIG.asset,
+              decimals: X402_CONFIG.assetDecimals,
+              reference,
+            },
+          },
+        ],
+        resource: "/api/weather",
+      },
+      { status: 402 }
+    );
+  }
+
+  // Verify payment proof
+  try {
+    const paymentProof = JSON.parse(
+      Buffer.from(paymentHeader, "base64").toString()
+    );
+
+    const isValid = await verifyPayment(paymentProof);
+    
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Invalid payment proof" },
+        { status: 402 }
+      );
+    }
+
+    // Check for replay attacks
+    const proofKey = `${paymentProof.payload.txHash}-${paymentProof.payload.from}`;
+    if (paymentVerifications.has(proofKey)) {
+      return NextResponse.json(
+        { error: "Payment proof already used" },
+        { status: 402 }
+      );
+    }
+    paymentVerifications.set(proofKey, true);
+
+    // Return protected resource
+    return NextResponse.json({
+      weather: {
+        temperature: 72,
+        condition: "Sunny",
+        location: "San Francisco",
+      },
+      payment: {
+        verified: true,
+        txHash: paymentProof.payload.txHash,
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Invalid payment format" },
+      { status: 400 }
+    );
+  }
+}
+
+async function verifyPayment(proof: any): Promise<boolean> {
+  const { txHash, amount, from } = proof.payload;
+
+  try {
+    // Get transaction receipt
+    const receipt = await publicClient.getTransactionReceipt({
+      hash: txHash as `0x${string}`,
+    });
+
+    if (!receipt || receipt.status !== "success") {
+      return false;
+    }
+
+    // Verify transaction is to the correct contract
+    const transferLogs = receipt.logs.filter(
+      (log) => log.address.toLowerCase() === X402_CONFIG.assetAddress.toLowerCase()
+    );
+
+    if (transferLogs.length === 0) {
+      return false;
+    }
+
+    // Verify amount and recipient (simplified - in production, decode logs properly)
+    // Amount should match and recipient should be X402_CONFIG.recipient
+    
+    return true;
+  } catch (error) {
+    console.error("Payment verification error:", error);
+    return false;
+  }
+}
+```
+
+### Client-Side Agent Implementation
+
+Create an Axiom agent that automatically handles X402 payments:
+
+```typescript
+// lib/axiom-config.ts
+import { createAgent, context, action } from "@axiomkit/core";
+import { AxiomSeiWallet } from "@axiomkit/sei";
+import { groq } from "@ai-sdk/groq";
+import { z } from "zod";
+import { X402_CONFIG } from "./x402-config";
+
+// Initialize SEI wallet
+const seiWallet = new AxiomSeiWallet({
+  rpcUrl: process.env.SEI_RPC_URL!,
+  privateKey: process.env.SEI_PRIVATE_KEY as `0x${string}`,
+});
+
+// Create context with X402 payment action
+const weatherContext = context({
+  type: "weather-agent",
+  schema: z.object({
+    userId: z.string(),
+  }),
+
+  create: () => ({
+    paymentHistory: [] as Array<{
+      txHash: string;
+      amount: string;
+      timestamp: string;
+      resource: string;
+    }>,
+  }),
+
+  instructions: [
+    "You are a weather assistant that can fetch weather data.",
+    "When fetching weather, you may need to handle payment requirements.",
+    "Use the getWeather action to retrieve weather information.",
+  ],
+});
+
+// Define getWeather action with X402 handling
+weatherContext.setActions([
+  action({
+    name: "getWeather",
+    description: "Get weather information for a location. Handles X402 payment automatically if required.",
+    schema: z.object({
+      location: z.string().optional(),
+    }),
+    handler: async (args, ctx) => {
+      const apiUrl = "http://localhost:3000/api/weather";
+
+      // Step 1: Initial request
+      let response = await fetch(apiUrl);
+      let data = await response.json();
+
+      // Step 2: If 402, handle payment
+      if (response.status === 402) {
+        const challenge = data;
+        const accept = challenge.accepts[0];
+
+        // Calculate amount in smallest units
+        const amount = accept.maxAmountRequired; // Already in smallest units
+
+        // Execute payment
+        const txHash = await seiWallet.ERC20Transfer(
+          (parseInt(amount) / Math.pow(10, accept.extra.decimals)).toString(),
+          accept.payTo as `0x${string}`,
+          accept.asset
+        );
+
+        // Wait for confirmation
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // Step 3: Build payment proof
+        const paymentProof = {
+          x402Version: 1,
+          scheme: "exact",
+          network: accept.network,
+          payload: {
+            txHash,
+            amount,
+            from: seiWallet.walletAdress,
+          },
+        };
+
+        const proofHeader = Buffer.from(JSON.stringify(paymentProof)).toString("base64");
+
+        // Step 4: Retry request with proof
+        response = await fetch(apiUrl, {
+          headers: {
+            "X-Payment": proofHeader,
+          },
+        });
+
+        data = await response.json();
+
+        // Store payment in memory
+        ctx.memory.paymentHistory.push({
+          txHash,
+          amount,
+          timestamp: new Date().toISOString(),
+          resource: challenge.resource,
+        });
+
+        return {
+          weather: data.weather,
+          payment: {
+            txHash,
+            amount: `${parseInt(amount) / Math.pow(10, accept.extra.decimals)} ${accept.asset}`,
+            verified: data.payment?.verified || false,
+          },
+        };
+      }
+
+      // No payment required
+      return {
+        weather: data.weather || data,
+        payment: null,
+      };
+    },
+  }),
+]);
+
+// Create the agent
+export const agent = createAgent({
+  model: groq("qwen/qwen3-32b"),
+  contexts: [weatherContext],
+});
+```
+
+### Usage Example
+
+```typescript
+// Use the agent
+await agent.start();
+
+const response = await agent.run({
+  context: weatherContext,
+  args: { userId: "user-123" },
+  input: {
+    type: "text",
+    data: { text: "What's the weather like?" },
+  },
+});
+
+console.log(response);
+```
+
+## Manual X402 Testing
+
+You can test X402 flows manually using cURL:
+
+### Step 1: Request Without Payment (Expect 402)
+
+```bash
+curl -i http://localhost:3000/api/weather
+```
+
+Response:
+```
+HTTP/1.1 402 Payment Required
+Content-Type: application/json
+
+{
+  "x402Version": 1,
+  "accepts": [...],
+  "resource": "/api/weather"
+}
+```
+
+### Step 2: Make Payment On-Chain
+
+Transfer USDC to the `payTo` address using your wallet or the AxiomSeiWallet:
+
+```typescript
+const txHash = await seiWallet.ERC20Transfer(
+  "0.001", // $0.001 USDC
+  "0x9dC2aA0038830c052253161B1EE49B9dD449bD66",
+  "USDC"
+);
+```
+
+### Step 3: Retry with Payment Proof
+
+```bash
+PAYMENT=$(echo '{
+  "x402Version": 1,
+  "scheme": "exact",
+  "network": "sei-testnet",
+  "payload": {
+    "txHash": "0xYOUR_TX_HASH",
+    "amount": "1000",
+    "from": "0xYOUR_WALLET"
+  }
+}' | base64)
+
+curl -H "X-Payment: $PAYMENT" http://localhost:3000/api/weather
+```
+
+## Security Considerations
+
+### Best Practices
+
+1. **Never Hardcode Private Keys**: Always use environment variables
+2. **Replay Protection**: Store used payment proofs to prevent reuse
+3. **Database Storage**: Use persistent storage instead of in-memory Maps
+4. **HTTPS in Production**: Always serve over HTTPS
+5. **Reference Validation**: Validate unique references per request
+6. **Amount Verification**: Strictly verify payment amounts match requirements
+7. **Network Verification**: Confirm transactions are on the correct network
+
+
+## Troubleshooting
+
+### Common Issues
+
+**402 keeps returning even after payment**
+- Verify `txHash` corresponds to a USDC transfer to the correct `assetAddress`
+- Confirm `amount` matches required units (check decimals)
+- Ensure `network` matches (sei-testnet vs sei-mainnet)
+- Wait a few seconds for network finalization
+
+**Invalid payment format errors**
+- Verify base64 encoding is correct
+- Check JSON structure matches expected format
+- Ensure headers are properly formatted (case-insensitive)
+
+**RPC errors or timeouts**
+- Check `SEI_RPC_URL` is reachable
+- Implement retry logic for RPC calls
+- Consider using multiple RPC endpoints
+
+**Payment verification fails**
+- Verify transaction receipt status is "success"
+- Check transaction is to the correct contract address
+- Ensure recipient address matches `payTo` in challenge
+- Verify amount matches exactly (including decimals)
+
+## Advanced Features
+
+### Multiple Payment Options
+
+Support multiple payment schemes in the challenge:
+
+```typescript
+{
+  "x402Version": 1,
+  "accepts": [
+    {
+      "network": "sei-testnet",
+      "scheme": "exact",
+      "asset": "USDC",
+      // ...
+    },
+    {
+      "network": "sei-testnet",
+      "scheme": "exact",
+      "asset": "SEI",
+      // ...
+    }
+  ]
+}
+```
+
+### Dynamic Pricing
+
+Adjust payment amounts based on resource or usage:
+
+```typescript
+function getPaymentAmount(resource: string, usage: number): string {
+  const baseAmount = 1000; // $0.001
+  const usageMultiplier = usage * 100;
+  return (baseAmount + usageMultiplier).toString();
+}
+```
+
+### Payment Subscriptions
+
+Implement subscription-based access with time-limited proofs:
+
+```typescript
+{
+  "payload": {
+    "txHash": "0x...",
+    "amount": "100000", // $0.10 for 24-hour access
+    "from": "0x...",
+    "validUntil": "2025-01-21T00:00:00Z"
+  }
+}
+```
+
+## Learn More
+
+For a complete, working implementation of X402 payments with AxiomKit on SEI, check out the **[AxiomKit Showcase repository](https://github.com/AxiomKit/axiomkit-showcase)**. The showcase includes a full Next.js application demonstrating X402 payment flows, including server-side payment challenge generation, client-side payment execution with Axiom agents, and comprehensive setup instructions. You'll find real-world examples, detailed configuration guides, and the complete source code to help you understand and implement X402 in your own projects.
+
+## References
+
+- **HTTP 402 Status Code**: [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html)
+- **ERC-8004 Standard**: [ERC-8004 Documentation](/docs/v2/erc8004) - Decentralized AI agent infrastructure
+- **AxiomKit Showcase**: [GitHub Repository](https://github.com/AxiomKit/axiomkit-showcase)
+- **SEI Blockchain**: [SEI Documentation](https://docs.sei.io/)
+
+## Next Steps
+
+- **[ERC-8004 Standard](/docs/v2/erc8004)** - Learn about decentralized AI agent infrastructure and how X402 integrates with reputation systems
+- **[SEI Provider Guide](/docs/sei)** - Learn more about SEI blockchain integration
+- **[Wallet Management](/docs/sei/wallet-management)** - Secure wallet handling
+- **[Token Operations](/docs/sei/token-operations)** - ERC-20 token interactions
+- **[Smart Contracts](/docs/sei/smart-contracts)** - Interact with smart contracts
+
+---
+
+**Ready to implement X402 payments?** Start with the basic example above and gradually add advanced features like dynamic pricing, multiple payment options, and subscription support!
