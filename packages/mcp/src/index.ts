@@ -1,5 +1,17 @@
+// Client and Provider
 export { createMcpClient } from "./client";
 export { createMcpProvider } from "./provider";
+
+// Server
+export { createMcpServer, runMcpServer } from "./server";
+export type { McpServerOptions, ToolSchema, ToolHandler } from "./server";
+
+// Server Utilities
+export {
+  setupFetchPolyfills,
+  redirectConsoleToStderr,
+  setupMcpServerEnvironment,
+} from "./server-utils";
 
 // Types
 export type {
