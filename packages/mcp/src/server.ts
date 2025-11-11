@@ -299,17 +299,3 @@ export function createMcpServer(options: McpServerOptions) {
   };
 }
 
-/**
- * Helper function to create and run an MCP server.
- * This is a convenience function that creates a server, allows you to register tools,
- * and then connects it.
- */
-export async function runMcpServer(
-  options: McpServerOptions,
-  setup: (server: ReturnType<typeof createMcpServer>) => void | Promise<void>
-) {
-  const server = createMcpServer(options);
-  await setup(server);
-  await server.connect();
-}
-
