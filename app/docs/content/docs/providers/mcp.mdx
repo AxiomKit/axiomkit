@@ -13,21 +13,10 @@ In practice, MCP lets you:
 - Host them behind a standard server interface
 - Connect multiple agents/clients to reuse those tools
 
-## AxiomKit + MCP
-
-AxiomKit integrates MCP in two ways:
-- Provider for agents: `createMcpProvider(servers)` connects your agent to one or more MCP servers and exposes their tools as first-class agent actions.
-- Server helper: `createMcpServer(options)` lets you build an MCP server quickly with type-safe schemas (Zod v4 supported).
-
-### Exports
-- `createMcpProvider(servers)` from `@axiomkit/mcp`
-- `createMcpServer({ name, version })` from `@axiomkit/mcp`
-- Types and schemas: `McpServerConfig`, `McpClientConfig`, etc.
-
-## Install
+## Install Manually 
 
 ```bash
-pnpm add @axiomkit/mcp @modelcontextprotocol/sdk zod
+pnpm add @axiomkit/mcp zod
 ```
 
 If you run your server with TS at dev time:
@@ -36,33 +25,8 @@ If you run your server with TS at dev time:
 pnpm add -D tsx typescript
 ```
 
-## Quick Start: Connect an Agent to an MCP Server
+## Quick Start: Connect an Axiomkit MCP to claude 
 
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { createMcpProvider } from "@axiomkit/mcp";
-import { groq } from "@ai-sdk/groq";
-import path from "node:path";
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  providers: [
-    createMcpProvider([
-      {
-        id: "simple-server",
-        name: "Simple MCP Server",
-        transport: {
-          type: "stdio",
-          command: "npx",
-          args: ["-y", "tsx", path.join(__dirname, "mcp-simple-server.ts")],
-        },
-      },
-    ]),
-  ],
-});
-
-await agent.start();
-```
 
 **Note:** Using `npx -y tsx` ensures `tsx` is found even if not globally installed. The `-y` flag auto-accepts the package installation prompt.
 
@@ -121,117 +85,28 @@ main().catch((error) => {
   process.exit(1);
 });
 ```
-
-### Run the Server (dev)
-
-```bash
-npx tsx mcp-simple-server.ts
+## We can config axiomkit mcp with claude de config:
+```
+{
+  "mcpServers": {
+    "axiomkit-example": {
+    "command": "npx",
+      "args": [
+        "-y",
+        "tsx",
+        "/Users/karas/Desktop/Dev Karas/axiomkit/app/examples/mcp/mcp-simple-server.ts"
+      ],
+      "env": {
+        "PATH": "/Users/karas/.nvm/versions/node/v20.16.0/bin:/usr/local/bin:/usr/bin:/bin" // Example Config of Nodejs Path
+      }
+    },
+   
+  }
+}
 ```
 
-The server writes protocol traffic on stdout and logs on stderr, as required by MCP. Keep it running to allow clients to connect.
-
-## Connect Your Agent to the Simple Server
-
-Point the provider to the server entry using stdio. Use `npx` to ensure `tsx` is found:
-
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { createMcpProvider } from "@axiomkit/mcp";
-import { groq } from "@ai-sdk/groq";
-import path from "node:path";
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  providers: [
-    createMcpProvider([
-      {
-        id: "simple-server",
-        name: "Simple MCP Server",
-        transport: {
-          type: "stdio",
-          command: "npx",
-          args: ["-y", "tsx", path.join(__dirname, "mcp-simple-server.ts")],
-        },
-      },
-    ]),
-  ],
-});
-
-await agent.start();
-```
-
-When your agent runs, it can list MCP tools and invoke them as actions. The `createMcpProvider` handles connection lifecycle, retries, and safe execution.
-
-### Alternative: Using Local tsx Binary
-
-If `tsx` is installed locally in your project, you can use the full path:
-
-```typescript
-import { createAgent } from "@axiomkit/core";
-import { createMcpProvider } from "@axiomkit/mcp";
-import { groq } from "@ai-sdk/groq";
-import path from "node:path";
-
-// Get the path to local tsx binary
-const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
-
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  providers: [
-    createMcpProvider([
-      {
-        id: "simple-server",
-        name: "Simple MCP Server",
-        transport: {
-          type: "stdio",
-          command: tsxPath,
-          args: [path.join(__dirname, "mcp-simple-server.ts")],
-        },
-      },
-    ]),
-  ],
-});
-
-await agent.start();
-```
-
-## Implementation Notes
-
-- Transports: `stdio` is recommended for local development; `sse` is available for HTTP-based servers.
-- Schemas: Use Zod v4. The server adapts schemas for MCP SDK compatibility.
-- Logging: MCP servers must keep stdout clean for protocol messages; logs are routed to stderr.
-
-## Troubleshooting
-
-### "Executable not found in $PATH: tsx"
-
-This error occurs when `tsx` is not available in the system PATH. Solutions:
-
-1. **Use `npx` (Recommended):** Change your transport config to use `npx`:
-   ```typescript
-   transport: {
-     type: "stdio",
-     command: "npx",
-     args: ["-y", "tsx", path.join(__dirname, "mcp-simple-server.ts")],
-   }
-   ```
-
-2. **Install tsx globally:**
-   ```bash
-   npm install -g tsx
-   # or
-   pnpm add -g tsx
-   ```
-
-3. **Use local binary path:** Reference the local `node_modules/.bin/tsx` directly:
-   ```typescript
-   const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
-   transport: {
-     type: "stdio",
-     command: tsxPath,
-     args: [path.join(__dirname, "mcp-simple-server.ts")],
-   }
-   ```
+### Intergration MCP directly to Axiomkit Agent
+More than you can intergrate axiomkit mcp into the claude or cursor default config. 
 
 ### Other Common Issues
 

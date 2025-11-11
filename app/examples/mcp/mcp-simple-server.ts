@@ -22,7 +22,7 @@ server.tool("get_info", {}, async () => {
 server.tool(
   "echo",
   {
-    message: z.string().describe("Message to echo back"),
+    message: z.string().describe("The message to echo back to the user"),
   },
   async ({ message }) => {
     return {
@@ -37,11 +37,12 @@ server.tool(
 );
 
 // Simple math tool - using Zod schemas directly
+// This tool performs addition of two numbers
 server.tool(
   "add",
   {
-    a: z.number().describe("First number"),
-    b: z.number().describe("Second number"),
+    a: z.number().describe("The first number to add"),
+    b: z.number().describe("The second number to add"),
   },
   async ({ a, b }) => {
     const result = a + b;
