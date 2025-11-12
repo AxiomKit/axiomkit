@@ -7,7 +7,7 @@ import {
   input,
   validateEnv,
 } from "@axiomkit/core";
-import { AxiomSeiWallet } from "sei/dist";
+import { AxiomSeiWallet } from "@axiomkit/sei";
 
 import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";

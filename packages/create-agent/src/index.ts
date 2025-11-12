@@ -53,6 +53,7 @@ Examples:
 Available providers:
   cli       Command-line interface for terminal interactions
   telegram  Telegram bot for messaging and notifications
+  discord   Discord bot for community engagement
 
 Supported Models:
   groq      Groq's fast inference (free tier available)
@@ -150,7 +151,8 @@ export async function main(
       const { providers } = await prompts({
         type: "multiselect",
         name: "providers",
-        message: "Select providers to include",
+        message:
+          "Select providers to include (Space = select, Enter = continue)",
         choices: [
           {
             title: "CLI",
@@ -163,7 +165,7 @@ export async function main(
             description: "Telegram bot for messaging",
           },
         ],
-        hint: "Use space to select, enter to confirm",
+        hint: "Use Space to toggle, Enter to continue",
       });
 
       if (!providers || providers.length === 0) {

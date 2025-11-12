@@ -6,11 +6,12 @@ import {
   provider,
   input,
   validateEnv,
+  LogLevel,
 } from "@axiomkit/core";
-import { AxiomSeiWallet } from "sei/dist";
+import { AxiomSeiWallet } from "@axiomkit/sei";
 import { privateKeyToAccount } from "viem/accounts";
 import * as viemChains from "viem/chains";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 // --- Helpers ---
 const actionResponse = (content: string) => ({ data: { content }, content });
@@ -156,6 +157,7 @@ const seiProvider = provider({
 
 // --- Create & Start Agent ---
 const seiAxiom = createAgent({
+  logLevel: LogLevel.DISABLED,
   model: groq("meta-llama/llama-4-scout-17b-16e-instruct"),
   providers: [seiProvider],
 });

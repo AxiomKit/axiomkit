@@ -1,20 +1,20 @@
 export const BASEDEPS_AXIOMKIT = {
-  "@axiomkit/core": "^2.0.8",
-  ai: "^5.0.22",
-  chalk: "^5.4.1",
+  "@axiomkit/core": "^2.0.13",
+  ai: "^5.0.86",
+  chalk: "^5.3.0",
   typescript: "^5.8.3",
-  zod: "^4.0.16",
-  "@openrouter/ai-sdk-provider": "^1.1.0",
+  zod: "^4.1.12",
+  "@openrouter/ai-sdk-provider": "^1.2.0",
 };
 
 export const MODEL_DEPS_AXIOMKIT: Record<
   string,
   { pkg: string; version: string }
 > = {
-  groq: { pkg: "@ai-sdk/groq", version: "^2.0.14" },
-  openai: { pkg: "@ai-sdk/openai", version: "^ 2.0.20" },
-  anthropic: { pkg: "@ai-sdk/anthropic", version: "^2.0.6" },
-  google: { pkg: "@ai-sdk/google", version: "^2.0.8" },
+  groq: { pkg: "@ai-sdk/groq", version: "^2.0.27" },
+  openai: { pkg: "@ai-sdk/openai", version: "^2.0.60" },
+  anthropic: { pkg: "@ai-sdk/anthropic", version: "^2.0.40" },
+  google: { pkg: "@ai-sdk/google", version: "^2.0.14" },
 };
 
 export const MODEL_CONFIG = {
@@ -24,7 +24,7 @@ export const MODEL_CONFIG = {
     MODEL_IMPORT_PATH: "@ai-sdk/groq",
     ENV_VAR_KEY: "GROQ_API_KEY",
     MODEL_VARIABLE: "groq",
-    MODEL_VERSION: "deepseek-r1-distill-llama-70b",
+    MODEL_VERSION: "qwen/qwen3-32b",
   },
   openai: {
     MODEL_NAME: "OpenAI",

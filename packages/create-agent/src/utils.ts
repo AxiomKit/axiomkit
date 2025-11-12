@@ -37,14 +37,14 @@ export async function getConfiguredDependencies(
   const providerDependencies: Record<string, string> = {};
 
   if (selectedProviders.includes("cli")) {
-    providerDependencies["@axiomkit/cli"] = "^0.0.15";
+    providerDependencies["@axiomkit/cli"] = "^0.0.17";
   }
   if (selectedProviders.includes("discord")) {
-    providerDependencies["@axiomkit/discord"] = "^0.0.9";
+    providerDependencies["@axiomkit/discord"] = "^0.0.10";
     providerDependencies["discord.js"] = "^14.18.0";
   }
   if (selectedProviders.includes("telegram")) {
-    providerDependencies["@axiomkit/telegram"] = "^0.0.9";
+    providerDependencies["@axiomkit/telegram"] = "^0.0.10";
     providerDependencies["telegraf"] = "^4.16.3";
   }
 

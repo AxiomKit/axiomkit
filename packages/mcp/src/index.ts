@@ -1,5 +1,9 @@
-export { createMcpClient } from "./client";
+// Provider
 export { createMcpProvider } from "./provider";
+
+// Server
+export { createMcpServer } from "./server";
+export type { McpServerOptions, ToolSchema, ToolHandler } from "./server";
 
 // Types
 export type {
@@ -34,19 +38,3 @@ export {
   McpValidationError,
   McpErrorCodes,
 } from "./errors";
-
-// Utilities
-export {
-  safeMcpOperation,
-  getClientForServer,
-  validateServerConfig,
-  formatServerInfo,
-  createMcpErrorMessage,
-  hasCapability,
-  getSupportedCapabilities,
-  createConnectionSummary,
-  retryOperation,
-} from "./utils";
-
-// Connection Manager
-export { McpConnectionManager } from "./connection-manager";

@@ -1,36 +1,11 @@
-import fetch, { Request, Response } from "node-fetch";
-
-if (typeof globalThis.fetch === "undefined") {
-  globalThis.fetch = fetch as any;
-}
-if (typeof globalThis.Request === "undefined") {
-  globalThis.Request = Request as any;
-}
-if (typeof globalThis.Response === "undefined") {
-  globalThis.Response = Response as any;
-}
-
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { createMcpServer } from "@axiomkit/mcp";
 import { AxiomSeiWallet } from "@axiomkit/sei";
 import { type Address } from "viem";
 import { validateEnv } from "@axiomkit/core";
 import * as z from "zod";
-
-// IMPORTANT: Ensure stdout is reserved for MCP JSON only.
-// Redirect all non-error console output to stderr to avoid breaking MCP protocol.
-const originalError = console.error.bind(console);
-const redirectToStderr =
-  (fnName: "log" | "info" | "warn" | "debug") =>
-  (...args: any[]) =>
-    originalError(...args);
-console.log = redirectToStderr("log");
-console.info = redirectToStderr("info");
-console.warn = redirectToStderr("warn");
-console.debug = redirectToStderr("debug");
-
+import { seiTestnet } from "viem/chains";
 // Create an MCP server for SEI blockchain operations
-const server = new McpServer({
+const server = createMcpServer({
   name: "SEI MCP Agent",
   version: "1.0.0",
 });
@@ -53,6 +28,7 @@ function initializeSeiWallet() {
     seiWallet = new AxiomSeiWallet({
       rpcUrl,
       privateKey: privateKey as `0x${string}`,
+      chain: seiTestnet,
     });
     console.error(
       `SEI wallet initialized for address: ${seiWallet.walletAdress}`
@@ -268,9 +244,7 @@ async function main() {
     );
   }
 
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("SEI MCP Server running on stdio");
+  await server.connect();
 }
 
 main().catch((error) => {

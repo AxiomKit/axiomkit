@@ -1,4 +1,125 @@
 ---
 title: Discord  
-description: Complete Axiom with Telegram
+description: Complete Axiom with Discord
 ---
+
+### Overview
+This example shows how to connect an Axiom agent to Discord using `@axiomkit/discord`. You will create a simple bot that replies in channels or DMs using a Groq model.
+
+### Prerequisites
+- **Discord Bot Token**: Create a bot in the Discord Developer Portal, add a bot user, and copy the token (`DISCORD_BOT_TOKEN`).
+- **Bot Name**: Set the name you want your bot to use (`DISCORD_BOT_NAME`).
+- **Groq API Key**: Create a Groq account and generate an API key (`GROQ_API_KEY`).
+
+### Install
+Using pnpm:
+
+```bash
+pnpm add @axiomkit/core @axiomkit/discord @axiomkit/cli @ai-sdk/groq zod
+```
+
+### Environment
+Set the following environment variables in file .env before running your bot:
+
+```bash
+DISCORD_BOT_TOKEN=YOUR_DISCORD_BOT_TOKEN
+DISCORD_BOT_NAME=YOUR_BOT_DISPLAY_NAME
+GROQ_API_KEY=YOUR_GROQ_API_KEY
+# Optional: enable attachment processing in inputs/outputs
+PROCESS_ATTACHMENTS=false
+```
+
+### Minimal bot
+Create a file like `example-discord.ts` with the following content:
+
+```ts
+import {
+  createContainer,
+  createAgent,
+  LogLevel,
+  validateEnv,
+  Logger,
+  context,
+} from "@axiomkit/core";
+import * as z from "zod/v4";
+import { discord } from "@axiomkit/discord";
+import { groq } from "@ai-sdk/groq";
+
+// Validate environment before proceeding
+const env = validateEnv(
+  z.object({
+    GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is required"),
+    DISCORD_BOT_TOKEN: z.string().min(1, "DISCORD_BOT_TOKEN is required"),
+    DISCORD_BOT_NAME: z.string().min(1, "DISCORD_BOT_NAME is required"),
+  })
+);
+
+const container = createContainer();
+const discordContext = context({
+  type: "discord-context",
+  instructions: `You are a helpful Discord bot assistant. Your Name is ${env.DISCORD_BOT_NAME}. You will respond to messages in a friendly and helpful manner.
+
+IMPORTANT: When responding to Discord messages, always output clean, natural text. Do NOT output JSON or code blocks unless specifically requested.
+
+Guidelines:
+- Keep responses conversational and friendly
+- Use Discord formatting sparingly (bold, italic, etc.) when appropriate
+- If someone asks for help with code, provide clear explanations
+- For long responses, break them into multiple messages naturally
+- Use emojis occasionally to make responses more engaging
+- If someone shares an image or file, acknowledge it appropriately
+- Be helpful but concise
+- Don't Reply JSON like  {"content": "Hey !  What's up?"}
+  
+Current context: You're in a Discord channel. Respond naturally as if chatting with friends.`,
+});
+const agent = createAgent({
+  logger: new Logger({ level: LogLevel.DEBUG }),
+  context: discordContext,
+  model: groq("gemma2-9b-it"),
+  providers: [discord],
+  container,
+});
+
+console.log("Starting Axiomkit Discord Bot...");
+await agent.start({
+  id: "discord-bot",
+});
+console.log("Axiomkit Discord Bot started");
+```
+
+Run the script with your preferred TypeScript runner (e.g., `tsx`, `ts-node`, or `bun`):
+
+```bash
+npx tsx example-discord.ts
+```
+
+### How messages flow
+- **Input**: Incoming Discord messages are mapped to input `discord:message` with params `userId`, `username`, and a flag `hasAttachments`. The input `data` contains `text` and optional `attachments`.
+- **Output (text)**: Your agent can send messages by emitting output `discord:message` with a plain string.
+- **Output (attachments)**: If `PROCESS_ATTACHMENTS=true`, your agent can emit `discord:message-with-attachments` with a JSON payload containing `content` and an `attachments` array of `{ url, filename?, description? }`.
+
+Example outputs your agent can produce:
+
+```xml
+<output type="discord:message">Hi!</output>
+```
+
+```xml
+<output type="discord:message-with-attachments">
+  {
+    "content": "Here's the image you requested!",
+    "attachments": [
+      {
+        "url": "https://example.com/image.jpg",
+        "filename": "result.jpg",
+        "description": "Generated image"
+      }
+    ]
+  }
+</output>
+```
+
+### Notes
+- Messages longer than ~1500 characters are automatically split and sent in multiple parts.
+- DMs and guild text channels are supported.

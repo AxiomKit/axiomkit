@@ -19,6 +19,7 @@
         "token-operations",
         "smart-contracts",
         "---INTEGRATIONS---",
-        "providers-integrations"
+        "providers-integrations",
+        "x402-sei"
     ]
 }

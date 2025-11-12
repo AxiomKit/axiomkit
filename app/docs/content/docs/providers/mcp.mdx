@@ -1,99 +1,122 @@
 ---
-title: MCP 
-description: Model Context Protocol integration for tool and resource access
-icon: Cable
+title: MCP Intergration
+description: MCP Intergration With Axiomkit
+icon: Terminal
 ---
 
-# @axiomkit/mcp
+## What is MCP?
 
-Model Context Protocol (MCP) integration for accessing external tools and resources.
+The Model Context Protocol (MCP) is an open protocol that allows AI agents to discover and use external capabilities in a consistent way. MCP servers expose capabilities like tools, prompts, and resources over a transport (stdio or SSE). Clients connect to an MCP server, enumerate its capabilities, and invoke tools via a schema-validated interface.
 
-## Installation
+In practice, MCP lets you:
+- Define command-like tools with structured input/output
+- Host them behind a standard server interface
+- Connect multiple agents/clients to reuse those tools
+
+## Install Manually 
 
 ```bash
-pnpm add @axiomkit/mcp @modelcontextprotocol/sdk
+pnpm add @axiomkit/mcp zod
 ```
 
-## Quick Start
+If you run your server with TS at dev time:
+
+```bash
+pnpm add -D tsx typescript
+```
+
+## Quick Start: Connect an Axiomkit MCP to claude 
+
+
+**Note:** Using `npx -y tsx` ensures `tsx` is found even if not globally installed. The `-y` flag auto-accepts the package installation prompt.
+
+## Build a Simple MCP Server
+
+Create a server using `createMcpServer`. The example below exposes three tools: `get_info`, `echo`, and `add`.
 
 ```typescript
-import { createAgent } from "@axiomkit/core";
-import { mcpExtension } from "@axiomkit/mcp";
-import { groq } from "@ai-sdk/groq";
+// mcp-simple-server.ts
+import { createMcpServer } from "@axiomkit/mcp";
+import * as z from "zod";
 
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  providers: [mcpExtension],
-  config: {
-    mcp: {
-      servers: [
-        {
-          name: "filesystem",
-          command: "npx",
-          args: ["@modelcontextprotocol/server-filesystem"],
-        },
-      ],
-    },
-  },
+const server = createMcpServer({
+  name: "Simple MCP Test Server",
+  version: "1.0.0",
 });
 
-await agent.start();
+// No-arg tool
+server.tool("get_info", {}, async () => {
+  return {
+    content: [
+      { type: "text", text: "Hello from AxiomKit MCP! This server is working correctly." },
+    ],
+  };
+});
+
+// Echo tool with schema
+server.tool(
+  "echo",
+  { message: z.string().describe("Message to echo back") },
+  async ({ message }) => {
+    return { content: [{ type: "text", text: `Echo: ${message}` }] };
+  }
+);
+
+// Simple math tool
+server.tool(
+  "add",
+  {
+    a: z.number().describe("First number"),
+    b: z.number().describe("Second number"),
+  },
+  async ({ a, b }) => {
+    const result = a + b;
+    return { content: [{ type: "text", text: `${a} + ${b} = ${result}` }] };
+  }
+);
+
+async function main() {
+  console.error("Simple MCP Test Server starting...");
+  await server.connect(); // stdio transport by default
+}
+
+main().catch((error) => {
+  console.error("Fatal error in main():", error);
+  process.exit(1);
+});
 ```
-
-## Configuration
-
-```typescript
-interface MCPConfig {
-  servers: MCPServer[];     // MCP servers to connect to
-  timeout?: number;         // Connection timeout
-  retries?: number;         // Retry attempts
+## We can config axiomkit mcp with claude de config:
+```
+{
+  "mcpServers": {
+    "axiomkit-example": {
+    "command": "npx",
+      "args": [
+        "-y",
+        "tsx",
+        "~/mcp-simple-server.ts" // pwd to the file example
+      ],
+      "env": {
+        "PATH": "/Users/your_cmc/.nvm/versions/node/v20.16.0/bin:/usr/local/bin:/usr/bin:/bin" // Example Config of Nodejs Path
+      }
+    },
+   
+  }
 }
 ```
 
-## Examples
+### Intergration MCP directly to Axiomkit Agent
+More than you can intergrate axiomkit mcp into the claude or cursor default config. 
 
-### File System Access
+### Other Common Issues
 
-```typescript
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  providers: [mcpExtension],
-  config: {
-    mcp: {
-      servers: [
-        {
-          name: "filesystem",
-          command: "npx",
-          args: ["@modelcontextprotocol/server-filesystem"],
-        },
-      ],
-    },
-  },
-});
-```
-
-### Web Access
-
-```typescript
-const agent = createAgent({
-  model: groq("gemma2-9b-it"),
-  providers: [mcpExtension],
-  config: {
-    mcp: {
-      servers: [
-        {
-          name: "web",
-          command: "npx",
-          args: ["@modelcontextprotocol/server-web"],
-        },
-      ],
-    },
-  },
-});
-```
+- **No tools visible:** Ensure your server is running and the transport command/path is correct.
+- **Schema errors:** Verify Zod types and that arguments match tool schemas.
+- **Stdio hangs:** Confirm the command is resolvable and that the process remains running (no premature exit).
+- **Connection retries:** Check server logs (stderr) for startup errors. The provider will retry up to 3 times by default.
 
 ## Next Steps
 
-- [Core Package](/docs/packages/core) - Learn about the core framework
-- [CLI Extension](/docs/packages/cli) - Build terminal-based agents
-- [Advanced Features](/docs/framework/architecture) - Explore advanced concepts
+- Extend the server with domain tools (web, filesystem, blockchain, etc.)
+- Run multiple MCP servers and register them all via `createMcpProvider([...])`
+- Explore the examples under `app/examples/mcp/` for more patterns
