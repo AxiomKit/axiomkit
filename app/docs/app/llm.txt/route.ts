@@ -33,7 +33,6 @@ async function processContent(content: string): Promise<string> {
   const file = await remark()
     .use(remarkMdx)
     .use(remarkInclude)
-    // gfm styles
     .use(remarkGfm)
     .use(remarkStringify) // to string
     .process(content);

@@ -2,6 +2,7 @@
     "pages": [
         "framework",
         "providers",
+        "v2",
         "sei",
         "examples"
     ]

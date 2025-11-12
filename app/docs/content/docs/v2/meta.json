@@ -1,0 +1,10 @@
+{
+    "title": "X402 Payment Protocol",
+    "description": "Build AI agents that handle HTTP 402 Payment Required flows with blockchain micropayments",
+    "icon": "Coins",
+    "root": true,
+    "pages": [
+        "index",
+        "erc8004"
+    ]
+}
