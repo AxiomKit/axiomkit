@@ -26,7 +26,7 @@ catalogs:
       version: 1.2.11
     '@types/bun':
       specifier: latest
-      version: 1.3.3
+      version: 1.3.4
     '@vitest/ui':
       specifier: 3.2.4
       version: 3.2.4
@@ -128,22 +128,22 @@ importers:
         version: 3.3.3
       fumadocs-core:
         specifier: 15.6.10
-        version: 15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        version: 15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       fumadocs-mdx:
         specifier: 11.5.7
-        version: 11.5.7(acorn@8.15.0)(fumadocs-core@15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
+        version: 11.5.7(acorn@8.15.0)(fumadocs-core@15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
       fumadocs-openapi:
         specifier: 9.1.12
-        version: 9.1.12(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
+        version: 9.1.12(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
       fumadocs-twoslash:
         specifier: 3.1.6
-        version: 3.1.6(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(fumadocs-ui@15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+        version: 3.1.6(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(fumadocs-ui@15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       fumadocs-typescript:
         specifier: 4.0.6
         version: 4.0.6(@types/react@19.1.9)(typescript@5.9.2)
       fumadocs-ui:
         specifier: 15.6.10
-        version: 15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
+        version: 15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -154,8 +154,8 @@ importers:
         specifier: ^0.484.0
         version: 0.484.0(react@19.1.1)
       next:
-        specifier: 15.4.8
-        version: 15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: 15.4.10
+        version: 15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       pnpm:
         specifier: 10.14.0
         version: 10.14.0
@@ -386,7 +386,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
-        version: 1.3.3
+        version: 1.3.4
 
   app/examples/supabase:
     dependencies:
@@ -453,7 +453,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
-        version: 1.3.3
+        version: 1.3.4
 
   app/examples/test-demo:
     dependencies:
@@ -511,7 +511,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
-        version: 1.3.3
+        version: 1.3.4
       tsup:
         specifier: 'catalog:'
         version: 8.5.0(jiti@2.5.1)(postcss@8.5.6)(tsx@4.20.3)(typescript@5.9.2)(yaml@2.8.0)
@@ -637,7 +637,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: latest
-        version: 1.3.3
+        version: 1.3.4
       tsup:
         specifier: 'catalog:'
         version: 8.5.0(jiti@2.5.1)(postcss@8.5.6)(tsx@4.20.3)(typescript@5.9.2)(yaml@2.8.0)
@@ -662,7 +662,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: latest
-        version: 1.3.3
+        version: 1.3.4
       tsup:
         specifier: 'catalog:'
         version: 8.5.0(jiti@2.5.1)(postcss@8.5.6)(tsx@4.20.3)(typescript@5.9.2)(yaml@2.8.0)
@@ -690,7 +690,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: latest
-        version: 1.3.3
+        version: 1.3.4
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -758,7 +758,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
-        version: 1.3.3
+        version: 1.3.4
       tsup:
         specifier: 'catalog:'
         version: 8.5.0(jiti@2.5.1)(postcss@8.5.6)(tsx@4.20.3)(typescript@5.9.2)(yaml@2.8.0)
@@ -786,7 +786,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: 'catalog:'
-        version: 1.3.3
+        version: 1.3.4
       tsup:
         specifier: 'catalog:'
         version: 8.5.0(jiti@2.5.1)(postcss@8.5.6)(tsx@4.20.3)(typescript@5.9.2)(yaml@2.8.0)
@@ -1763,9 +1763,11 @@ packages:
   '@mongodb-js/saslprep@1.3.0':
     resolution: {integrity: sha512-zlayKCsIjYb7/IdfqxorK5+xUMyi4vOKcFy10wKJYc63NSdKI8mNME+uJqfatkPmOSMMUiojrL58IePKBm3gvQ==}
 
-  '@next/env@15.4.8':
-    resolution: {integrity: sha512-LydLa2MDI1NMrOFSkO54mTc8iIHSttj6R6dthITky9ylXV2gCGi0bHQjVCtLGRshdRPjyh2kXbxJukDtBWQZtQ==}
+  '@next/env@15.4.10':
+    resolution: {integrity: sha512-knhmoJ0Vv7VRf6pZEPSnciUG1S4bIhWx+qTYBW/AjxEtlzsiNORPk8sFDCEvqLfmKuey56UB9FL1UdHEV3uBrg==}
 
+  '@next/swc-darwin-arm64@15.4.8':
+    resolution: {integrity: sha512-Pf6zXp7yyQEn7sqMxur6+kYcywx5up1J849psyET7/8pG2gQTVMjU3NzgIt8SeEP5to3If/SaWmaA6H6ysBr1A==}
   '@next/swc-darwin-arm64@15.4.8':
     resolution: {integrity: sha512-Pf6zXp7yyQEn7sqMxur6+kYcywx5up1J849psyET7/8pG2gQTVMjU3NzgIt8SeEP5to3If/SaWmaA6H6ysBr1A==}
     engines: {node: '>= 10'}
@@ -1774,10 +1776,14 @@ packages:
 
   '@next/swc-darwin-x64@15.4.8':
     resolution: {integrity: sha512-xla6AOfz68a6kq3gRQccWEvFC/VRGJmA/QuSLENSO7CZX5WIEkSz7r1FdXUjtGCQ1c2M+ndUAH7opdfLK1PQbw==}
+  '@next/swc-darwin-x64@15.4.8':
+    resolution: {integrity: sha512-xla6AOfz68a6kq3gRQccWEvFC/VRGJmA/QuSLENSO7CZX5WIEkSz7r1FdXUjtGCQ1c2M+ndUAH7opdfLK1PQbw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
+  '@next/swc-linux-arm64-gnu@15.4.8':
+    resolution: {integrity: sha512-y3fmp+1Px/SJD+5ntve5QLZnGLycsxsVPkTzAc3zUiXYSOlTPqT8ynfmt6tt4fSo1tAhDPmryXpYKEAcoAPDJw==}
   '@next/swc-linux-arm64-gnu@15.4.8':
     resolution: {integrity: sha512-y3fmp+1Px/SJD+5ntve5QLZnGLycsxsVPkTzAc3zUiXYSOlTPqT8ynfmt6tt4fSo1tAhDPmryXpYKEAcoAPDJw==}
     engines: {node: '>= 10'}
@@ -1786,10 +1792,14 @@ packages:
 
   '@next/swc-linux-arm64-musl@15.4.8':
     resolution: {integrity: sha512-DX/L8VHzrr1CfwaVjBQr3GWCqNNFgyWJbeQ10Lx/phzbQo3JNAxUok1DZ8JHRGcL6PgMRgj6HylnLNndxn4Z6A==}
+  '@next/swc-linux-arm64-musl@15.4.8':
+    resolution: {integrity: sha512-DX/L8VHzrr1CfwaVjBQr3GWCqNNFgyWJbeQ10Lx/phzbQo3JNAxUok1DZ8JHRGcL6PgMRgj6HylnLNndxn4Z6A==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
+  '@next/swc-linux-x64-gnu@15.4.8':
+    resolution: {integrity: sha512-9fLAAXKAL3xEIFdKdzG5rUSvSiZTLLTCc6JKq1z04DR4zY7DbAPcRvNm3K1inVhTiQCs19ZRAgUerHiVKMZZIA==}
   '@next/swc-linux-x64-gnu@15.4.8':
     resolution: {integrity: sha512-9fLAAXKAL3xEIFdKdzG5rUSvSiZTLLTCc6JKq1z04DR4zY7DbAPcRvNm3K1inVhTiQCs19ZRAgUerHiVKMZZIA==}
     engines: {node: '>= 10'}
@@ -1798,16 +1808,22 @@ packages:
 
   '@next/swc-linux-x64-musl@15.4.8':
     resolution: {integrity: sha512-s45V7nfb5g7dbS7JK6XZDcapicVrMMvX2uYgOHP16QuKH/JA285oy6HcxlKqwUNaFY/UC6EvQ8QZUOo19cBKSA==}
+  '@next/swc-linux-x64-musl@15.4.8':
+    resolution: {integrity: sha512-s45V7nfb5g7dbS7JK6XZDcapicVrMMvX2uYgOHP16QuKH/JA285oy6HcxlKqwUNaFY/UC6EvQ8QZUOo19cBKSA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
   '@next/swc-win32-arm64-msvc@15.4.8':
     resolution: {integrity: sha512-KjgeQyOAq7t/HzAJcWPGA8X+4WY03uSCZ2Ekk98S9OgCFsb6lfBE3dbUzUuEQAN2THbwYgFfxX2yFTCMm8Kehw==}
+  '@next/swc-win32-arm64-msvc@15.4.8':
+    resolution: {integrity: sha512-KjgeQyOAq7t/HzAJcWPGA8X+4WY03uSCZ2Ekk98S9OgCFsb6lfBE3dbUzUuEQAN2THbwYgFfxX2yFTCMm8Kehw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
+  '@next/swc-win32-x64-msvc@15.4.8':
+    resolution: {integrity: sha512-Exsmf/+42fWVnLMaZHzshukTBxZrSwuuLKFvqhGHJ+mC1AokqieLY/XzAl3jc/CqhXLqLY3RRjkKJ9YnLPcRWg==}
   '@next/swc-win32-x64-msvc@15.4.8':
     resolution: {integrity: sha512-Exsmf/+42fWVnLMaZHzshukTBxZrSwuuLKFvqhGHJ+mC1AokqieLY/XzAl3jc/CqhXLqLY3RRjkKJ9YnLPcRWg==}
     engines: {node: '>= 10'}
@@ -2581,8 +2597,8 @@ packages:
   '@ts-morph/common@0.27.0':
     resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==}
 
-  '@types/bun@1.3.3':
-    resolution: {integrity: sha512-ogrKbJ2X5N0kWLLFKeytG0eHDleBYtngtlbu9cyBKFtNL3cnpDZkNdQj8flVf6WTZUX5ulI9AY1oa7ljhSrp+g==}
+  '@types/bun@1.3.4':
+    resolution: {integrity: sha512-EEPTKXHP+zKGPkhRLv+HI0UEX8/o+65hqARxLy8Ov5rIxMBPNTjeZww00CIihrIQGEQBYg+0roO5qOnS/7boGA==}
 
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==}
@@ -2899,8 +2915,8 @@ packages:
   buffer-fill@1.0.0:
     resolution: {integrity: sha512-T7zexNBwiiaCOGDg9xNX9PBmjrubblRkENuptryuI64URkXDFum9il/JGL8Lm8wYfAXpredVXXZz7eMHilimiQ==}
 
-  bun-types@1.3.3:
-    resolution: {integrity: sha512-z3Xwlg7j2l9JY27x5Qn3Wlyos8YAp0kKRlrePAOjgjMGS5IG6E7Jnlx736vH9UVI4wUICwwhC9anYL++XeOgTQ==}
+  bun-types@1.3.4:
+    resolution: {integrity: sha512-5ua817+BZPZOlNaRgGBpZJOSAQ9RQ17pkwPD0yR7CfJg+r8DgIILByFifDTa+IPDDxzf5VNhtNlcKqFzDgJvlQ==}
 
   bundle-require@5.1.0:
     resolution: {integrity: sha512-3WrrOuZiyaaZPWiEt4G3+IffISVC9HYlWueJEBWED4ZH4aIAC2PnkdnuRrR94M+w6yGWn4AglWtJtBI8YqvgoA==}
@@ -4288,8 +4304,8 @@ packages:
       react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
       react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
 
-  next@15.4.8:
-    resolution: {integrity: sha512-jwOXTz/bo0Pvlf20FSb6VXVeWRssA2vbvq9SdrOPEg9x8E1B27C2rQtvriAn600o9hH61kjrVRexEffv3JybuA==}
+  next@15.4.10:
+    resolution: {integrity: sha512-itVlc79QjpKMFMRhP+kbGKaSG/gZM6RCvwhEbwmCNF06CdDiNaoHcbeg0PqkEa2GOcn8KJ0nnc7+yL7EjoYLHQ==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
     hasBin: true
     peerDependencies:
@@ -6085,29 +6101,37 @@ snapshots:
     dependencies:
       sparse-bitfield: 3.0.3
 
-  '@next/env@15.4.8': {}
+  '@next/env@15.4.10': {}
 
+  '@next/swc-darwin-arm64@15.4.8':
   '@next/swc-darwin-arm64@15.4.8':
     optional: true
 
   '@next/swc-darwin-x64@15.4.8':
+  '@next/swc-darwin-x64@15.4.8':
     optional: true
 
+  '@next/swc-linux-arm64-gnu@15.4.8':
   '@next/swc-linux-arm64-gnu@15.4.8':
     optional: true
 
   '@next/swc-linux-arm64-musl@15.4.8':
+  '@next/swc-linux-arm64-musl@15.4.8':
     optional: true
 
+  '@next/swc-linux-x64-gnu@15.4.8':
   '@next/swc-linux-x64-gnu@15.4.8':
     optional: true
 
   '@next/swc-linux-x64-musl@15.4.8':
+  '@next/swc-linux-x64-musl@15.4.8':
     optional: true
 
   '@next/swc-win32-arm64-msvc@15.4.8':
+  '@next/swc-win32-arm64-msvc@15.4.8':
     optional: true
 
+  '@next/swc-win32-x64-msvc@15.4.8':
   '@next/swc-win32-x64-msvc@15.4.8':
     optional: true
 
@@ -6889,9 +6913,9 @@ snapshots:
       minimatch: 10.0.3
       path-browserify: 1.0.1
 
-  '@types/bun@1.3.3':
+  '@types/bun@1.3.4':
     dependencies:
-      bun-types: 1.3.3
+      bun-types: 1.3.4
 
   '@types/chai@5.2.2':
     dependencies:
@@ -6961,7 +6985,8 @@ snapshots:
 
   '@types/node@24.10.1':
     dependencies:
-      undici-types: 7.16.0
+      undici-types: 7.14.0
+    optional: true
 
   '@types/phoenix@1.6.6': {}
 
@@ -6994,7 +7019,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 20.19.9
 
   '@typescript/vfs@1.6.1(typescript@5.9.2)':
     dependencies:
@@ -7259,9 +7284,9 @@ snapshots:
 
   buffer-fill@1.0.0: {}
 
-  bun-types@1.3.3:
+  bun-types@1.3.4:
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 20.19.9
 
   bundle-require@5.1.0(esbuild@0.25.8):
     dependencies:
@@ -7909,7 +7934,7 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  fumadocs-core@15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+  fumadocs-core@15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
       '@formatjs/intl-localematcher': 0.6.1
       '@orama/orama': 3.1.11
@@ -7930,13 +7955,13 @@ snapshots:
       unist-util-visit: 5.0.0
     optionalDependencies:
       '@types/react': 19.1.9
-      next: 15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      next: 15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
     transitivePeerDependencies:
       - supports-color
 
-  fumadocs-mdx@11.5.7(acorn@8.15.0)(fumadocs-core@15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)):
+  fumadocs-mdx@11.5.7(acorn@8.15.0)(fumadocs-core@15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)):
     dependencies:
       '@mdx-js/mdx': 3.1.0(acorn@8.15.0)
       '@standard-schema/spec': 1.0.0
@@ -7945,16 +7970,16 @@ snapshots:
       esbuild: 0.25.8
       estree-util-value-to-estree: 3.4.0
       fast-glob: 3.3.3
-      fumadocs-core: 15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      fumadocs-core: 15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       gray-matter: 4.0.3
-      next: 15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      next: 15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       unist-util-visit: 5.0.0
       zod: 3.25.23
     transitivePeerDependencies:
       - acorn
       - supports-color
 
-  fumadocs-openapi@9.1.12(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11):
+  fumadocs-openapi@9.1.12(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11):
     dependencies:
       '@fumari/json-schema-to-typescript': 1.1.3
       '@radix-ui/react-accordion': 1.2.11(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -7964,8 +7989,8 @@ snapshots:
       '@scalar/openapi-parser': 0.18.3
       ajv: 8.17.1
       class-variance-authority: 0.7.1
-      fumadocs-core: 15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      fumadocs-ui: 15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
+      fumadocs-core: 15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      fumadocs-ui: 15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
       github-slugger: 2.0.0
       hast-util-to-jsx-runtime: 2.3.6
       js-yaml: 4.1.0
@@ -7991,11 +8016,11 @@ snapshots:
       - supports-color
       - tailwindcss
 
-  fumadocs-twoslash@3.1.6(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(fumadocs-ui@15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2):
+  fumadocs-twoslash@3.1.6(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(fumadocs-ui@15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2):
     dependencies:
       '@radix-ui/react-popover': 1.1.14(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@shikijs/twoslash': 3.11.0(typescript@5.9.2)
-      fumadocs-ui: 15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
+      fumadocs-ui: 15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11)
       mdast-util-from-markdown: 2.0.2
       mdast-util-gfm: 3.1.0
       mdast-util-to-hast: 13.2.0
@@ -8028,7 +8053,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fumadocs-ui@15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11):
+  fumadocs-ui@15.6.10(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(tailwindcss@4.1.11):
     dependencies:
       '@radix-ui/react-accordion': 1.2.11(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@radix-ui/react-collapsible': 1.1.11(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -8041,7 +8066,7 @@ snapshots:
       '@radix-ui/react-slot': 1.2.3(@types/react@19.1.9)(react@19.1.1)
       '@radix-ui/react-tabs': 1.1.12(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       class-variance-authority: 0.7.1
-      fumadocs-core: 15.6.10(@types/react@19.1.9)(next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      fumadocs-core: 15.6.10(@types/react@19.1.9)(next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       lodash.merge: 4.6.2
       next-themes: 0.4.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       postcss-selector-parser: 7.1.0
@@ -8052,7 +8077,7 @@ snapshots:
       tailwind-merge: 3.3.1
     optionalDependencies:
       '@types/react': 19.1.9
-      next: 15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      next: 15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       tailwindcss: 4.1.11
     transitivePeerDependencies:
       - '@mixedbread/sdk'
@@ -9055,9 +9080,9 @@ snapshots:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
 
-  next@15.4.8(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+  next@15.4.10(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
-      '@next/env': 15.4.8
+      '@next/env': 15.4.10
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001759
       postcss: 8.4.31
@@ -9065,6 +9090,14 @@ snapshots:
       react-dom: 19.1.1(react@19.1.1)
       styled-jsx: 5.1.6(react@19.1.1)
     optionalDependencies:
+      '@next/swc-darwin-arm64': 15.4.8
+      '@next/swc-darwin-x64': 15.4.8
+      '@next/swc-linux-arm64-gnu': 15.4.8
+      '@next/swc-linux-arm64-musl': 15.4.8
+      '@next/swc-linux-x64-gnu': 15.4.8
+      '@next/swc-linux-x64-musl': 15.4.8
+      '@next/swc-win32-arm64-msvc': 15.4.8
+      '@next/swc-win32-x64-msvc': 15.4.8
       '@next/swc-darwin-arm64': 15.4.8
       '@next/swc-darwin-x64': 15.4.8
       '@next/swc-linux-arm64-gnu': 15.4.8
@@ -9998,7 +10031,8 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici-types@7.16.0: {}
+  undici-types@7.14.0:
+    optional: true
 
   undici-types@7.8.0: {}
 
